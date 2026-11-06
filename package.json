@@ -4,7 +4,9 @@
   "description": "cozy desktop sleep companion & aesthetic sound player",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "node copy-www.js",
+    "cap:sync": "node copy-www.js && npx cap sync android"
   },
   "keywords": [
     "sleep",
@@ -18,5 +20,10 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^40.8.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0"
   }
 }

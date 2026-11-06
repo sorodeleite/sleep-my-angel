@@ -1060,3 +1060,120 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
+
+.profile-avatar-wrapper {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  cursor: pointer;
+}
+
+.avatar-edit-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.profile-avatar-wrapper:hover .avatar-edit-overlay {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .titlebar {
+    height: 44px;
+    padding: 0 16px;
+    padding-top: env(safe-area-inset-top, 0);
+  }
+  
+  .window-controls {
+    display: none;
+  }
+  
+  .top-mello-widget {
+    padding: 10px 14px;
+  }
+  
+  .retro-window-frame {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .mello-fields {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .field-input {
+    width: 85px;
+  }
+  
+  .nav-tabs {
+    padding: 0 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .nav-tab-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  
+  .tab-content-area {
+    padding: 16px 14px 130px 14px;
+  }
+  
+  .spotify-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .spotify-actions {
+    width: 100%;
+  }
+  
+  .search-box {
+    flex: 1;
+    width: auto;
+  }
+  
+  .music-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .bottom-player {
+    height: auto;
+    padding: 10px 14px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0));
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .player-left {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .player-center {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .player-right {
+    display: none;
+  }
+}
+

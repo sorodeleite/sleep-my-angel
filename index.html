@@ -30,10 +30,18 @@
       <section class="top-mello-widget">
         <div class="retro-window-frame">
           <div class="profile-card">
-            <div class="profile-avatar-wrapper">
-              <img src="assets/icon/38f3b2b5d4fcc838e12253d7235e8e65.jpg" alt="Odette" class="profile-avatar">
+            <div class="profile-avatar-wrapper" id="avatar-container" title="Toque para trocar sua foto de perfil">
+              <img src="assets/icon/38f3b2b5d4fcc838e12253d7235e8e65.jpg" alt="Profile" class="profile-avatar" id="profile-avatar-img">
               <span class="status-dot"></span>
+              <div class="avatar-edit-overlay">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+              </div>
             </div>
+            <input type="file" id="avatar-file-input" accept="image/*" style="display:none;">
+            <input type="file" id="mobile-audio-input" accept="audio/*" multiple style="display:none;">
             <div class="profile-info">
               <h2>sleep my angel</h2>
               <p>dolly girl ‧ law of assumption</p>

@@ -274,7 +274,7 @@ function playTrack(index) {
 
   stopSynthesizer();
 
-  if (track.fileUrl && track.fileUrl.startsWith('file://')) {
+  if (track.fileUrl && (track.fileUrl.startsWith('file://') || track.fileUrl.startsWith('blob:') || track.fileUrl.startsWith('http'))) {
     audioPlayer.src = track.fileUrl;
     audioPlayer.play().then(() => {
       updatePlayButton(true);
@@ -400,13 +400,61 @@ document.getElementById('library-search')?.addEventListener('input', () => {
   renderTrackGrid();
 });
 
-document.getElementById('btn-open-folder')?.addEventListener('click', async () => {
-  if (!window.api) return;
-  const custom = await window.api.selectAudioFolder();
-  if (custom && custom.length > 0) {
-    allTracks.push(...custom);
-    renderTrackGrid();
+const avatarContainer = document.getElementById('avatar-container');
+const avatarInput = document.getElementById('avatar-file-input');
+const profileAvatarImg = document.getElementById('profile-avatar-img');
+const mobileAudioInput = document.getElementById('mobile-audio-input');
+
+function initAvatar() {
+  const savedAvatar = localStorage.getItem('user_avatar');
+  if (savedAvatar && profileAvatarImg) {
+    profileAvatarImg.src = savedAvatar;
   }
+}
+
+avatarContainer?.addEventListener('click', () => {
+  avatarInput?.click();
+});
+
+avatarInput?.addEventListener('change', (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const dataUrl = event.target?.result;
+    if (dataUrl && profileAvatarImg) {
+      profileAvatarImg.src = dataUrl;
+      localStorage.setItem('user_avatar', dataUrl);
+    }
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('btn-open-folder')?.addEventListener('click', async () => {
+  if (window.api) {
+    const custom = await window.api.selectAudioFolder();
+    if (custom && custom.length > 0) {
+      allTracks.push(...custom);
+      renderTrackGrid();
+    }
+  } else {
+    mobileAudioInput?.click();
+  }
+});
+
+mobileAudioInput?.addEventListener('change', (e) => {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  files.forEach(file => {
+    allTracks.push({
+      id: `mobile-${file.name}-${Date.now()}`,
+      title: file.name.replace(/\.(m4a|mp3|wav|ogg)$/i, '').replace(/_/g, ' '),
+      category: 'custom',
+      fileUrl: URL.createObjectURL(file),
+      fileName: file.name
+    });
+  });
+  renderTrackGrid();
 });
 
 function getCustomPlaylists() {
@@ -781,6 +829,7 @@ async function initNotionScript() {
 
 window.addEventListener('DOMContentLoaded', () => {
   initDateDisplay();
+  initAvatar();
   loadTracks();
   loadAffirmations();
   loadRecipes();

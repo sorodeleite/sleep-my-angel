@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>sleep my angel</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app-container">
+    <header class="titlebar">
+      <div class="window-controls">
+        <button class="win-btn close" id="btn-close" aria-label="Close"></button>
+        <button class="win-btn min" id="btn-min" aria-label="Minimize"></button>
+        <button class="win-btn max" id="btn-max" aria-label="Maximize"></button>
+      </div>
+      <div class="titlebar-center">odette.exe ‧ sleep my angel</div>
+      <div class="titlebar-date" id="current-date-display">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span id="date-text">Monday July 20th</span>
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <section class="top-mello-widget">
+        <div class="retro-window-frame">
+          <div class="profile-card">
+            <div class="profile-avatar-wrapper" id="avatar-container" title="Toque para trocar sua foto de perfil">
+              <img src="assets/icon/38f3b2b5d4fcc838e12253d7235e8e65.jpg" alt="Profile" class="profile-avatar" id="profile-avatar-img">
+              <span class="status-dot"></span>
+              <div class="avatar-edit-overlay">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+              </div>
+            </div>
+            <input type="file" id="avatar-file-input" accept="image/*" style="display:none;">
+            <input type="file" id="mobile-audio-input" accept="audio/*" multiple style="display:none;">
+            <div class="profile-info">
+              <h2>sleep my angel</h2>
+              <p>dolly girl ‧ law of assumption</p>
+            </div>
+          </div>
+
+          <div class="mello-fields">
+            <div class="field-pill">
+              <span class="field-label">Full Name</span>
+              <input type="text" id="user-name-input" class="field-input" value="Odette">
+            </div>
+            <div class="field-pill">
+              <span class="field-label">Mood</span>
+              <input type="text" id="user-mood-input" class="field-input" value="Sleepy & Soft">
+            </div>
+            <div class="field-pill">
+              <span class="field-label">Sleep Goal</span>
+              <input type="text" id="user-goal-input" class="field-input" value="8h 30m">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <nav class="nav-tabs">
+        <button class="nav-tab-btn active" data-tab="tab-library">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+          Library
+        </button>
+        <button class="nav-tab-btn" data-tab="tab-affirmations">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          Afirmações
+        </button>
+        <button class="nav-tab-btn" data-tab="tab-recipes">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+            <line x1="6" y1="1" x2="6" y2="4"></line>
+            <line x1="10" y1="1" x2="10" y2="4"></line>
+            <line x1="14" y1="1" x2="14" y2="4"></line>
+          </svg>
+          Receitas
+        </button>
+        <button class="nav-tab-btn" data-tab="tab-timer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          Contador
+        </button>
+        <button class="nav-tab-btn" data-tab="tab-notion">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Notion Script
+        </button>
+      </nav>
+
+      <main class="tab-content-area">
+        <section id="tab-library" class="tab-pane active">
+          <div class="spotify-header">
+            <div class="spotify-title-group">
+              <h1 class="spotify-title">Your Library</h1>
+            </div>
+            <div class="spotify-actions">
+              <div class="search-box">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="library-search" placeholder="buscar audios ou playlists...">
+              </div>
+              <button class="action-btn" id="btn-add-playlist" title="Criar Playlist">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+              <button class="action-btn" id="btn-open-folder" title="Importar pasta">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="pill-filters">
+            <button class="filter-pill active" data-filter="all">Playlists</button>
+            <button class="filter-pill" data-filter="chuva">Chuva</button>
+            <button class="filter-pill" data-filter="meditacao">Meditações</button>
+            <button class="filter-pill" data-filter="ondas">Ondas & Frequências</button>
+            <button class="filter-pill" data-filter="custom">Minhas Pastas</button>
+          </div>
+
+          <div class="library-subbar">
+            <div class="sort-label">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <polyline points="19 12 12 19 5 12"></polyline>
+              </svg>
+              <span>Recents</span>
+            </div>
+            <div id="track-count-label">23 itens</div>
+          </div>
+
+          <div class="music-grid" id="music-grid"></div>
+        </section>
+
+        <section id="tab-affirmations" class="tab-pane">
+          <div class="affirmation-wrapper">
+            <div class="section-hero">
+              <div class="hero-text">
+                <h3>Lei da Suposição & Edward Art</h3>
+                <p>O sono é o momento sagrado onde a mente racional se rende à certeza do desejo já cumprido. Descanse sentindo que você já é.</p>
+              </div>
+              <button class="btn-secondary" id="btn-read-aloud">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+                Ouvir Afirmação
+              </button>
+            </div>
+
+            <div class="quote-display-card">
+              <span class="quote-author">Edward Art ‧ O Criador Interior</span>
+              <p class="quote-content" id="active-quote">
+                "Não peça a ninguém lá fora. A sua imaginação é Deus em ação. Ao deitar a cabeça no travesseiro, aceite plenamente a sensação de que o que você quer já existe."
+              </p>
+              <div class="quote-actions">
+                <button class="btn-secondary" id="btn-next-quote">Próxima Afirmação</button>
+                <button class="btn-secondary" id="btn-add-affirmation">+ Adicionar Minha</button>
+              </div>
+            </div>
+
+            <div class="affirmations-grid" id="affirmations-grid"></div>
+          </div>
+        </section>
+
+        <section id="tab-recipes" class="tab-pane">
+          <div class="spotify-header">
+            <div class="spotify-title-group">
+              <h1 class="spotify-title">Receitas de Antes de Dormir</h1>
+            </div>
+            <button class="btn-secondary" id="btn-add-recipe">+ Nova Receita</button>
+          </div>
+          <div class="recipes-container" id="recipes-container"></div>
+        </section>
+
+        <section id="tab-timer" class="tab-pane">
+          <div class="timer-section">
+            <div class="timer-display-box">
+              <div class="timer-numbers" id="timer-display">30:00</div>
+              <div class="timer-state-label" id="timer-status">timer para desligar o som suavemente</div>
+            </div>
+
+            <div class="timer-presets">
+              <button class="preset-btn" data-minutes="15">15 min</button>
+              <button class="preset-btn active" data-minutes="30">30 min</button>
+              <button class="preset-btn" data-minutes="45">45 min</button>
+              <button class="preset-btn" data-minutes="60">1 hora</button>
+              <button class="preset-btn" data-minutes="90">1h 30m</button>
+              <button class="preset-btn" data-minutes="120">2 horas</button>
+            </div>
+
+            <button class="timer-ctrl-btn" id="btn-toggle-timer">Iniciar Contador</button>
+          </div>
+        </section>
+
+        <section id="tab-notion" class="tab-pane">
+          <div class="notion-wrapper">
+            <div class="notion-header-card">
+              <div>
+                <h3 style="font-size:14px; font-weight:600;">Notion Script & Notas Offline</h3>
+                <p style="font-size:11px; color:var(--text-muted);">Edite e leia seu script de manifestação e rotina noturna sem precisar de internet.</p>
+              </div>
+              <div class="notion-inputs">
+                <input type="password" id="notion-token" class="notion-input" placeholder="Notion Token (opcional)">
+                <input type="text" id="notion-page-id" class="notion-input" placeholder="Page / DB ID">
+                <button class="btn-secondary" id="btn-save-script">Salvar Offline</button>
+              </div>
+            </div>
+
+            <div class="script-editor-container">
+              <textarea id="script-editor" class="script-textarea" placeholder="Escreva seu script aqui..."></textarea>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="bottom-player">
+      <div class="player-left">
+        <img src="assets/readme-photos/tumblr_db6ab36987b578f88c6ed96f4578a05c_fcb8ffe3_400.png" alt="Cover" class="now-cover" id="now-cover">
+        <div class="now-meta">
+          <div class="now-title" id="now-title">Selecione um áudio</div>
+          <div class="now-artist" id="now-artist">sleep my angel</div>
+        </div>
+      </div>
+
+      <div class="player-center">
+        <div class="controls-row">
+          <button class="ctrl-icon-btn" id="btn-shuffle" title="Aleatório">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 3 21 3 21 8"></polyline>
+              <line x1="4" y1="20" x2="21" y2="3"></line>
+              <polyline points="21 16 21 21 16 21"></polyline>
+              <line x1="15" y1="15" x2="21" y2="21"></line>
+              <line x1="4" y1="4" x2="9" y2="9"></line>
+            </svg>
+          </button>
+          <button class="ctrl-icon-btn" id="btn-prev" title="Anterior">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="19 20 9 12 19 4 19 20"></polygon>
+              <line x1="5" y1="19" x2="5" y2="5"></line>
+            </svg>
+          </button>
+          <button class="main-play-btn" id="btn-play">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" id="play-icon">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+          <button class="ctrl-icon-btn" id="btn-next" title="Próximo">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 4 15 12 5 20 5 4"></polygon>
+              <line x1="19" y1="5" x2="19" y2="19"></line>
+            </svg>
+          </button>
+          <button class="ctrl-icon-btn" id="btn-loop" title="Repetir">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="17 1 21 5 17 9"></polyline>
+              <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+              <polyline points="7 23 3 19 7 15"></polyline>
+              <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="progressbar-row">
+          <span class="time-label" id="current-time">0:00</span>
+          <div class="progress-track" id="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <span class="time-label" id="total-duration">0:00</span>
+        </div>
+      </div>
+
+      <div class="player-right">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+        <input type="range" class="vol-slider" id="volume-slider" min="0" max="1" step="0.01" value="0.8">
+      </div>
+    </footer>
+
+    <div class="modal-backdrop" id="modal-playlist">
+      <div class="modal-box">
+        <h3 class="modal-title">Nova Playlist</h3>
+        <div class="form-group">
+          <label>Nome da Playlist</label>
+          <input type="text" id="playlist-name-input" class="form-input" placeholder="ex: longing ‧°, comfrt, pink dream">
+        </div>
+        <div class="form-group">
+          <label>Cor de Destaque</label>
+          <div class="color-picker-row">
+            <span class="color-option selected" data-color="#e2ece0" style="background:#e2ece0;"></span>
+            <span class="color-option" data-color="#fbe6eb" style="background:#fbe6eb;"></span>
+            <span class="color-option" data-color="#eae7f8" style="background:#eae7f8;"></span>
+            <span class="color-option" data-color="#fdede2" style="background:#fdede2;"></span>
+            <span class="color-option" data-color="#e3edf8" style="background:#e3edf8;"></span>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button class="btn-secondary" id="modal-cancel-playlist">Cancelar</button>
+          <button class="btn-primary" id="modal-save-playlist">Criar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-recipe">
+      <div class="modal-box">
+        <h3 class="modal-title">Nova Receita de Dormir</h3>
+        <div class="form-group">
+          <label>Nome da Bebida</label>
+          <input type="text" id="recipe-name-input" class="form-input" placeholder="ex: Leite Quente com Baunilha">
+        </div>
+        <div class="form-group">
+          <label>Ingredientes</label>
+          <input type="text" id="recipe-ingredients-input" class="form-input" placeholder="ex: 200ml leite, 1 colher de mel, canela em pó">
+        </div>
+        <div class="form-group">
+          <label>Modo de Preparo</label>
+          <textarea id="recipe-prep-input" class="form-input" style="height:70px; resize:none;" placeholder="Aqueça o leite sem ferver, misture o mel..."></textarea>
+        </div>
+        <div class="modal-buttons">
+          <button class="btn-secondary" id="modal-cancel-recipe">Cancelar</button>
+          <button class="btn-primary" id="modal-save-recipe">Adicionar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-affirmation">
+      <div class="modal-box">
+        <h3 class="modal-title">Nova Afirmação da Suposição</h3>
+        <div class="form-group">
+          <label>Afirmação / Sentimento</label>
+          <textarea id="affirmation-text-input" class="form-input" style="height:90px; resize:none;" placeholder="Eu já sou a pessoa que vive na minha realidade desejada..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Autor / Foco</label>
+          <input type="text" id="affirmation-author-input" class="form-input" placeholder="ex: Edward Art, Neville ou Meu Eu Ideal">
+        </div>
+        <div class="modal-buttons">
+          <button class="btn-secondary" id="modal-cancel-affirmation">Cancelar</button>
+          <button class="btn-primary" id="modal-save-affirmation">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio-player" preload="auto"></audio>
+  <script src="renderer.js"></script>
+</body>
+</html>
