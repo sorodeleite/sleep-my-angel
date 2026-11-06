@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.m4a
+*.mp3
+*.wav
+*.ogg
+.DS_Store
+Thumbs.db
+script_offline.json
