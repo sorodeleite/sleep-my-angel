@@ -48,7 +48,7 @@ ainda é uma base que vou continuar arrumando e deixando cada vez mais com a min
 1. vá na aba de [**Releases**](https://github.com/sorodeleite/sleep-my-angel/releases) deste repositório.
 2. baixe o arquivo `sleep-my-angel.apk`.
 3. abra o arquivo no seu celular Android e confirme a instalação (se pedir, autorize a instalação de fontes desconhecidas).
-4. prontinho! o app vai aparecer na sua tela inicial com o ícone fofo.
+4. prontinho! o app vai aparecer na sua tela inicial.
 
 <br />
 
