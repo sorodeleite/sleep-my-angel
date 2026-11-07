@@ -1,6 +1,6 @@
 (function () {
   const SMA = window.SMA;
-  const APP_VERSION = '1.4.0';
+  const APP_VERSION = '1.5.0';
   const CHECK_KEY = 'sma_last_update_check';
   const REPO_RELEASES = 'https://github.com/sorodeleite/sleep-my-angel/releases';
   const CHECK_INTERVAL = 12 * 60 * 60 * 1000;

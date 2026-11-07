@@ -100,10 +100,11 @@ jobs:
           body: |
             atualização do sleep my angel v${{ steps.version.outputs.version }}
 
-            - importação do notion agora traz as **imagens** junto (zip, pasta, md + imagens e .docx com fotos)
-            - botão de importar bem visível no celular, com modal explicando o export certo
-            - botão "atualizar app" dentro do app (atualiza por cima, sem desinstalar)
-            - playlist pronta **corvo seco** com todas as meditações
+            - importação do notion agora fica **igual ao notion**: html com cores, colunas, callouts e imagens
+            - subpáginas entram **dentro da mesma nota**, sem virar um monte de abas
+            - export em pdf também entra como páginas iguais ao original
+            - markdown continua funcionando, com as imagens e as subpáginas juntas
+            - botão "atualizar app" instalando por cima, sem desinstalar
           files: sleep-my-angel.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

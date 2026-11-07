@@ -1,5 +1,13 @@
 (function () {
   const SMA = window.SMA;
+  const normalizePath = SMA.normalizePath;
+  const baseName = SMA.baseName;
+  const dirName = SMA.dirName;
+  const cleanImageRef = SMA.cleanImageRef;
+  const collectImageRefs = SMA.collectImageRefs;
+  const imageToDataUrl = SMA.imageToDataUrl;
+  const fetchRemoteImage = SMA.fetchRemoteImage;
+  const decodeEntities = SMA.decodeEntities;
 
   const DEFAULT_SCRIPT = `# meu script de sono & realidade desejada ‧°
 *lei da suposição ‧ odette.exe*
@@ -62,6 +70,9 @@
       id: String(doc.id || uniqueId()),
       title: String(doc.title || 'nota sem título').trim() || 'nota sem título',
       text: String(doc.text || ''),
+      format: doc.format === 'html' ? 'html' : 'markdown',
+      html: typeof doc.html === 'string' ? doc.html : '',
+      htmlCss: typeof doc.htmlCss === 'string' ? doc.htmlCss : '',
       source: String(doc.source || 'nota'),
       icon: String(doc.icon || ''),
       assets: normalizeAssets(doc.assets),
@@ -164,6 +175,8 @@
     titleInput.value = doc.title;
     editor.value = doc.text;
     resizeDocTitle();
+    if (isReadOnlyDoc(doc)) editing = false;
+    updateViewToggle(doc);
     renderPage(doc);
     updateMeta(label || sourceLabel(doc.source));
     renderList();
@@ -182,6 +195,12 @@
     if (crumb) crumb.textContent = doc.title;
     const icon = SMA.select('#notion-page-icon');
     if (icon) icon.textContent = pageIcon(doc);
+    if (SMA.Notion && SMA.Notion.isHtmlDoc(doc)) {
+      const badge = createElement('div', 'notion-html-badge', 'notion html ‧ modo leitura');
+      view.appendChild(badge);
+      SMA.Notion.render(doc, view);
+      return;
+    }
     try {
       renderMarkdown(doc.text, doc.assets, view);
     } catch (error) {
@@ -279,24 +298,25 @@
     }, 1000);
   }
 
-  function setEditing(value) {
-    editing = Boolean(value);
-    if (view) view.hidden = editing;
-    if (editor) editor.hidden = !editing;
-    const toggle = SMA.select('#btn-toggle-view');
-    if (toggle) toggle.textContent = editing ? 'ler' : 'editar';
+  function isReadOnlyDoc(doc) {
+    return Boolean(doc && doc.format === 'html' && doc.html);
   }
 
-  function decodeEntities(value) {
-    return String(value)
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#0?39;|&apos;/g, "'")
-      .replace(/&#x([0-9a-f]+);/gi, function (_, hex) { return String.fromCodePoint(parseInt(hex, 16)); })
-      .replace(/&#(\d+);/g, function (_, number) { return String.fromCodePoint(parseInt(number, 10)); });
+  function updateViewToggle(doc) {
+    const toggle = SMA.select('#btn-toggle-view');
+    if (!toggle) return;
+    const readOnly = isReadOnlyDoc(doc || activeDoc());
+    toggle.hidden = readOnly;
+    toggle.textContent = editing ? 'ler' : 'editar';
+    toggle.title = readOnly ? 'página importada do notion em html ‧ modo leitura' : '';
+  }
+
+  function setEditing(value) {
+    const doc = activeDoc();
+    editing = Boolean(value) && !isReadOnlyDoc(doc);
+    if (view) view.hidden = editing;
+    if (editor) editor.hidden = !editing;
+    updateViewToggle(doc);
   }
 
   function inlineHtml(node) {
@@ -717,122 +737,6 @@
     return assets;
   }
 
-  async function pdfToText(arrayBuffer) {
-    if (!window.pdfjsLib) return '';
-    try {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
-      const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
-      const pages = [];
-      const limit = Math.min(pdf.numPages, 80);
-      for (let index = 1; index <= limit; index += 1) {
-        const page = await pdf.getPage(index);
-        const content = await page.getTextContent();
-        pages.push(content.items.map(function (item) { return item.str; }).join(' '));
-      }
-      return pages.join('\n\n').replace(/[ \t]+/g, ' ').trim();
-    } catch (error) {
-      return '';
-    }
-  }
-
-  function splitCsvLine(line) {
-    const cells = [];
-    let current = '';
-    let quoted = false;
-    for (let index = 0; index < line.length; index += 1) {
-      const char = line[index];
-      if (char === '"') {
-        if (quoted && line[index + 1] === '"') {
-          current += '"';
-          index += 1;
-        } else {
-          quoted = !quoted;
-        }
-      } else if (char === ',' && !quoted) {
-        cells.push(current.trim());
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    cells.push(current.trim());
-    return cells;
-  }
-
-  function csvToMarkdown(text) {
-    const rows = text.split(/\r?\n/).filter(function (line) { return line.trim(); }).slice(0, 200);
-    if (rows.length === 0) return text;
-    const table = rows.map(splitCsvLine);
-    const columns = Math.max.apply(null, table.map(function (row) { return row.length; }));
-    table.forEach(function (row) {
-      while (row.length < columns) row.push('');
-    });
-    const header = '| ' + table[0].map(function (cell) { return cell.replace(/\|/g, '\\|'); }).join(' | ') + ' |';
-    const divider = '| ' + table[0].map(function () { return '---'; }).join(' | ') + ' |';
-    const body = table.slice(1).map(function (row) {
-      return '| ' + row.map(function (cell) { return cell.replace(/\|/g, '\\|'); }).join(' | ') + ' |';
-    });
-    return [header, divider].concat(body).join('\n');
-  }
-
-  function normalizePath(value) {
-    let path = String(value || '');
-    try {
-      path = decodeURIComponent(path);
-    } catch (error) {
-      path = path;
-    }
-    return path.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\/+/, '').replace(/\s+/g, ' ');
-  }
-
-  function baseName(value) {
-    const parts = normalizePath(value).split('/');
-    return parts[parts.length - 1];
-  }
-
-  function dirName(value) {
-    const parts = normalizePath(value).split('/');
-    parts.pop();
-    return parts.join('/');
-  }
-
-  function cleanImageRef(value) {
-    let ref = String(value || '').trim();
-    if (!ref) return '';
-    if (ref.charAt(0) === '<' && ref.charAt(ref.length - 1) === '>') {
-      ref = ref.slice(1, -1).trim();
-    }
-    const titled = ref.match(/^([\s\S]*?)\s+(?:"[^"]*"|'[^']*')\s*$/);
-    if (titled) ref = titled[1].trim();
-    ref = decodeEntities(ref).trim();
-    return ref;
-  }
-
-  function collectImageRefs(text) {
-    const refs = [];
-    const seen = new Set();
-    const push = function (value) {
-      const ref = cleanImageRef(value);
-      if (!ref || seen.has(ref)) return;
-      seen.add(ref);
-      refs.push(ref);
-    };
-    const source = String(text || '');
-    const markdown = /!\[[^\]]*\]\(([^)]+)\)/g;
-    let match = markdown.exec(source);
-    while (match) {
-      push(match[1]);
-      match = markdown.exec(source);
-    }
-    const html = /<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/gi;
-    match = html.exec(source);
-    while (match) {
-      push(match[1]);
-      match = html.exec(source);
-    }
-    return refs;
-  }
-
   function assetKeyFor(ref, baseDir, lookup) {
     if (/^(https?:|data:|blob:)/i.test(ref)) return null;
     const clean = normalizePath(ref);
@@ -850,80 +754,6 @@
       if (key.endsWith('/' + wanted)) return lookup[key];
     }
     return null;
-  }
-
-  function blobToDataUrl(blob) {
-    return new Promise(function (resolve) {
-      const reader = new FileReader();
-      reader.onload = function () { resolve(String(reader.result || '')); };
-      reader.onerror = function () { resolve(''); };
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  function canvasHasAlpha(canvas) {
-    try {
-      const context = canvas.getContext('2d');
-      const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
-      for (let index = 3; index < data.length; index += 4 * 37) {
-        if (data[index] < 250) return true;
-      }
-    } catch (error) {
-      return true;
-    }
-    return false;
-  }
-
-  async function imageToDataUrl(blob, limit) {
-    const max = limit || 1400;
-    try {
-      if (blob.size < 260 * 1024) return await blobToDataUrl(blob);
-      const bitmap = await createImageBitmap(blob);
-      const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
-      const width = Math.max(1, Math.round(bitmap.width * scale));
-      const height = Math.max(1, Math.round(bitmap.height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const context = canvas.getContext('2d');
-      context.drawImage(bitmap, 0, 0, width, height);
-      if (typeof bitmap.close === 'function') bitmap.close();
-      const type = /png|gif|webp/i.test(blob.type) && canvasHasAlpha(canvas) ? 'image/png' : 'image/jpeg';
-      return canvas.toDataURL(type, 0.84);
-    } catch (error) {
-      return blobToDataUrl(blob);
-    }
-  }
-
-  const remoteImageCache = new Map();
-
-  async function fetchRemoteImage(url) {
-    const key = String(url || '');
-    if (!key || /^data:/i.test(key)) return '';
-    if (remoteImageCache.has(key)) return remoteImageCache.get(key);
-    const load = async function () {
-      try {
-        const controller = typeof AbortController === 'function' ? new AbortController() : null;
-        const timer = controller ? setTimeout(function () { controller.abort(); }, 15000) : null;
-        const response = await fetch(key, {
-          mode: 'cors',
-          credentials: 'omit',
-          cache: 'force-cache',
-          signal: controller ? controller.signal : undefined
-        });
-        if (timer) clearTimeout(timer);
-        if (!response.ok) return '';
-        const blob = await response.blob();
-        if (!blob || !blob.size || blob.size > 14 * 1024 * 1024) return '';
-        const dataUrl = await imageToDataUrl(blob, 1400);
-        return dataUrl || '';
-      } catch (error) {
-        return '';
-      }
-    };
-    const result = await load();
-    remoteImageCache.set(key, result);
-    return result;
   }
 
   async function assetsForText(text, baseDir, lookup) {
@@ -987,96 +817,20 @@
     return set.size;
   }
 
-  function lookupFromZip(files) {
-    const lookup = {};
-    const names = Object.keys(files);
-    names.forEach(function (name) {
-      if (!IMAGE_EXT.test(name) || /(^|\/)(__MACOSX|\.)/.test(name)) return;
-      const bytes = files[name];
-      const type = /\.png$/i.test(name) ? 'image/png'
-        : /\.jpe?g$/i.test(name) ? 'image/jpeg'
-          : /\.gif$/i.test(name) ? 'image/gif'
-            : /\.webp$/i.test(name) ? 'image/webp'
-              : /\.svg$/i.test(name) ? 'image/svg+xml'
-                : '';
-      lookup[normalizePath(name).toLowerCase()] = { bytes: bytes, type: type };
-      const short = baseName(name).toLowerCase();
-      if (!lookup[short]) lookup[short] = lookup[normalizePath(name).toLowerCase()];
-    });
-    return lookup;
-  }
-
-  async function importZip(arrayBuffer) {
-    if (!window.fflate) {
-      SMA.toast('não consegui abrir o zip neste navegador');
-      return { count: 0, images: 0, missing: 0, lastDoc: null };
-    }
-    let files;
-    try {
-      files = window.fflate.unzipSync(new Uint8Array(arrayBuffer));
-    } catch (error) {
-      SMA.toast('esse zip parece quebrado');
-      return { count: 0, images: 0, missing: 0, lastDoc: null };
-    }
-    const lookup = lookupFromZip(files);
-    const names = Object.keys(files).filter(function (name) {
-      return TEXT_EXT.test(name) && !/(^|\/)(__MACOSX|\.)/.test(name);
-    }).slice(0, 80);
-    let imported = 0;
-    let images = 0;
-    let missing = 0;
-    let lastDoc = null;
-    for (const name of names) {
-      const bytes = files[name];
-      const raw = new TextDecoder('utf-8').decode(bytes);
-      const isCsv = /\.csv$/i.test(name);
-      const isHtml = /\.html?$/i.test(name);
-      let text = isCsv ? csvToMarkdown(raw) : (isHtml ? htmlToMarkdown(raw) : raw);
-      const header = text.match(/^\s*#\s+(.+?)\s*$/m);
-      const fileTitle = SMA.fileNameTitle(name.split('/').pop());
-      let title = fileTitle;
-      if (header) {
-        title = header[1].trim() || fileTitle;
-        text = text.replace(/^\s*#\s+.+?\s*$/m, '').replace(/^\s+/, '');
-      }
-      if (!text.trim()) continue;
-      const result = await assetsForText(text, dirName(name), lookup);
-      images += result.images;
-      missing += result.missing;
-      lastDoc = addImportedDoc({
-        title: title,
-        text: text,
-        source: 'notion',
-        assets: result.assets
-      });
-      imported += 1;
-    }
-    if (names.length === 0) SMA.toast('nenhuma nota de texto dentro do zip');
-    return { count: imported, images: images, missing: missing, lastDoc: lastDoc };
-  }
-
   function addImportedDoc(data) {
     const doc = normalizeDoc({
       title: data.title || 'nota importada',
       text: data.text,
+      format: data.format,
+      html: data.html,
+      htmlCss: data.htmlCss,
+      icon: data.icon,
       source: data.source || 'notion',
       assets: data.assets || {}
     });
     docs.unshift(doc);
     if (SMA.docStore) SMA.docStore.put(doc);
     return doc;
-  }
-
-  function lookupFromFiles(files) {
-    const lookup = {};
-    files.forEach(function (file) {
-      if (!IMAGE_EXT.test(file.name) && !/^image\//.test(file.type || '')) return;
-      const path = normalizePath(file.webkitRelativePath || file.name);
-      lookup[path.toLowerCase()] = { blob: file, type: file.type };
-      const short = baseName(path).toLowerCase();
-      if (!lookup[short]) lookup[short] = lookup[path.toLowerCase()];
-    });
-    return lookup;
   }
 
   function isImageFile(file) {
@@ -1095,18 +849,25 @@
       SMA.toast('não encontrei imagens nesses arquivos');
       return;
     }
+    const htmlPage = isReadOnlyDoc(doc);
     doc.assets = doc.assets || {};
     let added = 0;
     const blocks = [];
     for (const file of images) {
       try {
-        const dataUrl = await imageToDataUrl(file, 1500);
+        const dataUrl = await SMA.imageToDataUrl(file, 1500);
         if (!dataUrl) continue;
         const extension = (/\.([a-z0-9]+)$/i.exec(file.name || '') || [])[1] || 'png';
-        const key = 'anexo-' + Date.now() + '-' + added + '.' + extension.toLowerCase();
-        doc.assets[key.toLowerCase()] = dataUrl;
+        const suffix = Math.random().toString(36).slice(2, 7);
+        const key = 'anexo-' + Date.now() + '-' + added + '-' + suffix + '.' + extension.toLowerCase();
         const alt = SMA.fileNameTitle(file.name || '') || 'imagem';
-        blocks.push('![' + alt + '](' + key + ')');
+        if (htmlPage) {
+          blocks.push('<figure class="image"><img src="' + dataUrl + '" alt="' + SMA.escapeHTML(alt)
+            + '"><figcaption>' + SMA.escapeHTML(alt) + '</figcaption></figure>');
+        } else {
+          doc.assets[key.toLowerCase()] = dataUrl;
+          blocks.push('![' + alt + '](' + key + ')');
+        }
         added += 1;
       } catch (error) {
         continue;
@@ -1116,7 +877,11 @@
       SMA.toast('não consegui abrir essas imagens');
       return;
     }
-    doc.text = String(doc.text || '').replace(/\s+$/, '') + '\n\n' + blocks.join('\n\n') + '\n';
+    if (htmlPage) {
+      doc.html = String(doc.html || '') + '\n' + blocks.join('\n');
+    } else {
+      doc.text = String(doc.text || '').replace(/\s+$/, '') + '\n\n' + blocks.join('\n\n') + '\n';
+    }
     setEditing(false);
     paintEditor(doc, 'imagem adicionada');
     await persistDoc(doc, 'salvo offline', false);
@@ -1132,66 +897,59 @@
       await addImagesToDoc(list);
       return;
     }
-    const lookup = lookupFromFiles(list);
+
     let imported = 0;
     let images = 0;
     let missing = 0;
     let lastDoc = null;
-    for (const file of list) {
-      if (isImageFile(file)) continue;
+    const notionFiles = [];
+    const docxFiles = [];
+
+    list.forEach(function (file) {
+      if (isImageFile(file)) return;
       const lower = file.name.toLowerCase();
+      if (/\.docx$/i.test(lower)) docxFiles.push(file);
+      else if (/\.pdf$/i.test(lower) || /\.zip$/i.test(lower) || TEXT_EXT.test(lower)) notionFiles.push(file);
+    });
+
+    for (const file of docxFiles) {
       try {
-        if (/\.docx$/i.test(lower)) {
-          const buffer = await file.arrayBuffer();
-          const text = docxToMarkdown(buffer);
-          if (text.trim()) {
-            const assets = await docxAssets(buffer);
-            images += countImageAssets(assets);
-            lastDoc = addImportedDoc({
-              title: SMA.fileNameTitle(file.name),
-              text: text,
-              source: 'drive',
-              assets: assets
-            });
-            imported += 1;
-          }
-        } else if (/\.pdf$/i.test(lower)) {
-          const text = await pdfToText(await file.arrayBuffer());
-          if (text.trim()) {
-            lastDoc = addImportedDoc({ title: SMA.fileNameTitle(file.name), text: text, source: 'drive' });
-            imported += 1;
-          } else {
-            SMA.toast('não consegui ler o texto desse pdf');
-          }
-        } else if (/\.zip$/i.test(lower)) {
-          const result = await importZip(await file.arrayBuffer());
-          imported += result.count;
-          images += result.images;
-          missing += result.missing;
-          if (result.lastDoc) lastDoc = result.lastDoc;
-        } else if (TEXT_EXT.test(lower)) {
-          const raw = await file.text();
-          const isCsv = /\.csv$/i.test(lower);
-          const isHtml = /\.html?$/i.test(lower);
-          let text = isCsv ? csvToMarkdown(raw) : (isHtml ? htmlToMarkdown(raw) : raw);
-          const header = text.match(/^\s*#\s+(.+?)\s*$/m);
-          let title = SMA.fileNameTitle(file.name);
-          if (header) {
-            title = header[1].trim() || title;
-            text = text.replace(/^\s*#\s+.+?\s*$/m, '').replace(/^\s+/, '');
-          }
-          if (!text.trim()) continue;
-          const baseDir = dirName(file.webkitRelativePath || file.name);
-          const result = await assetsForText(text, baseDir, lookup);
-          images += result.images;
-          missing += result.missing;
-          lastDoc = addImportedDoc({ title: title, text: text, source: 'notion', assets: result.assets });
-          imported += 1;
-        }
+        const buffer = await file.arrayBuffer();
+        const text = docxToMarkdown(buffer);
+        if (!text.trim()) continue;
+        const assets = await docxAssets(buffer);
+        images += countImageAssets(assets);
+        lastDoc = addImportedDoc({
+          title: SMA.fileNameTitle(file.name),
+          text: text,
+          source: 'drive',
+          assets: assets
+        });
+        imported += 1;
       } catch (error) {
         continue;
       }
     }
+
+    if (notionFiles.length && SMA.Notion) {
+      if (list.some(function (file) { return /\.pdf$/i.test(file.name); })) {
+        SMA.toast('transformando as páginas do pdf em imagem ‧°');
+      }
+      try {
+        const result = await SMA.Notion.importFiles(notionFiles);
+        (result.docs || []).forEach(function (data) {
+          lastDoc = addImportedDoc(data);
+          imported += 1;
+        });
+        images += result.stats.images;
+        missing += result.stats.missing;
+        if (result.error === 'zip-quebrado') SMA.toast('esse zip parece quebrado');
+        if (result.error === 'zip-indisponivel') SMA.toast('não consegui abrir o zip neste navegador');
+      } catch (error) {
+        SMA.toast('não consegui abrir esse export do notion');
+      }
+    }
+
     if (imported === 0) {
       SMA.toast('não encontrei texto pra importar');
       return;
@@ -1982,6 +1740,7 @@
     init: init,
     importFiles: importFiles,
     docxToMarkdown: docxToMarkdown,
+    docxAssets: docxAssets,
     htmlToMarkdown: htmlToMarkdown
   };
 })();

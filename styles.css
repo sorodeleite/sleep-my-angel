@@ -3364,6 +3364,39 @@ body {
   line-height: 1.65;
 }
 
+.notion-html-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 14px;
+  padding: 3px 9px;
+  border: 1px solid #e9e7e2;
+  border-radius: 999px;
+  background: #faf9f6;
+  color: #9b9a97;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.notion-html-badge::before {
+  content: '✦';
+  color: #b34a66;
+  font-size: 8px;
+}
+
+.notion-html-host {
+  display: block;
+  width: 100%;
+  min-height: 120px;
+}
+
+.notion-html-host iframe,
+.notion-html-host video {
+  max-width: 100%;
+}
+
 .notion-p {
   margin: 6px 0;
 }

@@ -1,4 +1,4 @@
-const CACHE = 'sleep-my-angel-v6';
+const CACHE = 'sleep-my-angel-v7';
 const SHELL = [
   './',
   './index.html',
@@ -21,6 +21,7 @@ const SHELL = [
   './js/rain.js',
   './js/timer.js',
   './js/books.js',
+  './js/notion.js',
   './js/script.js',
   './js/updater.js',
   './js/app.js',

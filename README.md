@@ -4,19 +4,17 @@
 
 # sleep my angel
 
-**meu aplicativo de afirmações da lei da suposição e rituais da noite**
+**meu cantinho de afirmações, meditações e rituais pra dormir em paz**
 
-<img src="assets/readme-photos/start_readme.png" width="460" alt="sleep my angel vibe" />
+<img src="assets/readme-photos/start_readme.png" width="460" alt="sleep my angel" />
 
 </div>
 
 <br />
 
-esse é um projeto que eu já estava rascunhando há um tempo e finalmente resolvi estruturar certinho pra me ajudar a dormir em paz. quem tem insônia ou a cabeça cheia antes de deitar sabe como é difícil desacelerar, então quis criar um app bem bonitinho e confortável só meu pra ter tudo que preciso em um lugar só.
+oi! esse é o **sleep my angel**, um app que eu fiz pra mim e que acabou virando meu lugar favorito antes de dormir.
 
-a ideia central do **sleep my angel** é juntar sons de chuva e ruídos relaxantes gerados na hora, além de meditações funcionando em segundo plano no celular ou computador, sem anúncios ou interrupções chatas, com um cantinho dedicado à lei da suposição (principalmente inspirada nas palestras e visões do Edward Art e Neville Goddard).
-
-o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), como aplicativo de desktop em Electron e também tem uma **versão web** pra abrir no navegador.
+a ideia é simples: juntar tudo que me acalma num lugar só — chuva e frequências geradas na hora, minhas meditações, o meu script da lei da suposição, livros e receitinhas da noite — sem anúncio, sem feed, sem barulho. ele roda no **celular (Android)**, no **computador (Electron)** e também no **navegador**.
 
 <br />
 
@@ -24,72 +22,51 @@ o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), co
   <img src="assets/readme-photos/divider.png" width="100%" alt="divider" />
 </div>
 
-### o que tem no app
+### o que tem aqui
 
-- **library estilo spotify (clean & cinza)**: grade com estética suave em tons de cinza e pastéis para navegar pelas meditações e frequências sonoras (ondas theta, pink noise e ruídos suaves). dá pra criar playlists por cor, escolher os sons de cada uma e buscar qualquer faixa. já vem com a playlist **corvo seco**, que junta todas as meditações que estão no app.
-- **áudio em 2º plano no android**: serviço em primeiro plano com notificação e wake lock para o som continuar tocando quando você apagar a tela ou trocar de app.
-- **sons gerados na hora**: quando um arquivo de áudio não está no aparelho, o app cria pink noise, brown noise ou theta wave pelo Web Audio pra faixa não ficar em silêncio.
-- **atualização pelo próprio app**: no android aparece um botão **atualizar app** no cartão do perfil. ele procura a versão nova no github; quando o repositório está público, baixa o apk e instala **por cima** sozinho. como este repositório está **privado**, o botão mostra o aviso e o **ver no github** abre a página de releases pra baixar o apk novo — instalar por cima mantém notas, playlists, capas e áudios importados.
-- **cantinho da lei da suposição & edward art**: cartões de afirmações e lembretes de que a imaginação é a única realidade. conta também com leitura em voz alta em português pra ouvir deitada antes de adormecer com a sensação do desejo já consumado.
-- **cookbook em grade com fotos**: receitas em cartões com fotos recortadas, busca e filtros. dá pra marcar ingredientes e passos (o item risca), editar, restaurar ou apagar, e adicionar a sua com foto própria.
-- **meditações com nome e autor**: os arquivos seguem o padrão `nome_pessoa`, e a biblioteca mostra o nome da meditação primeiro e o nome da pessoa embaixo, no estilo Spotify.
-- **estante estilo kindle**: leitor de `.epub`, `.pdf` e `.txt` com temas (sépia, claro e escuro), tamanho de letra, índice, progresso salvo, troca de capa e agora também troca de nome e autor de qualquer livro. os livros que já vêm em `assets/books` aparecem com capa, e dá pra importar outros por arquivo.
-- **threads do twitter sem distração**: cola o link de um post/thread, o app puxa o texto e guarda na estante pra ler offline, sem feed e sem anúncio.
-- **notion script offline com imagens**: a exportação do **Notion** (Markdown & CSV `.zip`, `.md` + pasta de imagens, `.html`) é importada com o layout do próprio Notion dentro do app: títulos, listas, checklists, tabelas, citações, callouts, código e **as fotos que vêm no zip**. as imagens são convertidas e ficam guardadas offline dentro da nota, inclusive as de links externos quando o Notion permite. também aceita `.docx` (com as imagens de dentro dele) e `.pdf` do **Google Drive**, dá pra arrastar os arquivos pra dentro da nota e tem um botão **＋ imagem** pra colar um print direto na nota. o botão **＋ importar** fica no topo da página e abre um painel explicando qual export escolher.
-- **áudios editáveis**: cada cartão da library aceita troca de capa, troca de nome e troca do arquivo de áudio. quando você importa um áudio com o mesmo nome de uma meditação, ele se conecta automaticamente ao cartão em vez de duplicar.
-- **capas padrão**: as meditações usam `assets/images/default_meditacao.jpg`; você pode trocar a capa de qualquer uma individualmente.
-- **contador com chuva em loop**: além do timer programável (15m, 30m, 45m, 1h, 1h30, 2h) que reduz o volume nos últimos sessenta segundos, agora dá pra escolher uma chuva suave, na janela ou forte. ela toca em loop até o contador acabar e some junto com o resto do som.
-- **estética retro mello**: janelinha com jeitinho de sistema antigo, perfil fofo, pílulas suaves e controles delicados.
+- **library** no estilo spotify, em tons de cinza e pastel, com busca, filtros e playlists. já vem com a **corvo seco**, que junta todas as meditações.
+- **meditações com nome e autor** — os arquivos seguem `nome_pessoa`, e o cartão mostra a meditação primeiro e a pessoa embaixo.
+- **notion script** — importa a página do notion com **imagens, cores, colunas, callouts e subpáginas** dentro da mesma nota, do jeitinho que eu vejo lá. também aceita `.docx`, `.pdf`, texto colado e print.
+- **estante** estilo kindle pra `.epub`, `.pdf` e `.txt`, com índice, progresso salvo, tema sépia/claro/escuro e troca de capa, nome e autor.
+- **cookbook** com receitinhas da noite em cartões, ingredientes e passos que dá pra ir marcando.
+- **afirmações da suposição** com leitura em voz alta pra ouvir deitada.
+- **contador** de 15 min a 2 horas, com chuva suave, na janela ou forte tocando em loop e sumindo junto com o som.
+- **áudio em segundo plano** no Android, com notificação e wake lock pra continuar tocando com a tela apagada.
+- **atualizar app** — não precisa mais desinstalar pra atualizar: o botão no cartão do perfil baixa a versão nova e instala por cima, mantendo notas, playlists, capas e áudios importados.
 
 <br />
 
-<div align="center">
-  <img src="assets/readme-photos/web-preview.png" width="900" alt="versão web do sleep my angel" />
-</div>
+### como instalar no celular
+
+1. vai na aba de [**Releases**](https://github.com/sorodeleite/sleep-my-angel/releases).
+2. baixa o `sleep-my-angel.apk`.
+3. abre no celular e confirma a instalação (se pedir, autoriza "instalar de fontes desconhecidas").
+4. pronto, o app aparece na sua tela inicial.
+
+pra atualizar depois, é só tocar em **atualizar app** no cartão do perfil. ele procura a release nova, baixa e instala por cima — suas coisas continuam onde estão. se o Android pedir pra liberar a instalação, ativa "instalar apps desconhecidos" pro sleep my angel uma vez.
 
 <br />
 
-<div align="center">
-  <img src="assets/readme-photos/divider.png" width="100%" alt="divider" />
-</div>
+### como rodar no computador
 
-### como baixar e instalar o APK no celular
+precisa de **Node.js 22+**. pro APK, também de **JDK 21** e do Android SDK.
 
-1. vá na aba de [**Releases**](https://github.com/sorodeleite/sleep-my-angel/releases) deste repositório.
-2. baixe o arquivo `sleep-my-angel.apk`.
-3. abra o arquivo no seu celular Android e confirme a instalação (se pedir, autorize a instalação de fontes desconhecidas).
-4. prontinho! o app vai aparecer na sua tela inicial.
-5. **pra atualizar depois:** não precisa desinstalar nada. dentro do app, no cartão do perfil, toque em **atualizar app** (ou no aviso “nova versão”). ele baixa a versão nova e instala por cima — suas notas, playlists, capas e áudios importados ficam guardados.
-
-> se você instalou uma versão antiga que foi gerada antes da assinatura fixa, pode ser preciso desinstalar **uma única vez** pra trocar a assinatura. depois dessa, todas as atualizações seguintes instalam por cima.
->
-> **repositório privado:** o app não consegue consultar os releases sozinho (o github exige login). o botão **atualizar app** explica isso e o **ver no github** abre a página de releases. baixe o `sleep-my-angel.apk` mais novo e instale por cima — **não desinstale**, pra suas notas, playlists e áudios importados continuarem aí.
-
-<br />
-
-### como rodar pelo computador
-
-precisa de **Node.js 22 ou mais novo**. pro APK, também de **JDK 21** e do Android SDK.
-
-1. baixe ou clone o repositório:
 ```bash
 git clone https://github.com/sorodeleite/sleep-my-angel.git
 cd "sleep my angel"
-```
-2. instale as dependências:
-```bash
 npm install
-```
-3. rode o app de desktop:
-```bash
 npm start
 ```
-ou dê dois cliques em **`abrir-app.bat`**. é esse modo que abre a janela com os três botões coloridos no canto (fechar, minimizar e maximizar), iguais aos do macOS. eles são desenhados pelo próprio app em Electron, não são do Windows.
-4. pra abrir a versão web no navegador:
+
+ou dá dois cliques em **`abrir-app.bat`**. pra abrir a versão web:
+
 ```bash
 npm run web
 ```
-ela sobe em `http://127.0.0.1:4173` e usa os áudios da pasta `audios/` quando eles existem. sem os arquivos, a biblioteca cai nos sons gerados e nas demonstrações. essa versão abre no navegador e **não** mostra os botões coloridos.
+
+ela sobe em `http://127.0.0.1:4173` e usa os áudios da pasta `audios/` quando eles existem.
+
+<br />
 
 ### como gerar o APK
 
@@ -99,39 +76,56 @@ cd android
 ./gradlew assembleRelease
 ```
 
-no windows pode ser `gradlew.bat assembleRelease`. o `.apk` assinado gerado fica em `android/app/build/outputs/apk/release/app-release.apk`.
+no windows pode ser `gradlew.bat assembleRelease`. o apk assinado fica em `android/app/build/outputs/apk/release/app-release.apk`.
 
-a assinatura fica em `android/keystore/sleep-my-angel.jks` (com as senhas em `android/keystore.properties`) pra todos os builds usarem a mesma chave. é isso que permite instalar a versão nova por cima da antiga, sem desinstalar. o workflow de `Build Android APK` gera o APK assinado e publica na aba de releases a cada push na `main`, usando a versão do `package.json` como tag.
+a chave fica em `android/keystore/` e é a mesma em todos os builds — é isso que faz a atualização instalar por cima sem perder os dados. o workflow de **Build Android APK** publica a release sozinho a cada push na `main`, usando a versão do `package.json` como tag.
+
+<br />
+
+### como exportar do notion
+
+pra ficar igualzinho ao notion, o jeito certo é o **HTML**:
+
+1. na página, clica em **⋯ → export**.
+2. escolhe **HTML**.
+3. liga **include subpages**.
+4. baixa o `.zip`.
+5. no app, toca em **＋ importar → escolher .zip do notion**.
+
+as imagens são guardadas dentro da nota, e as subpáginas entram **dentro da mesma nota**, uma embaixo da outra. o **markdown & csv** também funciona e deixa o texto editável, mas perde as cores e as colunas.
+
+<br />
 
 ### livros da estante
 
-os `.epub`, capas e o `manifest.json` que o app lê ficam em `assets/books/`. pra adicionar um livro novo, coloque o arquivo em `assets/books/` e rode:
+os `.epub`, capas e o `manifest.json` ficam em `assets/books/`. pra adicionar um livro novo, coloca o arquivo lá e roda:
 
 ```bash
 node scripts/prepare-books.js
 ```
 
-ele usa o **Calibre** (`ebook-convert` / `ebook-meta`) pra converter `.azw3`, `.mobi` e `.prc` em `.epub`, extrair a capa e atualizar o manifest. depois é só rodar o build normal. os arquivos de origem do Kindle ficam fora do git; os `.epub` prontos e as capas vão junto com o app.
-
-também dá pra importar livros direto pelo botão **importar livro** (epub, pdf, txt ou md) e escolher uma capa diferente tocando em **✎ capa**.
+ele usa o **Calibre** pra converter `.azw3`, `.mobi` e `.prc`, tirar a capa e atualizar o manifest. também dá pra importar livro direto pelo botão **importar livro**.
 
 <br />
 
 ### estrutura
 
 ```
-audios/        minhas faixas locais (não vão pro git)
-assets/        ícone, fotos, livros (epub + capas + manifest) e imagens do readme
-js/            módulos do app (player, library, cookbook, estante, notas...)
-js/updater.js  botão de atualizar o app (fala com o plugin nativo no android)
-js/vendor/     epub.js, JSZip, pdf.js e fflate pro leitor rodar offline
-scripts/       build da versão web, servidor local e preparo dos livros
-android/       projeto nativo em Capacitor
-android/keystore/  chave fixa que assina o APK (permite atualizar por cima)
-index.html     shell compartilhado entre desktop, android e web
-main.js        processo principal do Electron
-preload.js     ponte segura do Electron
+audios/            minhas faixas locais (não vão pro git)
+assets/            ícone, fotos, livros e imagens do readme
+js/                módulos do app
+js/notion.js       importação fiel do notion (html, markdown, subpáginas, imagens e pdf)
+js/updater.js      botão de atualizar o app
+js/vendor/         epub.js, JSZip, pdf.js e fflate pro leitor rodar offline
+scripts/           build da versão web, servidor local e preparo dos livros
+android/           projeto nativo em Capacitor
+android/keystore/  chave que assina o APK
+index.html         shell compartilhado entre desktop, android e web
+main.js            processo principal do Electron
+preload.js         ponte segura do Electron
 ```
+
+<br />
 
 ### créditos das fotos
 
@@ -150,5 +144,5 @@ as fotos das receitas vêm de bancos livres e estão sob licenças Creative Comm
   <br /><br />
   <img src="assets/readme-photos/end.webp" width="280" alt="end" />
   <br /><br />
-  <sub>projeto pessoal em andamento ‧ feito com carinho para noites tranquilas ‧°</sub>
+  <sub>feito com carinho pra noites tranquilas ‧°✧</sub>
 </div>

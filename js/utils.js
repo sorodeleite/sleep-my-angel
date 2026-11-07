@@ -186,4 +186,152 @@
       .replace(/\s+/g, ' ')
       .trim();
   };
+
+  /* ── caminhos e imagens (notion, livros, receitas) ─────────────── */
+
+  SMA.decodeEntities = function (value) {
+    return String(value)
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#0?39;|&apos;/g, "'")
+      .replace(/&#x([0-9a-f]+);/gi, function (_, hex) {
+        return String.fromCodePoint(parseInt(hex, 16));
+      })
+      .replace(/&#(\d+);/g, function (_, number) {
+        return String.fromCodePoint(parseInt(number, 10));
+      });
+  };
+
+  SMA.normalizePath = function (value) {
+    let path = String(value || '');
+    try {
+      path = decodeURIComponent(path);
+    } catch (error) {
+      path = path;
+    }
+    return path.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\/+/, '').replace(/\s+/g, ' ');
+  };
+
+  SMA.baseName = function (value) {
+    const parts = SMA.normalizePath(value).split('/');
+    return parts[parts.length - 1];
+  };
+
+  SMA.dirName = function (value) {
+    const parts = SMA.normalizePath(value).split('/');
+    parts.pop();
+    return parts.join('/');
+  };
+
+  SMA.cleanImageRef = function (value) {
+    let ref = String(value || '').trim();
+    if (!ref) return '';
+    if (ref.charAt(0) === '<' && ref.charAt(ref.length - 1) === '>') {
+      ref = ref.slice(1, -1).trim();
+    }
+    const titled = ref.match(/^([\s\S]*?)\s+(?:"[^"]*"|'[^']*')\s*$/);
+    if (titled) ref = titled[1].trim();
+    return SMA.decodeEntities(ref).trim();
+  };
+
+  SMA.collectImageRefs = function (text) {
+    const refs = [];
+    const seen = new Set();
+    const push = function (value) {
+      const ref = SMA.cleanImageRef(value);
+      if (!ref || seen.has(ref)) return;
+      seen.add(ref);
+      refs.push(ref);
+    };
+    const source = String(text || '');
+    const markdown = /!\[[^\]]*\]\(([^)]+)\)/g;
+    let match = markdown.exec(source);
+    while (match) {
+      push(match[1]);
+      match = markdown.exec(source);
+    }
+    const html = /<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/gi;
+    match = html.exec(source);
+    while (match) {
+      push(match[1]);
+      match = html.exec(source);
+    }
+    return refs;
+  };
+
+  SMA.blobToDataUrl = function (blob) {
+    return new Promise(function (resolve) {
+      const reader = new FileReader();
+      reader.onload = function () { resolve(String(reader.result || '')); };
+      reader.onerror = function () { resolve(''); };
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  SMA.canvasHasAlpha = function (canvas) {
+    try {
+      const context = canvas.getContext('2d');
+      const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+      for (let index = 3; index < data.length; index += 4 * 37) {
+        if (data[index] < 250) return true;
+      }
+    } catch (error) {
+      return true;
+    }
+    return false;
+  };
+
+  SMA.imageToDataUrl = async function (blob, limit) {
+    const max = limit || 1400;
+    try {
+      if (blob.size < 260 * 1024) return await SMA.blobToDataUrl(blob);
+      const bitmap = await createImageBitmap(blob);
+      const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+      const width = Math.max(1, Math.round(bitmap.width * scale));
+      const height = Math.max(1, Math.round(bitmap.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d');
+      context.drawImage(bitmap, 0, 0, width, height);
+      if (typeof bitmap.close === 'function') bitmap.close();
+      const type = /png|gif|webp/i.test(blob.type) && SMA.canvasHasAlpha(canvas) ? 'image/png' : 'image/jpeg';
+      return canvas.toDataURL(type, 0.84);
+    } catch (error) {
+      return SMA.blobToDataUrl(blob);
+    }
+  };
+
+  const remoteImageCache = new Map();
+
+  SMA.fetchRemoteImage = async function (url) {
+    const key = String(url || '');
+    if (!key || /^data:/i.test(key)) return '';
+    if (remoteImageCache.has(key)) return remoteImageCache.get(key);
+    const load = async function () {
+      try {
+        const controller = typeof AbortController === 'function' ? new AbortController() : null;
+        const timer = controller ? setTimeout(function () { controller.abort(); }, 15000) : null;
+        const response = await fetch(key, {
+          mode: 'cors',
+          credentials: 'omit',
+          cache: 'force-cache',
+          signal: controller ? controller.signal : undefined
+        });
+        if (timer) clearTimeout(timer);
+        if (!response.ok) return '';
+        const blob = await response.blob();
+        if (!blob || !blob.size || blob.size > 14 * 1024 * 1024) return '';
+        return (await SMA.imageToDataUrl(blob, 1400)) || '';
+      } catch (error) {
+        return '';
+      }
+    };
+    const result = await load();
+    remoteImageCache.set(key, result);
+    return result;
+  };
 })();

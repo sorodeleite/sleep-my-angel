@@ -299,7 +299,7 @@
               <div class="doc-list" id="doc-list"></div>
               <div class="notion-side-foot">
                 <button class="notion-import notion-import-big" id="btn-side-import" type="button" title="importar do notion ou do google drive, com as imagens">＋ importar nota</button>
-                <p><strong>notion:</strong> exporte em <strong>markdown &amp; csv</strong> e traga o <strong>.zip</strong> inteiro (as imagens vêm junto).<br><strong>drive:</strong> baixe o <strong>.docx</strong> (melhor) ou .pdf e importe.</p>
+                <p><strong>notion:</strong> exporte em <strong>HTML</strong> com <strong>include subpages</strong> e traga o <strong>.zip</strong> inteiro (imagens e páginas internas vêm junto).<br><strong>drive:</strong> baixe o <strong>.docx</strong> (melhor) ou .pdf e importe.</p>
               </div>
             </aside>
 
@@ -565,13 +565,13 @@
     <div class="modal-backdrop" id="modal-import-doc">
       <div class="modal-box import-modal">
         <h3 class="modal-title">importar do notion</h3>
-        <p class="import-lead">pra as <strong>imagens virem junto</strong>, exporte a página como <strong>markdown &amp; csv</strong> e importe o <strong>.zip</strong> inteiro. o app abre as fotos e guarda tudo dentro da nota, offline.</p>
+        <p class="import-lead">pra ficar <strong>igualzinho ao notion</strong>: ⋯ → export → <strong>HTML</strong> → ligar <strong>include subpages</strong> → solta o <strong>.zip</strong> aqui. esse formato mantém cores, colunas, callouts e imagens, e as subpáginas entram <strong>dentro da mesma nota</strong>.</p>
 
         <button class="import-drop" id="import-dropzone" type="button">
           <span class="import-drop-icon" aria-hidden="true">☁︎</span>
           <strong>solta o zip aqui</strong>
           <span>ou toca pra escolher o arquivo</span>
-          <small>.zip ‧ .md + imagens ‧ .html ‧ .docx ‧ .pdf</small>
+          <small>.zip do notion ‧ .html + pasta ‧ .md + imagens ‧ .pdf ‧ .docx</small>
         </button>
 
         <div class="import-choices">
@@ -581,7 +581,7 @@
           <button class="btn-secondary" id="btn-pick-paste" type="button">colar texto</button>
         </div>
 
-        <p class="import-hint">no celular, o <strong>zip</strong> é o jeito mais seguro de trazer as imagens. se o export veio como <strong>.md</strong> solto, escolha o arquivo junto com a pasta de imagens (ou solte os dois aqui).</p>
+        <p class="import-hint">no celular, o <strong>zip em HTML</strong> é o jeito mais fiel de trazer tudo. o <strong>markdown &amp; csv</strong> também funciona e deixa o texto editável, mas perde as cores e colunas do notion. se o export veio como <strong>.md</strong> solto, escolha o arquivo junto com a pasta de imagens (ou solte os dois aqui).</p>
 
         <div class="modal-buttons">
           <button class="btn-secondary" id="modal-cancel-import" type="button">fechar</button>
@@ -758,6 +758,7 @@
   <script src="js/rain.js"></script>
   <script src="js/timer.js"></script>
   <script src="js/books.js"></script>
+  <script src="js/notion.js"></script>
   <script src="js/script.js"></script>
   <script src="js/updater.js"></script>
   <script src="js/app.js"></script>
