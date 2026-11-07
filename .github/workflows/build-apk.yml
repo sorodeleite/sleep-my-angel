@@ -86,9 +86,9 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/main')
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: v1.1.0
-          name: sleep my angel v1.1.0
-          body: cookbook com adesivos, estante kindle (epub/pdf/threads), importação do Notion/Google Drive e troca de áudios e capas.
+          tag_name: v1.2.0
+          name: sleep my angel v1.2.0
+          body: cookbook em layout de zine com fotos, notas do Notion renderizadas como no Notion, chuva em loop no contador e player mais estável no Android.
           files: sleep-my-angel.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

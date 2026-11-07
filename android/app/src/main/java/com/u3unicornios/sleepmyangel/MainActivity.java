@@ -6,8 +6,10 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -39,12 +41,24 @@ public class MainActivity extends BridgeActivity {
         public void start(String title) {
             Intent intent = new Intent(MainActivity.this, SleepService.class);
             intent.putExtra(SleepService.EXTRA_TITLE, title);
-            ContextCompat.startForegroundService(MainActivity.this, intent);
+            try {
+                ContextCompat.startForegroundService(MainActivity.this, intent);
+            } catch (RuntimeException error) {
+                try {
+                    startService(intent);
+                } catch (RuntimeException ignored) {
+                    stopService(intent);
+                }
+            }
         }
 
         @JavascriptInterface
         public void stop() {
-            stopService(new Intent(MainActivity.this, SleepService.class));
+            try {
+                stopService(new Intent(MainActivity.this, SleepService.class));
+            } catch (RuntimeException ignored) {
+                stopService(new Intent(MainActivity.this, SleepService.class));
+            }
         }
     }
 }

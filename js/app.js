@@ -46,9 +46,10 @@
         panes.forEach(function (pane) {
           pane.classList.toggle('active', pane.id === button.dataset.tab);
         });
-        if (window.innerWidth < 769) {
-          const area = SMA.select('.tab-content-area');
-          if (area) area.scrollTop = 0;
+        const area = SMA.select('.tab-content-area');
+        if (area) {
+          area.classList.toggle('notion-active', button.dataset.tab === 'tab-notion');
+          if (window.innerWidth < 769) area.scrollTop = 0;
         }
       });
     });
@@ -159,7 +160,6 @@
     const shuffleButton = SMA.select('#btn-shuffle');
     const loopButton = SMA.select('#btn-loop');
     const categoryNames = {
-      chuva: 'chuva',
       meditacao: 'meditação',
       ondas: 'ondas & frequências',
       custom: 'importado',
@@ -197,7 +197,7 @@
       if (nowCover && track.cover) nowCover.src = track.cover;
       document.title = track.title + ' ‧ sleep my angel';
       resetProgress();
-      library.markPlaying(track);
+      library.markPlaying(null);
     }
 
     function handleTime(detail) {
@@ -221,17 +221,22 @@
       handleTrack(event.detail);
     });
     document.addEventListener('player:state', function (event) {
-      paintPlayButton(Boolean(event.detail.playing));
+      const playing = Boolean(event.detail.playing);
+      paintPlayButton(playing);
+      library.markPlaying(playing ? player.current() : null);
     });
     document.addEventListener('player:time', function (event) {
       handleTime(event.detail);
     });
+    let fallbackNoticeAt = 0;
+    document.addEventListener('player:fallback', function () {
+      library.markPlaying(player.current());
+      if (Date.now() - fallbackNoticeAt < 12000) return;
+      fallbackNoticeAt = Date.now();
+      SMA.toast('essa faixa não veio no app ‧ tocando um som gerado parecido');
+    });
     document.addEventListener('player:error', function (event) {
-      const track = player.current();
-      if (SMA.platform() === 'android' && track && String(track.fileUrl || '').indexOf('audios/') === 0) {
-        SMA.toast('no android, toque no ✎ do cartão e importe esse áudio uma vez');
-        return;
-      }
+      library.markPlaying(null);
       SMA.toast(event.detail.message || 'algo saiu do tom');
     });
     document.addEventListener('player:mode', function (event) {

@@ -37,6 +37,7 @@
         <service
             android:name=".SleepService"
             android:exported="false"
+            android:stopWithTask="false"
             android:foregroundServiceType="mediaPlayback" />
     </application>
 

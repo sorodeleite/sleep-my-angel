@@ -14,7 +14,7 @@
 
 esse é um projeto que eu já estava rascunhando há um tempo e finalmente resolvi estruturar certinho pra me ajudar a dormir em paz. quem tem insônia ou a cabeça cheia antes de deitar sabe como é difícil desacelerar, então quis criar um app bem bonitinho e confortável só meu pra ter tudo que preciso em um lugar só.
 
-a ideia central do **sleep my angel** é juntar sons de chuva, ruídos relaxantes e meditações funcionando em segundo plano no celular ou computador, sem anúncios ou interrupções chatas, com um cantinho dedicado à lei da suposição (principalmente inspirada nas palestras e visões do Edward Art e Neville Goddard).
+a ideia central do **sleep my angel** é juntar sons de chuva e ruídos relaxantes gerados na hora, além de meditações funcionando em segundo plano no celular ou computador, sem anúncios ou interrupções chatas, com um cantinho dedicado à lei da suposição (principalmente inspirada nas palestras e visões do Edward Art e Neville Goddard).
 
 o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), como aplicativo de desktop em Electron e também tem uma **versão web** pra abrir no navegador.
 
@@ -26,17 +26,17 @@ o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), co
 
 ### o que tem no app
 
-- **library estilo spotify (clean & cinza)**: grade com estética suave em tons de cinza e pastéis para navegar pelos áudios de chuva, meditações e frequências sonoras (ondas theta, pink noise e ruídos suaves). dá pra criar playlists por cor, escolher os sons de cada uma e buscar qualquer faixa.
+- **library estilo spotify (clean & cinza)**: grade com estética suave em tons de cinza e pastéis para navegar pelas meditações e frequências sonoras (ondas theta, pink noise e ruídos suaves). dá pra criar playlists por cor, escolher os sons de cada uma e buscar qualquer faixa.
 - **áudio em 2º plano no android**: serviço em primeiro plano com notificação e wake lock para o som continuar tocando quando você apagar a tela ou trocar de app.
-- **sons gerados na hora**: quando não existe nenhum arquivo local, o app cria chuva, pink noise, brown noise e theta wave pelo Web Audio, então nunca fica em silêncio.
+- **sons gerados na hora**: quando um arquivo de áudio não está no aparelho, o app cria pink noise, brown noise ou theta wave pelo Web Audio pra faixa não ficar em silêncio.
 - **cantinho da lei da suposição & edward art**: cartões de afirmações e lembretes de que a imaginação é a única realidade. conta também com leitura em voz alta em português pra ouvir deitada antes de adormecer com a sensação do desejo já consumado.
-- **cookbook personalizável**: as receitas agora ficam num caderninho estilo cookbook, com seções *sweet* e *savory*, ingredientes em listinha, modo de preparo e adesivos arrastáveis (emoji ou imagem da galeria) pra decorar cada página do seu jeito. Você também pode colocar sua própria receitinha.
+- **cookbook em formato de zine**: as receitas viraram páginas de revista com título em serifa, fotos com marca d'água, ingredientes comentados e modo de preparo. as receitas antigas de bebidas quentes voltaram, e dá pra editar, apagar ou adicionar a sua com foto própria.
 - **estante estilo kindle**: leitor de `.epub`, `.pdf` e `.txt` com temas (sépia, claro e escuro), tamanho de letra, índice, progresso salvo e troca de capa. os livros que já vêm em `assets/books` aparecem com capa, e dá pra importar outros por arquivo.
 - **threads do twitter sem distração**: cola o link de um post/thread, o app puxa o texto e guarda na estante pra ler offline, sem feed e sem anúncio.
-- **notion script offline**: editor de notas com importação de exports do **Notion** (Markdown & CSV, `.md`, `.html`, `.zip`) e do **Google Drive** (`.docx`, `.pdf`, `.md`), tudo salvo no aparelho pra ler sem internet.
-- **áudios editáveis**: cada cartão da library aceita troca de capa, troca de nome e troca do arquivo de áudio. quando você importa um áudio com o mesmo nome de uma meditação/chuva, ele se conecta automaticamente ao cartão em vez de duplicar.
-- **capas padrão**: todas as meditações usam `assets/images/default_meditacao.jpg` e as chuvas usam `assets/images/default_chuva.jpg`; você pode trocar a capa de qualquer uma individualmente.
-- **contador & sleep timer suave**: timer programável (15m, 30m, 45m, 1h, 1h30, 2h) que vai reduzindo o volume nos últimos sessenta segundos e desliga o som sem susto.
+- **notion script offline**: a exportação do **Notion** (Markdown & CSV, `.md`, `.html`, `.zip`) é importada com o layout do próprio Notion dentro do app: títulos, listas, checklists, tabelas, citações, callouts, código e as fotos que vêm no zip. também aceita `.docx` e `.pdf` do Google Drive, tudo salvo no aparelho.
+- **áudios editáveis**: cada cartão da library aceita troca de capa, troca de nome e troca do arquivo de áudio. quando você importa um áudio com o mesmo nome de uma meditação, ele se conecta automaticamente ao cartão em vez de duplicar.
+- **capas padrão**: as meditações usam `assets/images/default_meditacao.jpg`; você pode trocar a capa de qualquer uma individualmente.
+- **contador com chuva em loop**: além do timer programável (15m, 30m, 45m, 1h, 1h30, 2h) que reduz o volume nos últimos sessenta segundos, agora dá pra escolher uma chuva suave, na janela ou forte. ela toca em loop até o contador acabar e some junto com o resto do som.
 - **estética retro mello**: janelinha com jeitinho de sistema antigo, perfil fofo, pílulas suaves e controles delicados.
 
 <br />
@@ -122,6 +122,16 @@ index.html     shell compartilhado entre desktop, android e web
 main.js        processo principal do Electron
 preload.js     ponte segura do Electron
 ```
+
+### créditos das fotos
+
+as fotos das receitas vêm de bancos livres e estão sob licenças Creative Commons:
+
+- **leite quente** — [“A company to warm the heart...”](https://www.flickr.com/photo.gne?id=3655318767), Mira Pangkey, CC BY 2.0
+- **moon milk** — [“Purple Sweet Potato Latte”](https://www.flickr.com/photo.gne?id=11834306445), Dushan and Miae, CC BY-SA 2.0
+- **golden milk** — [“Turmeric Latte”](https://www.flickr.com/photo.gne?id=43134398655), ella.o, CC BY 2.0
+- **chocolate noturno** — [rawpixel](https://www.rawpixel.com/), CC0
+- **cappuccino do topo** — [“Cappuccino”](https://www.flickr.com/photo.gne?id=3016206629), DeaPeaJay, CC BY-SA 2.0
 
 <br />
 

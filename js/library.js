@@ -11,18 +11,6 @@
 
   const DEMO_TRACKS = [
     {
-      id: 'chuva-demo-suave',
-      title: 'chuva suave na janela ‧°',
-      category: 'chuva',
-      type: 'rain'
-    },
-    {
-      id: 'chuva-demo-lenta',
-      title: 'chuva relaxante de outono',
-      category: 'chuva',
-      type: 'rain'
-    },
-    {
       id: 'meditacao-demo-apenas-seja',
       title: 'Adyashanti - Apenas Seja',
       category: 'meditacao',
@@ -56,14 +44,12 @@
 
   const AUDIO_FILES = /\.(m4a|mp3|wav|ogg|flac|opus|aac)$/i;
   const CATEGORY_LABELS = {
-    chuva: 'chuva',
     meditacao: 'meditação',
     ondas: 'ondas & frequências',
     custom: 'importado',
     playlists: 'playlist'
   };
   const CATEGORY_COVERS = {
-    chuva: 'assets/images/default_chuva.jpg',
     meditacao: 'assets/images/default_meditacao.jpg'
   };
   const OVERRIDES_KEY = 'sma_track_overrides';
@@ -145,7 +131,9 @@
       if (!tracks || tracks.length === 0) {
         tracks = DEMO_TRACKS.slice();
       }
-      this.tracks = tracks.map((track, index) => this.decorate(track, index));
+      this.tracks = tracks
+        .filter(function (track) { return track.category !== 'chuva'; })
+        .map((track, index) => this.decorate(track, index));
     }
 
     async fetchSiteTracks() {
@@ -242,6 +230,7 @@
             track.fileUrl = SMA.audioStore.url(override.fileId, record.blob);
             track.fileName = record.name || track.fileName;
             track.replaced = true;
+            track.failedUrl = '';
           }
         }
       }
@@ -792,6 +781,7 @@
           track.fileUrl = SMA.audioStore.url(this.pendingAudioId, record.blob);
           track.fileName = record.name || this.pendingAudioName;
           track.replaced = true;
+          track.failedUrl = '';
           override.fileId = this.pendingAudioId;
           override.cover = track.cover;
           override.title = track.title;
@@ -837,6 +827,7 @@
       track.usingDefaultCover = Boolean(CATEGORY_COVERS[track.category]);
       track.fileUrl = track.originalFileUrl;
       track.replaced = false;
+      track.failedUrl = '';
       this.closeTrackEditor();
       this.render();
       SMA.toast('voltou ao padrão');
@@ -875,6 +866,7 @@
           existing.fileUrl = SMA.audioStore.url(id, file);
           existing.fileName = file.name;
           existing.replaced = true;
+          existing.failedUrl = '';
           this.overrides[existing.id] = Object.assign({}, this.overrides[existing.id], {
             fileId: id
           });

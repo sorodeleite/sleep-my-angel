@@ -1,14 +1,4 @@
 #!/usr/bin/env node
-/*
- * Prepara a estante de livros do app.
- *
- * Lê os arquivos que ficam em assets/books, converte os formatos de Kindle
- * (.azw3/.mobi) para .epub usando o Calibre (se ele estiver instalado),
- * extrai as capas e monta o assets/books/manifest.json que o aplicativo lê.
- *
- * Rode de novo sempre que colocar um livro novo na pasta:
- *   node scripts/prepare-books.js
- */
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
@@ -30,8 +20,6 @@ const CALIBRE_CANDIDATES = [
 ].filter(Boolean);
 
 function findCalibre() {
-  // Primeiro tenta caminhos absolutos conhecidos: assim o ebook-meta fica
-  // na mesma pastinha e a gente não depende de como o PATH foi montado.
   const absolute = CALIBRE_CANDIDATES.filter((candidate) => candidate.includes(path.sep) || candidate.includes('/'));
   const bare = CALIBRE_CANDIDATES.filter((candidate) => !absolute.includes(candidate));
   for (const candidate of absolute.concat(bare)) {
@@ -101,9 +89,9 @@ function readMetadata(metaCommand, file) {
       };
     }
   } catch (error) {
-    /* segue com o nome do arquivo */
+    return { title: '', author: '' };
   } finally {
-    try { fs.rmSync(temporary, { force: true }); } catch (error) { /* sem problema */ }
+    try { fs.rmSync(temporary, { force: true }); } catch (error) { }
   }
   return { title: '', author: '' };
 }
@@ -182,7 +170,7 @@ function main() {
     const hasCover = extractCover(metaCommand, source, coverPath)
       || extractCover(metaCommand, file, coverPath);
     if (!hasCover) {
-      try { fs.rmSync(coverPath, { force: true }); } catch (error) { /* sem problema */ }
+      try { fs.rmSync(coverPath, { force: true }); } catch (error) { }
     }
 
     const relative = (absolute) => path.relative(root, absolute).split(path.sep).join('/');

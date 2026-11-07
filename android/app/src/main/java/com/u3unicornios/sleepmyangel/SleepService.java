@@ -19,6 +19,7 @@ public class SleepService extends Service {
     private static final long WAKE_LOCK_TIMEOUT = 12 * 60 * 60 * 1000L;
 
     private PowerManager.WakeLock wakeLock;
+    private boolean foregroundStarted = false;
 
     @Override
     public void onCreate() {
@@ -29,6 +30,7 @@ public class SleepService extends Service {
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "sleepmyangel:playback");
             wakeLock.setReferenceCounted(false);
         }
+        startForegroundSafely(buildNotification("sleep my angel"));
     }
 
     @Override
@@ -38,11 +40,18 @@ public class SleepService extends Service {
             title = "sleep my angel";
         }
 
-        Notification notification = buildNotification(title);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+        if (!foregroundStarted) {
+            startForegroundSafely(buildNotification(title));
         } else {
-            startForeground(NOTIFICATION_ID, notification);
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            if (manager != null) {
+                try {
+                    manager.notify(NOTIFICATION_ID, buildNotification(title));
+                } catch (SecurityException ignored) {
+                    stopSelf();
+                    return START_NOT_STICKY;
+                }
+            }
         }
 
         if (wakeLock != null && !wakeLock.isHeld()) {
@@ -52,12 +61,30 @@ public class SleepService extends Service {
         return START_NOT_STICKY;
     }
 
+    private void startForegroundSafely(Notification notification) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+            } else {
+                startForeground(NOTIFICATION_ID, notification);
+            }
+            foregroundStarted = true;
+        } catch (RuntimeException error) {
+            foregroundStarted = false;
+            stopSelf();
+        }
+    }
+
     @Override
     public void onDestroy() {
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
         }
-        stopForeground(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE);
+        } else {
+            stopForeground(true);
+        }
         super.onDestroy();
     }
 

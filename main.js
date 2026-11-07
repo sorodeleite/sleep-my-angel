@@ -4,7 +4,7 @@ const fs = require('fs');
 const { pathToFileURL } = require('url');
 
 const AUDIO_PATTERN = /\.(m4a|mp3|wav|ogg|flac|opus|aac)$/i;
-const CATEGORIES = ['chuva', 'meditacao', 'ondas'];
+const CATEGORIES = ['meditacao', 'ondas'];
 const WINDOW_WIDTH = 1180;
 const WINDOW_HEIGHT = 900;
 

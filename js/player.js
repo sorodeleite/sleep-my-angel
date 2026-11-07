@@ -84,13 +84,7 @@
 
       this.audio.addEventListener('error', () => {
         if (!this.current() || this.isSynth) return;
-        const code = this.audio.error ? this.audio.error.code : 0;
-        const message = code === 4
-          ? 'não consegui abrir esse áudio'
-          : 'o áudio parou de responder';
-        this.playing = false;
-        this.emit('player:error', { message: message });
-        this.emit('player:state', { playing: false });
+        this.handlePlaybackFailure();
       });
     }
 
@@ -111,11 +105,12 @@
       if (!('mediaSession' in navigator) || typeof window.MediaMetadata !== 'function') return;
       const track = this.current();
       if (!track) return;
+      const cover = track.cover || '';
       const canUseArtwork = /^https?:$/.test(location.protocol)
-        || track.cover.indexOf('data:') === 0
-        || track.cover.indexOf('blob:') === 0;
-      const artwork = canUseArtwork && track.cover
-        ? [{ src: track.cover, sizes: '512x512' }]
+        || cover.indexOf('data:') === 0
+        || cover.indexOf('blob:') === 0;
+      const artwork = canUseArtwork && cover
+        ? [{ src: cover, sizes: '512x512' }]
         : [];
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -150,18 +145,51 @@
     }
 
     syncNative() {
-      const bridge = window.SleepPlayback;
-      if (!bridge || typeof bridge.start !== 'function') return;
-      try {
-        if (this.playing) {
-          const track = this.current();
-          bridge.start(track ? track.title : 'sleep my angel');
-        } else {
-          bridge.stop();
-        }
-      } catch (error) {
-        void error;
+      if (!SMA.keepAlive) return;
+      const track = this.current();
+      SMA.keepAlive.set('player', this.playing, track ? track.title : 'sleep my angel');
+    }
+
+    fallbackType(track) {
+      if (track.type && track.type !== 'rain') return track.type;
+      if (/theta/i.test(track.title || '')) return 'theta';
+      if (/brown|marrom/i.test(track.title || '')) return 'brown';
+      return track.category === 'meditacao' ? 'theta' : 'pink';
+    }
+
+    handlePlaybackFailure() {
+      if (this.isSynth) return;
+      const track = this.current();
+      if (!track) return;
+      if (track.fileUrl && track.category !== 'custom' && !this.isSynth) {
+        track.failedUrl = track.fileUrl;
+        if (this.startFallback(track)) return;
       }
+      const code = this.audio.error ? this.audio.error.code : 0;
+      const message = code === 4 ? 'não consegui abrir esse áudio' : 'o áudio parou de responder';
+      this.playing = false;
+      this.emit('player:error', { message: message });
+      this.emit('player:state', { playing: false });
+    }
+
+    startFallback(track) {
+      const started = this.ambience.start(this.fallbackType(track), this.effectiveVolume());
+      if (!started) return false;
+      this.isSynth = true;
+      this.audio.pause();
+      this.audio.removeAttribute('src');
+      this.audio.load();
+      this.audio.volume = 0;
+      this.synthElapsed = 0;
+      this.synthStartedAt = Date.now();
+      this.playing = true;
+      this.emit('player:state', { playing: true });
+      this.emit('player:time', { currentTime: 0, duration: 0, synth: true });
+      this.emit('player:fallback', { title: track.title, type: this.fallbackType(track) });
+      this.startSynthTicker();
+      this.syncNative();
+      this.updateMediaState();
+      return true;
     }
 
     setQueue(tracks, startIndex) {
@@ -180,7 +208,8 @@
       this.audio.pause();
       this.stopSynthTicker();
       this.ambience.stop();
-      this.isSynth = !track.fileUrl;
+      const failed = Boolean(track.failedUrl && track.failedUrl === track.fileUrl);
+      this.isSynth = !track.fileUrl || failed;
       this.index = index;
       this.emit('player:track', { track: track, index: index });
       this.updateMediaMetadata();
@@ -189,7 +218,7 @@
         this.audio.volume = 0;
         this.synthElapsed = 0;
         this.synthStartedAt = Date.now();
-        const started = this.ambience.start(track.type || 'pink', this.effectiveVolume());
+        const started = this.ambience.start(this.fallbackType(track), this.effectiveVolume());
         if (!started) {
           this.emit('player:error', { message: 'seu navegador não suporta os sons gerados' });
           return;
@@ -207,9 +236,7 @@
       this.audio.loop = this.loop;
       this.audio.src = track.fileUrl;
       this.audio.play().catch(() => {
-        this.playing = false;
-        this.emit('player:error', { message: 'não consegui iniciar esse áudio' });
-        this.emit('player:state', { playing: false });
+        this.handlePlaybackFailure();
       });
     }
 
@@ -223,7 +250,7 @@
 
       if (this.isSynth) {
         if (!this.ambience.active) {
-          const started = this.ambience.start(track.type || 'pink', this.effectiveVolume());
+          const started = this.ambience.start(this.fallbackType(track), this.effectiveVolume());
           if (!started) return;
         } else {
           this.ambience.resume();
@@ -247,9 +274,7 @@
         return;
       }
       this.audio.play().catch(() => {
-        this.playing = false;
-        this.emit('player:error', { message: 'não consegui continuar esse áudio' });
-        this.emit('player:state', { playing: false });
+        this.handlePlaybackFailure();
       });
     }
 

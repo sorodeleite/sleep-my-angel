@@ -1,99 +1,81 @@
 (function () {
   const SMA = window.SMA;
 
-  const STORAGE_KEY = 'cookbook_recipes';
+  const STORAGE_KEY = 'cookbook_recipes_v2';
+  const PREVIOUS_KEY = 'cookbook_recipes';
   const LEGACY_KEY = 'user_recipes';
-  const STICKER_EMOJIS = ['🍓', '🍰', '🧁', '🍯', '🌙', '✧', '☁️', '🌸', '🍪', '🥞', '🍲', '🧸', '🎀', '🕯️', '🍵', '🥛'];
+  const REMOVED_DEFAULTS = ['waffles', 'carrot-cake', 'pancakes', 'sausage-risotto', 'carbonara-sauce'];
 
   const DEFAULTS = [
     {
-      id: 'waffles',
-      title: 'waffles',
-      section: 'sweet',
-      tag: 'sweet',
+      id: 'leite-quente',
+      title: 'leite quente da vovó',
+      tag: 'favorito',
+      intro: 'o clássico que minha avó fazia quando eu não conseguia dormir. leite quentinho, mel e canela — simples, doce e do tamanho exato de um abraço.',
+      image: 'assets/images/recipes/leite-quente.jpg',
+      caption: 'leite quente ‧ canela & mel',
       ingredients: [
-        '1/2 cup flour',
-        '1/2 cup milk',
-        '1 egg',
-        '1 tablespoon butter',
-        '1 tablespoon sugar',
-        'a pinch of baking powder'
+        'leite integral ou de aveia: 250ml, aqueça em fogo bem baixinho sem deixar ferver',
+        'mel puro: 1 colher de chá, adoce no final pra não perder o aroma',
+        'canela em pó: 1 pitada por cima, abraça o cheiro de casa',
+        'essência de baunilha: só 2 gotinhas, o suficiente pra perfumar'
       ],
-      prep: 'Misture tudo com carinho, aqueça a máquina de waffle e deixe dourar. Sirva quentinho com mel ou frutinhas.',
-      stickers: []
+      prep: 'Aqueça o leite devagar até ficar quentinho e aconchegante. Misture o mel e a baunilha, despeje na sua caneca favorita e polvilhe a canela. Beba em pequenos goles, sentindo o corpo relaxar.'
     },
     {
-      id: 'carrot-cake',
-      title: 'carrot cake',
-      section: 'sweet',
-      tag: 'sweet',
+      id: 'moon-milk',
+      title: 'moon milk de camomila & lavanda',
+      tag: 'relaxamento',
+      intro: 'leite lilás de camomila e lavanda pra quando a cabeça não desliga. o cheiro sozinho já muda o clima do quarto.',
+      image: 'assets/images/recipes/moon-milk.jpg',
+      caption: 'moon milk ‧ camomila & lavanda',
       ingredients: [
-        '2 cenouras raladas',
-        '1 xícara de farinha',
-        '1/2 xícara de açúcar mascavo',
-        '2 ovos',
-        '1/3 xícara de óleo',
-        '1 colher de chá de canela'
+        'leite de amêndoas: 200ml, o mais cremoso que você tiver',
+        'camomila seca: 1 colher de flores, infusione no leite morno por 5 minutos',
+        'lavanda: um toque de flores, só pra perfumar — não exagere no sabor',
+        'mel: 1 colher de chá, ou o quanto o seu coração pedir'
       ],
-      prep: 'Bata a cenoura, os ovos e o óleo. Junte os secos e leve ao forno a 180°C por uns 35 minutos.',
-      stickers: []
+      prep: 'Infusione a camomila e a lavanda no leite morno, coe com cuidado e adoce com mel. Beba devagar, respirando fundo entre um gole e outro, com as luzes bem baixinhas.'
     },
     {
-      id: 'pancakes',
-      title: 'pancakes',
-      section: 'sweet',
-      tag: 'sweet',
+      id: 'golden-milk',
+      title: 'chá dourado (golden milk)',
+      tag: 'anti-estresse',
+      intro: 'açafrão-da-terra, pimenta-do-reino e mel num leite aveludado. aquece por dentro e faz o corpo entender que o dia acabou.',
+      image: 'assets/images/recipes/golden-milk.jpg',
+      caption: 'golden milk ‧ cúrcuma & especiarias',
       ingredients: [
-        '1 xícara de farinha',
-        '1 xícara de leite',
-        '1 ovo',
-        '1 colher de sopa de açúcar',
-        '1 colher de chá de fermento'
+        'leite vegetal: 200ml, de coco, amêndoas ou aveia',
+        'cúrcuma em pó: 1/2 colher de chá, o dourado da xícara',
+        'pimenta-do-reino: uma pitada, ajuda o corpo a absorver a cúrcuma',
+        'óleo de coco: 1/2 colher de chá, deixa tudo mais cremoso',
+        'mel: 1 colher de chá, pra equilibrar o amargor'
       ],
-      prep: 'Misture até ficar lisinho e faça panquecas pequenas numa frigideira antiaderente. Empilhe com mel.',
-      stickers: []
+      prep: 'Aqueça tudo junto mexendo com um batedor pequeno até formar uma espuminha aveludada. Não deixe ferver. Sirva quente e sinta o calor subir devagar pelos ombros.'
     },
     {
-      id: 'sausage-risotto',
-      title: 'sausage risotto',
-      section: 'savory',
-      tag: 'savory',
+      id: 'chocolate-noturno',
+      title: 'chocolate noturno suave',
+      tag: 'conforto',
+      intro: 'cacau de verdade, leite quente e uma pitada de noz-moscada. é o abraço em forma de caneca pra encerrar o dia sem pressa.',
+      image: 'assets/images/recipes/chocolate.jpg',
+      caption: 'chocolate noturno ‧ cacau & noz-moscada',
       ingredients: [
-        '1 xícara de arroz arbóreo',
-        '2 linguiças desmanchadas',
-        '1/2 cebola picadinha',
-        '4 xícaras de caldo quente',
-        'queijo parmesão',
-        'manteiga'
+        'leite quente: 1 xícara, integral ou vegetal',
+        'cacau 100%: 1 colher de sopa, sem açúcar escondido',
+        'açúcar demerara ou mel: 1 colher de chá, ajuste ao seu gosto',
+        'noz-moscada: uma pitada ralada na hora',
+        'chantilly ou marshmallows: opcional, só pra deixar mais fofo'
       ],
-      prep: 'Refogue a cebola e a linguiça, junte o arroz e vá adicionando o caldo aos poucos, mexendo até ficar cremoso. Finalize com manteiga e parmesão.',
-      stickers: []
-    },
-    {
-      id: 'carbonara-sauce',
-      title: 'carbonara sauce',
-      section: 'savory',
-      tag: 'savory',
-      ingredients: [
-        '2 gemas',
-        '1 ovo inteiro',
-        '50g de parmesão ralado',
-        '100g de pancetta ou bacon',
-        'pimenta-do-reino',
-        'massa de sua escolha'
-      ],
-      prep: 'Doure a pancetta, misture os ovos com o queijo e a pimenta, e junte à massa quente fora do fogo para o creme não talhar.',
-      stickers: []
+      prep: 'Dissolva o cacau no leite quente e finalize com a noz-moscada ralada na hora. A noz-moscada tem propriedades naturais que ajudam a induzir o sono — beba devagar, de preferência sem tela.'
     }
   ];
 
   let recipes = [];
   let root = null;
   let editingId = null;
-  let selectedSticker = null;
-  let activeLayer = null;
-  let activeRecipeId = null;
-  let activeControls = null;
+  let editingImage = '';
+  let editingCaption = '';
 
   function uniqueId() {
     return 'recipe-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
@@ -104,62 +86,54 @@
   }
 
   function splitIngredients(value) {
-    if (Array.isArray(value)) {
-      return value.map(cleanText).filter(Boolean);
-    }
-    return String(value || '')
-      .split(/\r?\n|;/)
-      .map(function (item) { return item.replace(/^[-•*]\s*/, '').trim(); })
+    const source = Array.isArray(value)
+      ? value
+      : String(value || '').split(/\r?\n|;/);
+    return source
+      .map(function (item) { return String(item).replace(/^[-•*]\s*/, '').trim(); })
       .filter(Boolean);
   }
 
   function normalize(recipe) {
-    const ingredients = splitIngredients(recipe.ingredients);
-    const stickers = Array.isArray(recipe.stickers)
-      ? recipe.stickers
-        .filter(function (sticker) { return sticker && (sticker.value || sticker.content); })
-        .map(function (sticker) {
-          return {
-            id: String(sticker.id || Math.random().toString(36).slice(2, 8)),
-            kind: sticker.kind === 'image' ? 'image' : 'emoji',
-            value: String(sticker.value || sticker.content || ''),
-            x: Number.isFinite(Number(sticker.x)) ? Number(sticker.x) : 50,
-            y: Number.isFinite(Number(sticker.y)) ? Number(sticker.y) : 50,
-            size: Number.isFinite(Number(sticker.size)) ? Number(sticker.size) : 38,
-            rotate: Number.isFinite(Number(sticker.rotate)) ? Number(sticker.rotate) : 0
-          };
-        })
-      : [];
+    const title = cleanText(recipe.title) || 'receita sem nome';
     return {
       id: String(recipe.id || uniqueId()),
-      title: cleanText(recipe.title) || 'receita sem nome',
-      section: recipe.section === 'savory' ? 'savory' : 'sweet',
-      tag: cleanText(recipe.tag) || (recipe.section === 'savory' ? 'savory' : 'sweet'),
-      ingredients: ingredients,
+      title: title,
+      tag: cleanText(recipe.tag) || 'da noite',
+      intro: cleanText(recipe.intro || recipe.description || ''),
+      image: cleanText(recipe.image),
+      caption: cleanText(recipe.caption) || title,
+      ingredients: splitIngredients(recipe.ingredients),
       prep: cleanText(recipe.prep || recipe.preparation),
-      stickers: stickers,
       createdAt: Number(recipe.createdAt) || Date.now()
     };
   }
 
   function load() {
     const saved = SMA.readJSON(STORAGE_KEY, null);
-    if (Array.isArray(saved) && saved.length > 0) {
-      return saved.map(normalize);
-    }
-    const legacy = SMA.readJSON(LEGACY_KEY, null);
-    if (Array.isArray(legacy) && legacy.length > 0) {
-      return legacy.map(function (recipe) {
-        return normalize({
-          title: recipe.title,
-          section: /chá|leite|moon|chocolate|golden/i.test(recipe.title || '') ? 'sweet' : 'sweet',
-          tag: recipe.tag,
-          ingredients: recipe.ingredients,
-          prep: recipe.prep
-        });
+    if (Array.isArray(saved) && saved.length > 0) return saved.map(normalize);
+
+    const custom = [];
+    const previous = SMA.readJSON(PREVIOUS_KEY, null);
+    if (Array.isArray(previous)) {
+      previous.forEach(function (recipe) {
+        if (REMOVED_DEFAULTS.indexOf(String(recipe.id)) !== -1) return;
+        custom.push(normalize(recipe));
       });
     }
-    return DEFAULTS.map(normalize);
+    const legacy = SMA.readJSON(LEGACY_KEY, null);
+    if (Array.isArray(legacy)) {
+      legacy.forEach(function (recipe) {
+        custom.push(normalize({
+          title: recipe.title,
+          tag: recipe.tag,
+          intro: '',
+          ingredients: recipe.ingredients,
+          prep: recipe.prep
+        }));
+      });
+    }
+    return DEFAULTS.map(normalize).concat(custom);
   }
 
   function persist() {
@@ -179,280 +153,94 @@
     return element;
   }
 
-  function paintSticker(element, sticker) {
-    element.style.left = sticker.x + '%';
-    element.style.top = sticker.y + '%';
-    element.style.fontSize = sticker.size + 'px';
-    element.style.transform = 'translate(-50%, -50%) rotate(' + sticker.rotate + 'deg)';
-    element.dataset.stickerId = sticker.id;
-    if (sticker.kind === 'image') {
-      let image = element.querySelector('img');
-      if (!image) {
-        image = document.createElement('img');
-        image.alt = 'adesivo';
-        image.draggable = false;
-        element.appendChild(image);
-      }
-      image.src = sticker.value;
+  function ingredientParts(line) {
+    const separator = line.indexOf(':');
+    if (separator === -1) return { name: '', note: line };
+    return {
+      name: line.slice(0, separator).trim(),
+      note: line.slice(separator + 1).trim()
+    };
+  }
+
+  function photoFigure(recipe, className) {
+    const figure = createElement('figure', 'zine-photo ' + className);
+    if (recipe.image) {
+      const image = document.createElement('img');
+      image.src = recipe.image;
+      image.alt = recipe.title;
+      image.loading = 'lazy';
+      figure.appendChild(image);
     } else {
-      let glyph = element.querySelector('.sticker-glyph');
-      if (!glyph) {
-        glyph = document.createElement('span');
-        glyph.className = 'sticker-glyph';
-        element.insertBefore(glyph, element.firstChild);
+      const placeholder = createElement('div', 'zine-photo-empty');
+      placeholder.appendChild(createElement('span', 'zine-photo-moon', '☾'));
+      placeholder.appendChild(createElement('span', 'zine-photo-word', recipe.title));
+      figure.appendChild(placeholder);
+    }
+    const caption = createElement('figcaption', 'zine-watermark');
+    caption.appendChild(document.createTextNode('sleep my angel'));
+    caption.appendChild(createElement('span', '', "'s guides"));
+    figure.appendChild(caption);
+    return figure;
+  }
+
+  function ingredientList(recipe) {
+    const list = createElement('div', 'zine-ingredients');
+    const items = recipe.ingredients.length ? recipe.ingredients : ['sem ingredientes anotados'];
+    items.forEach(function (line) {
+      const row = createElement('p', 'zine-ingredient');
+      const parts = ingredientParts(line);
+      if (parts.name) {
+        row.appendChild(createElement('strong', '', parts.name));
+        row.appendChild(document.createTextNode(': ' + parts.note));
+      } else {
+        row.textContent = parts.note;
       }
-      glyph.textContent = sticker.value;
-    }
-  }
-
-  function renderStickerLayer(layer, recipe, editing) {
-    layer.textContent = '';
-    layer.classList.toggle('is-editing', editing);
-    recipe.stickers.forEach(function (sticker) {
-      const element = createElement('span', 'cookbook-sticker');
-      paintSticker(element, sticker);
-      if (editing) {
-        const remove = createElement('button', 'sticker-remove', '×');
-        remove.type = 'button';
-        remove.setAttribute('aria-label', 'remover adesivo');
-        remove.addEventListener('click', function (event) {
-          event.stopPropagation();
-          recipe.stickers = recipe.stickers.filter(function (item) { return item.id !== sticker.id; });
-          if (selectedSticker && selectedSticker.id === sticker.id) selectedSticker = null;
-          persist();
-          renderStickerLayer(layer, recipe, true);
-        });
-        element.appendChild(remove);
-        element.addEventListener('pointerdown', function (event) {
-          if (event.target === remove) return;
-          startStickerDrag(event, element, layer, recipe, sticker);
-        });
-      }
-      layer.appendChild(element);
+      list.appendChild(row);
     });
+    return list;
   }
 
-  function startStickerDrag(event, element, layer, recipe, sticker) {
-    event.preventDefault();
-    selectedSticker = sticker;
-    activeRecipeId = recipe.id;
-    activeLayer = layer;
-    const detail = element.closest('.cookbook-detail');
-    activeControls = detail ? detail.querySelector('.sticker-controls') : null;
-    element.classList.add('is-selected');
-    const rect = layer.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    element.setPointerCapture(event.pointerId);
-    const move = function (moveEvent) {
-      sticker.x = SMA.clamp(((moveEvent.clientX - rect.left) / rect.width) * 100, 2, 98);
-      sticker.y = SMA.clamp(((moveEvent.clientY - rect.top) / rect.height) * 100, 2, 98);
-      paintSticker(element, sticker);
-    };
-    const up = function () {
-      element.removeEventListener('pointermove', move);
-      element.removeEventListener('pointerup', up);
-      element.removeEventListener('pointercancel', up);
-      persist();
-      renderStickerControls();
-    };
-    element.addEventListener('pointermove', move);
-    element.addEventListener('pointerup', up);
-    element.addEventListener('pointercancel', up);
-    renderStickerControls();
-  }
+  function recipeCard(recipe, index) {
+    const card = createElement('article', 'zine-recipe' + (index % 2 === 1 ? ' is-flipped' : ''));
+    card.dataset.id = recipe.id;
 
-  function renderStickerControls() {
-    const controls = activeControls;
-    if (!controls) return;
-    controls.hidden = !selectedSticker;
-    if (!selectedSticker) return;
-    const sizeLabel = controls.querySelector('.sticker-size');
-    if (sizeLabel) sizeLabel.textContent = Math.round(selectedSticker.size) + 'px';
-  }
+    const photo = photoFigure(recipe, 'zine-recipe-photo');
+    const body = createElement('div', 'zine-copy');
 
-  function mutateSelected(mutator) {
-    if (!selectedSticker || !activeLayer) return;
-    const recipe = findRecipe(activeRecipeId);
-    if (!recipe) return;
-    mutator(selectedSticker);
-    persist();
-    renderStickerLayer(activeLayer, recipe, true);
-    renderStickerControls();
-  }
+    const actions = createElement('div', 'zine-actions');
+    const edit = createElement('button', 'zine-action', 'editar');
+    edit.type = 'button';
+    const remove = createElement('button', 'zine-action zine-action-remove', '×');
+    remove.type = 'button';
+    remove.title = 'apagar receita';
+    remove.setAttribute('aria-label', 'apagar ' + recipe.title);
+    actions.appendChild(edit);
+    actions.appendChild(remove);
+    body.appendChild(actions);
 
-  function addSticker(recipe, value, kind) {
-    const sticker = {
-      id: Math.random().toString(36).slice(2, 9),
-      kind: kind === 'image' ? 'image' : 'emoji',
-      value: value,
-      x: 50 + (Math.random() * 24 - 12),
-      y: 46 + (Math.random() * 20 - 10),
-      size: kind === 'image' ? 72 : 38,
-      rotate: Math.round(Math.random() * 24 - 12)
-    };
-    recipe.stickers.push(sticker);
-    persist();
-    if (activeLayer) {
-      renderStickerLayer(activeLayer, recipe, true);
-      const detail = activeLayer.closest('.cookbook-detail');
-      activeControls = detail ? detail.querySelector('.sticker-controls') : activeControls;
-    }
-    selectedSticker = sticker;
-    renderStickerControls();
-  }
+    const heading = createElement('h2', 'zine-recipe-title', recipe.title);
+    body.appendChild(heading);
 
-  function sectionBlock(section) {
-    const block = createElement('section', 'cookbook-section');
-    const label = createElement('div', 'cookbook-section-label', section === 'savory' ? 'savory' : 'sweet');
-    block.appendChild(label);
-    const list = createElement('ul', 'cookbook-list');
-    const entries = recipes.filter(function (recipe) { return recipe.section === section; });
-    const order = section === 'savory'
-      ? ['sausage-risotto', 'carbonara-sauce']
-      : ['carrot-cake', 'pancakes', 'waffles'];
-    entries.sort(function (a, b) {
-      const left = order.indexOf(a.id);
-      const right = order.indexOf(b.id);
-      return (left < 0 ? 99 : left) - (right < 0 ? 99 : right);
-    });
-    if (entries.length === 0) {
-      const empty = createElement('li', 'cookbook-empty', 'nenhuma receitinha aqui ainda ‧°');
-      list.appendChild(empty);
-    }
-    entries.forEach(function (recipe) {
-      list.appendChild(recipeEntry(recipe));
-    });
-    block.appendChild(list);
-    return block;
-  }
+    const meta = createElement('div', 'zine-recipe-meta');
+    meta.appendChild(createElement('span', 'zine-tag', recipe.tag));
+    meta.appendChild(createElement('span', 'zine-handle-small', '@sleepmyangel'));
+    body.appendChild(meta);
 
-  function recipeEntry(recipe) {
-    const item = createElement('li', 'cookbook-entry');
-    item.dataset.id = recipe.id;
-    const toggle = createElement('button', 'cookbook-toggle');
-    toggle.type = 'button';
-    const triangle = createElement('span', 'cookbook-triangle', '▶');
-    const title = createElement('span', 'cookbook-recipe-title', recipe.title);
-    toggle.appendChild(triangle);
-    toggle.appendChild(title);
-    const detail = createElement('div', 'cookbook-detail');
-    detail.hidden = recipe.id !== 'waffles';
-    toggle.setAttribute('aria-expanded', detail.hidden ? 'false' : 'true');
-    if (!detail.hidden) triangle.textContent = '▼';
+    if (recipe.intro) body.appendChild(createElement('p', 'zine-text', recipe.intro));
 
-    const ingredients = createElement('ul', 'cookbook-ingredients');
-    (recipe.ingredients.length ? recipe.ingredients : ['sem ingredientes anotados']).forEach(function (ingredient) {
-      ingredients.appendChild(createElement('li', '', ingredient));
-    });
-    detail.appendChild(ingredients);
+    body.appendChild(createElement('h3', 'zine-label', 'ingredientes'));
+    body.appendChild(ingredientList(recipe));
 
     if (recipe.prep) {
-      const prep = createElement('p', 'cookbook-prep');
-      prep.appendChild(createElement('strong', '', 'modo de preparo: '));
-      prep.appendChild(document.createTextNode(recipe.prep));
-      detail.appendChild(prep);
+      body.appendChild(createElement('h3', 'zine-label', 'modo de preparo'));
+      body.appendChild(createElement('p', 'zine-text', recipe.prep));
     }
 
-    const layer = createElement('div', 'cookbook-sticker-layer');
-    renderStickerLayer(layer, recipe, false);
-    detail.appendChild(layer);
+    card.appendChild(photo);
+    card.appendChild(body);
 
-    const actions = createElement('div', 'cookbook-actions');
-    const stickerButton = createElement('button', 'btn-secondary', '✧ adesivos');
-    stickerButton.type = 'button';
-    const editButton = createElement('button', 'btn-secondary', 'editar');
-    editButton.type = 'button';
-    const deleteButton = createElement('button', 'action-btn cookbook-delete', '×');
-    deleteButton.type = 'button';
-    deleteButton.setAttribute('aria-label', 'apagar receita');
-    deleteButton.title = 'apagar receita';
-    actions.appendChild(stickerButton);
-    actions.appendChild(editButton);
-    actions.appendChild(deleteButton);
-    detail.appendChild(actions);
-
-    const tray = createElement('div', 'sticker-tray');
-    tray.hidden = true;
-    const emojiRow = createElement('div', 'sticker-emoji-row');
-    STICKER_EMOJIS.forEach(function (emoji) {
-      const button = createElement('button', 'sticker-emoji', emoji);
-      button.type = 'button';
-      button.setAttribute('aria-label', 'adicionar adesivo ' + emoji);
-      button.addEventListener('click', function () {
-        addSticker(recipe, emoji, 'emoji');
-      });
-      emojiRow.appendChild(button);
-    });
-    tray.appendChild(emojiRow);
-
-    const uploadRow = createElement('div', 'sticker-upload-row');
-    const upload = createElement('input');
-    upload.type = 'file';
-    upload.accept = 'image/*';
-    upload.className = 'sticker-upload-input';
-    upload.hidden = true;
-    const uploadButton = createElement('button', 'btn-secondary', '＋ adesivo da galeria');
-    uploadButton.type = 'button';
-    uploadButton.addEventListener('click', function () { upload.click(); });
-    upload.addEventListener('change', async function () {
-      const file = upload.files && upload.files[0];
-      upload.value = '';
-      if (!file) return;
-      try {
-        const dataUrl = await SMA.readImageFile(file, 420, 0.86);
-        addSticker(recipe, dataUrl, 'image');
-      } catch (error) {
-        SMA.toast('não consegui abrir essa imagem');
-      }
-    });
-
-    const controls = createElement('div', 'sticker-controls');
-    controls.hidden = true;
-    const sizeLabel = createElement('span', 'sticker-size', '38px');
-    const smaller = createElement('button', 'sticker-control', 'A−');
-    smaller.type = 'button';
-    smaller.title = 'diminuir adesivo';
-    smaller.addEventListener('click', function () {
-      mutateSelected(function (sticker) { sticker.size = SMA.clamp(sticker.size - 6, 18, 140); });
-    });
-    const bigger = createElement('button', 'sticker-control', 'A＋');
-    bigger.type = 'button';
-    bigger.title = 'aumentar adesivo';
-    bigger.addEventListener('click', function () {
-      mutateSelected(function (sticker) { sticker.size = SMA.clamp(sticker.size + 6, 18, 140); });
-    });
-    const rotate = createElement('button', 'sticker-control', '↻');
-    rotate.type = 'button';
-    rotate.title = 'girar adesivo';
-    rotate.addEventListener('click', function () {
-      mutateSelected(function (sticker) { sticker.rotate = (sticker.rotate + 12) % 360; });
-    });
-    controls.appendChild(sizeLabel);
-    controls.appendChild(smaller);
-    controls.appendChild(bigger);
-    controls.appendChild(rotate);
-    tray.appendChild(controls);
-    tray.appendChild(uploadRow);
-    uploadRow.appendChild(uploadButton);
-    uploadRow.appendChild(upload);
-    detail.appendChild(tray);
-
-    stickerButton.addEventListener('click', function () {
-      tray.hidden = !tray.hidden;
-      stickerButton.classList.toggle('active', !tray.hidden);
-      activeRecipeId = recipe.id;
-      activeLayer = layer;
-      activeControls = controls;
-      selectedSticker = null;
-      renderStickerLayer(layer, recipe, !tray.hidden);
-      renderStickerControls();
-    });
-
-    editButton.addEventListener('click', function () {
-      openRecipeModal(recipe);
-    });
-
-    deleteButton.addEventListener('click', function () {
+    edit.addEventListener('click', function () { openRecipeModal(recipe); });
+    remove.addEventListener('click', function () {
       if (!window.confirm('apagar a receita "' + recipe.title + '"?')) return;
       recipes = recipes.filter(function (item) { return item.id !== recipe.id; });
       persist();
@@ -460,71 +248,98 @@
       SMA.toast('receita apagada');
     });
 
-    toggle.addEventListener('click', function () {
-      detail.hidden = !detail.hidden;
-      toggle.setAttribute('aria-expanded', detail.hidden ? 'false' : 'true');
-      triangle.textContent = detail.hidden ? '▶' : '▼';
-      if (detail.hidden) {
-        activeLayer = null;
-        activeControls = null;
-        selectedSticker = null;
-      }
-    });
-
-    item.appendChild(toggle);
-    item.appendChild(detail);
-    return item;
+    return card;
   }
 
   function render() {
     if (!root) return;
     root.textContent = '';
-    const page = createElement('div', 'cookbook-page');
-    const hero = createElement('header', 'cookbook-hero');
-    const titleRow = createElement('div', 'cookbook-title-row');
-    const title = createElement('h1', 'cookbook-title');
-    title.appendChild(document.createTextNode('cookbook '));
-    title.appendChild(createElement('span', 'cookbook-sparkles', '.°✧'));
-    titleRow.appendChild(title);
-    const add = createElement('button', 'btn-secondary cookbook-add', '＋ nova receita');
+    const page = createElement('div', 'zine');
+
+    const top = createElement('header', 'zine-top');
+    top.appendChild(createElement('span', '', 'sleep my angel : ☾'));
+    top.appendChild(createElement('span', 'zine-top-mid', '✧, noites de 2026 !!'));
+    top.appendChild(createElement('span', '', '# night drinks'));
+    page.appendChild(top);
+
+    const hero = createElement('section', 'zine-hero');
+    const copy = createElement('div', 'zine-hero-copy');
+    copy.appendChild(createElement('h1', 'zine-title', 'night drinks'));
+    copy.appendChild(createElement('p', 'zine-handle', '@sleepmyangel'));
+    copy.appendChild(createElement('p', 'zine-text zine-hero-text', 'bebidas quentinhas pra desacelerar antes de dormir. leite, especiarias e mel — receitas pequenas pra noites em que a cabeça não para.'));
+    copy.appendChild(createElement('p', 'zine-text zine-hero-text', 'nada de pressa: aqueça o leite em fogo baixo, respire fundo e trate esse momento como um ritual.'));
+
+    const add = createElement('button', 'zine-add', '＋ nova receita');
     add.type = 'button';
     add.addEventListener('click', function () { openRecipeModal(null); });
-    titleRow.appendChild(add);
-    hero.appendChild(titleRow);
-    hero.appendChild(createElement('p', 'cookbook-subtitle', '( ᵕ. ᵕ ) ‧₊˚'));
+    copy.appendChild(add);
+
+    hero.appendChild(copy);
+    hero.appendChild(photoFigure({
+      title: 'night drinks',
+      image: 'assets/images/recipes/hero.jpg'
+    }, 'zine-hero-photo'));
     page.appendChild(hero);
-    page.appendChild(sectionBlock('sweet'));
-    page.appendChild(sectionBlock('savory'));
-    const footer = createElement('p', 'cookbook-footer', 'toque numa receitinha pra abrir ‧ adicione adesivos pra deixar a sua cara ✧');
+
+    const list = createElement('div', 'zine-list');
+    recipes.forEach(function (recipe, index) {
+      list.appendChild(recipeCard(recipe, index));
+    });
+    page.appendChild(list);
+
+    const footer = createElement('footer', 'zine-footer');
+    footer.appendChild(createElement('p', '', 'toque em editar pra trocar ingredientes, foto ou modo de preparo ‧°'));
+    footer.appendChild(createElement('p', 'zine-credits', 'fotos ‧ flickr cc by / cc by-sa ‧ créditos no readme'));
     page.appendChild(footer);
+
     root.appendChild(page);
   }
 
   function openRecipeModal(recipe) {
     editingId = recipe ? recipe.id : null;
-    const modal = SMA.select('#modal-recipe');
+    editingImage = recipe ? recipe.image : '';
+    editingCaption = recipe ? recipe.caption : '';
     const name = SMA.select('#recipe-name-input');
-    const section = SMA.select('#recipe-section-input');
     const tag = SMA.select('#recipe-tag-input');
+    const intro = SMA.select('#recipe-intro-input');
     const ingredients = SMA.select('#recipe-ingredients-input');
     const prep = SMA.select('#recipe-prep-input');
     const title = SMA.select('#recipe-modal-title');
+    const preview = SMA.select('#recipe-photo-preview');
     if (title) title.textContent = recipe ? 'Editar Receitinha' : 'Nova Receitinha';
     if (name) name.value = recipe ? recipe.title : '';
-    if (section) section.value = recipe ? recipe.section : 'sweet';
-    if (tag) tag.value = recipe ? recipe.tag : 'sweet';
+    if (tag) tag.value = recipe ? recipe.tag : 'da noite';
+    if (intro) intro.value = recipe ? recipe.intro : '';
     if (ingredients) ingredients.value = recipe ? recipe.ingredients.join('\n') : '';
     if (prep) prep.value = recipe ? recipe.prep : '';
-    modal?.classList.add('open');
+    if (preview) {
+      preview.src = editingImage || '';
+      preview.hidden = !editingImage;
+    }
+    SMA.select('#modal-recipe')?.classList.add('open');
     setTimeout(function () {
       if (name) name.focus();
     }, 60);
   }
 
+  function readPhoto(file) {
+    if (!file) return;
+    SMA.readImageFile(file, 1000, 0.82).then(function (dataUrl) {
+      editingImage = dataUrl;
+      const preview = SMA.select('#recipe-photo-preview');
+      if (preview) {
+        preview.src = dataUrl;
+        preview.hidden = false;
+      }
+    }).catch(function () {
+      SMA.toast('não consegui abrir essa foto');
+    });
+  }
+
   function saveRecipe() {
     const name = SMA.select('#recipe-name-input');
-    const section = SMA.select('#recipe-section-input');
     const tag = SMA.select('#recipe-tag-input');
+    const intro = SMA.select('#recipe-intro-input');
     const ingredients = SMA.select('#recipe-ingredients-input');
     const prep = SMA.select('#recipe-prep-input');
     const title = name.value.trim();
@@ -543,17 +358,18 @@
     const recipe = normalize({
       id: previous ? previous.id : uniqueId(),
       title: title,
-      section: section.value,
       tag: tag.value,
+      intro: intro.value,
+      image: editingImage,
+      caption: editingCaption || title,
       ingredients: items,
       prep: prep.value,
-      stickers: previous ? previous.stickers : [],
       createdAt: previous ? previous.createdAt : Date.now()
     });
     if (previous) {
       recipes = recipes.map(function (item) { return item.id === previous.id ? recipe : item; });
     } else {
-      recipes.unshift(recipe);
+      recipes.push(recipe);
     }
     persist();
     SMA.select('#modal-recipe')?.classList.remove('open');
@@ -568,10 +384,18 @@
     persist();
     render();
 
+    const photoInput = SMA.select('#recipe-photo-input');
+    SMA.select('#btn-recipe-photo')?.addEventListener('click', function () {
+      photoInput?.click();
+    });
+    photoInput?.addEventListener('change', function (event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      readPhoto(file);
+    });
     SMA.select('#modal-cancel-recipe')?.addEventListener('click', function () {
       SMA.select('#modal-recipe')?.classList.remove('open');
     });
-
     SMA.select('#modal-save-recipe')?.addEventListener('click', saveRecipe);
   }
 

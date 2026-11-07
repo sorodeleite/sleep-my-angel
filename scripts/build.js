@@ -25,8 +25,6 @@ function copyDirectory(name, destination) {
   fs.cpSync(source, path.join(destination, name), {
     recursive: true,
     filter: function (file) {
-      // os arquivos de origem do Kindle ficam só no computador; o app lê os
-      // .epub já convertidos por scripts/prepare-books.js
       if (/\.(azw3|azw|mobi|prc)$/i.test(file)) return false;
       return true;
     }

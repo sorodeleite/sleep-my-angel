@@ -247,9 +247,6 @@
         imported.cover = dataUrl;
         persistImported();
       }
-      if (reader && reader.id === coverTargetId) {
-        // a capa nova aparece na estante quando o leitor fechar
-      }
       render();
       SMA.toast('capa atualizada ‧°');
     } catch (error) {

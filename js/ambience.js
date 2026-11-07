@@ -37,29 +37,6 @@
     return data;
   }
 
-  function rainChannel(length, sampleRate, random) {
-    const data = new Float32Array(length);
-    let low = 0;
-    for (let i = 0; i < length; i += 1) {
-      const white = random() * 2 - 1;
-      low += 0.14 * (white - low);
-      data[i] = low * 0.9;
-    }
-    const drops = Math.floor((length / sampleRate) * 22);
-    for (let d = 0; d < drops; d += 1) {
-      const start = Math.floor(random() * length);
-      const frequency = 700 + random() * 2100;
-      const decay = 26 + random() * 55;
-      const amplitude = 0.05 + random() * 0.16;
-      const duration = Math.min(length - start, Math.floor(sampleRate * 0.09));
-      for (let i = 0; i < duration; i += 1) {
-        const t = i / sampleRate;
-        data[start + i] += Math.sin(2 * Math.PI * frequency * t) * Math.exp(-decay * t) * amplitude;
-      }
-    }
-    return data;
-  }
-
   function thetaChannel(length, sampleRate, random) {
     void sampleRate;
     const base = pinkChannel(length, sampleRate, random);
@@ -104,13 +81,11 @@
       const sampleRate = this.context.sampleRate;
       const length = Math.floor(sampleRate * seconds);
       const buffer = this.context.createBuffer(2, length, sampleRate);
-      const make = type === 'rain'
-        ? rainChannel
-        : type === 'brown'
-          ? brownChannel
-          : type === 'theta'
-            ? thetaChannel
-            : pinkChannel;
+      const make = type === 'brown'
+        ? brownChannel
+        : type === 'theta'
+          ? thetaChannel
+          : pinkChannel;
       buffer.getChannelData(0).set(make(length, sampleRate, Math.random));
       buffer.getChannelData(1).set(make(length, sampleRate, Math.random));
       return buffer;
@@ -121,7 +96,7 @@
       if (!context) return false;
       this.stop();
       this.currentType = type;
-      const seconds = type === 'rain' ? 9 : 7;
+      const seconds = 7;
       const buffer = this.buildBuffer(type, seconds);
       const source = context.createBufferSource();
       const voice = context.createGain();

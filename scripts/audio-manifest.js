@@ -1,18 +1,11 @@
 #!/usr/bin/env node
-/*
- * Monta a listinha de áudios que o app mostra na Library.
- *
- * A versão web já descobre os arquivos pelo servidor local e o desktop lê a
- * pasta direto. Este manifest é o plano B (e o que faz o Android conhecer as
- * meditações e as chuvas da pasta mesmo sem um servidor).
- */
 const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const audiosDir = path.join(root, 'audios');
 const manifestFile = path.join(root, 'assets', 'audio-manifest.json');
-const categories = ['chuva', 'meditacao', 'ondas'];
+const categories = ['meditacao', 'ondas'];
 const audioPattern = /\.(m4a|mp3|wav|ogg|flac|opus|aac)$/i;
 
 function cleanTitle(fileName) {

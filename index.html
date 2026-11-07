@@ -152,7 +152,6 @@
 
           <div class="pill-filters">
             <button class="filter-pill active" data-filter="all" type="button">Tudo</button>
-            <button class="filter-pill" data-filter="chuva" type="button">Chuva</button>
             <button class="filter-pill" data-filter="meditacao" type="button">Meditações</button>
             <button class="filter-pill" data-filter="ondas" type="button">Ondas & Frequências</button>
             <button class="filter-pill" data-filter="playlists" type="button">Playlists</button>
@@ -262,47 +261,69 @@
               <button class="preset-btn" data-minutes="120" type="button">2 horas</button>
             </div>
 
+            <div class="timer-rain">
+              <div class="timer-rain-head">
+                <span class="timer-rain-title">som de chuva</span>
+                <span class="timer-rain-label" id="timer-rain-label">escolha uma chuva pra tocar em loop</span>
+              </div>
+              <div class="timer-rain-options">
+                <button class="rain-btn active" data-rain="off" type="button">sem chuva</button>
+                <button class="rain-btn" data-rain="soft" type="button">chuva suave</button>
+                <button class="rain-btn" data-rain="window" type="button">na janela</button>
+                <button class="rain-btn" data-rain="storm" type="button">chuva forte</button>
+              </div>
+            </div>
+
             <button class="timer-ctrl-btn" id="btn-toggle-timer" type="button">Iniciar Contador</button>
           </div>
         </section>
 
         <section id="tab-notion" class="tab-pane">
-          <div class="notion-wrapper">
-            <div class="notion-header-card">
-              <div class="notion-heading">
-                <h3>Notion Script & Notas Offline</h3>
-                <p>Importe seus scripts do Notion ou do Google Drive e leia tudo sem internet, dentro do app.</p>
+          <div class="notion-shell">
+            <aside class="notion-sidebar">
+              <div class="notion-brand">
+                <span class="notion-mark">✧</span>
+                <span>notion script</span>
               </div>
-              <div class="notion-actions">
-                <button class="btn-secondary" id="btn-import-doc" type="button">↑ Importar do Notion/Drive</button>
+              <div class="notion-side-head">
+                <span>minhas notas</span>
+                <button class="action-btn" id="btn-new-doc" type="button" aria-label="nova nota" title="nova nota">＋</button>
+              </div>
+              <div class="doc-list" id="doc-list"></div>
+              <div class="notion-side-foot">
+                <button class="notion-import" id="btn-import-doc" type="button">↑ importar do notion</button>
                 <input type="file" id="doc-file-input" accept=".md,.markdown,.txt,.html,.htm,.json,.csv,.zip,.docx,.pdf" multiple hidden>
+                <p>no notion: <strong>⋯ → export → markdown &amp; csv</strong><br>e solta o zip aqui. as fotos vêm junto.</p>
               </div>
-            </div>
+            </aside>
 
-            <p class="notion-hint">no notion: <strong>⋯ → Export → Markdown &amp; CSV</strong> e importa o zip aqui. no drive: baixa como <strong>.docx</strong>, <strong>.md</strong> ou <strong>.pdf</strong>. tudo fica guardado no aparelho, offline.</p>
-
-            <div class="notion-layout">
-              <aside class="doc-sidebar">
-                <div class="doc-sidebar-head">
-                  <span>minhas notas</span>
-                  <button class="action-btn" id="btn-new-doc" type="button" aria-label="nova nota" title="nova nota">＋</button>
+            <section class="notion-main">
+              <div class="notion-topbar">
+                <div class="notion-crumbs">
+                  <span>notion script</span>
+                  <span class="crumb-sep">/</span>
+                  <span id="notion-crumb">nota</span>
                 </div>
-                <div class="doc-list" id="doc-list"></div>
-              </aside>
-
-              <div class="doc-editor">
-                <div class="doc-editor-head">
-                  <input type="text" id="doc-title-input" class="doc-title-input" placeholder="título da nota" maxlength="120">
+                <div class="notion-topbar-actions">
                   <span class="script-meta" id="script-meta">0 palavras</span>
-                </div>
-                <textarea id="script-editor" class="script-textarea" spellcheck="false" placeholder="Escreva seu script aqui..."></textarea>
-                <div class="doc-editor-actions">
-                  <button class="btn-secondary doc-delete" id="btn-delete-doc" type="button">apagar nota</button>
-                  <button class="btn-secondary" id="btn-download-script" type="button">Baixar .md</button>
-                  <button class="btn-secondary" id="btn-save-script" type="button">Salvar Offline</button>
+                  <button class="notion-tool" id="btn-toggle-view" type="button">editar</button>
+                  <button class="notion-tool" id="btn-save-script" type="button">salvar</button>
                 </div>
               </div>
-            </div>
+
+              <div class="notion-scroll">
+                <article class="notion-page">
+                  <div class="notion-page-icon" id="notion-page-icon">☾</div>
+                  <input type="text" id="doc-title-input" class="doc-title-input" placeholder="sem título" maxlength="120">
+                  <div id="doc-view" class="notion-blocks"></div>
+                  <textarea id="script-editor" class="script-textarea" spellcheck="false" placeholder="Escreva seu script aqui..." hidden></textarea>
+                  <div class="notion-page-actions">
+                    <button class="notion-page-delete" id="btn-delete-doc" type="button">apagar nota</button>
+                    <button class="notion-page-button" id="btn-download-script" type="button">baixar .md</button>
+                  </div>
+                </article>
+              </div>
+            </section>
           </div>
         </section>
       </main>
@@ -407,28 +428,33 @@
         <h3 class="modal-title" id="recipe-modal-title">Nova Receitinha</h3>
         <div class="form-group">
           <label for="recipe-name-input">Nome da Receita</label>
-          <input type="text" id="recipe-name-input" class="form-input" placeholder="ex: carrot cake, waffles, carbonara..." maxlength="80">
+          <input type="text" id="recipe-name-input" class="form-input" placeholder="ex: moon milk, leite quente, chá dourado..." maxlength="80">
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label for="recipe-section-input">Categoria</label>
-            <select id="recipe-section-input" class="form-input">
-              <option value="sweet">sweet ‧ doce</option>
-              <option value="savory">savory ‧ salgado</option>
-            </select>
+            <label for="recipe-tag-input">Etiqueta</label>
+            <input type="text" id="recipe-tag-input" class="form-input" placeholder="ex: favorito, relaxamento" maxlength="30">
           </div>
           <div class="form-group">
-            <label for="recipe-tag-input">Etiqueta</label>
-            <input type="text" id="recipe-tag-input" class="form-input" placeholder="ex: favorito" maxlength="30">
+            <label for="recipe-intro-input">Descrição</label>
+            <input type="text" id="recipe-intro-input" class="form-input" placeholder="uma frase fofa sobre a receita" maxlength="180">
           </div>
         </div>
         <div class="form-group">
-          <label for="recipe-ingredients-input">Ingredientes <span class="label-hint">um por linha</span></label>
-          <textarea id="recipe-ingredients-input" class="form-input form-textarea" placeholder="1/2 cup flour&#10;1/2 cup milk&#10;1 egg"></textarea>
+          <label for="recipe-ingredients-input">Ingredientes <span class="label-hint">um por linha ‧ use nome: detalhe</span></label>
+          <textarea id="recipe-ingredients-input" class="form-input form-textarea" placeholder="leite de amêndoas: 200ml&#10;mel: 1 colher de chá&#10;camomila: um punhado"></textarea>
         </div>
         <div class="form-group">
           <label for="recipe-prep-input">Modo de Preparo</label>
-          <textarea id="recipe-prep-input" class="form-input form-textarea" placeholder="Misture tudo com carinho, aqueça..."></textarea>
+          <textarea id="recipe-prep-input" class="form-input form-textarea" placeholder="Aqueça o leite em fogo baixo, misture o mel e sirva..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Foto da Receita <span class="label-hint">opcional</span></label>
+          <div class="recipe-photo-row">
+            <img id="recipe-photo-preview" alt="foto da receita" hidden>
+            <button class="btn-secondary" id="btn-recipe-photo" type="button">escolher foto</button>
+            <input type="file" id="recipe-photo-input" accept="image/*" hidden>
+          </div>
         </div>
         <div class="modal-buttons">
           <button class="btn-secondary" id="modal-cancel-recipe" type="button">Cancelar</button>
@@ -534,10 +560,12 @@
   <script src="js/utils.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/ambience.js"></script>
+  <script src="js/keepalive.js"></script>
   <script src="js/player.js"></script>
   <script src="js/library.js"></script>
   <script src="js/affirmations.js"></script>
   <script src="js/recipes.js"></script>
+  <script src="js/rain.js"></script>
   <script src="js/timer.js"></script>
   <script src="js/books.js"></script>
   <script src="js/script.js"></script>
