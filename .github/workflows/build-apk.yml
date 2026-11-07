@@ -4,66 +4,91 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'index.html'
+      - 'styles.css'
+      - 'js/**'
+      - 'assets/**'
+      - 'main.js'
+      - 'preload.js'
+      - 'manifest.webmanifest'
+      - 'sw.js'
+      - 'scripts/**'
+      - 'android/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Sync web assets
-        run: |
-          node copy-www.js
-          npx cap sync android
+      - name: Build web assets
+        run: node scripts/build.js
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x android/gradlew
+      - name: Sync Capacitor
+        run: npx cap sync android
 
-      - name: Build APK with Gradle
+      - name: Build APK
+        working-directory: android
         run: |
-          cd android
+          chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
-      - name: Rename APK
-        run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk sleep-my-angel.apk
+      - name: Copy APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk sleep-my-angel.apk
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v7
         with:
           name: sleep-my-angel-apk
           path: sleep-my-angel.apk
+          if-no-files-found: error
+          retention-days: 14
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Publish release
         if: startsWith(github.ref, 'refs/heads/main')
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v1.0.0
-          name: "sleep my angel v1.0.0"
-          body: "primeira versão do sleep my angel em apk para android! ‧°"
+          name: sleep my angel v1.0.0
+          body: app de sono com chuva, frequências, afirmações e rituais da noite.
           files: sleep-my-angel.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
