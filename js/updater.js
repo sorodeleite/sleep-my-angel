@@ -178,7 +178,13 @@
         SMA.toast('nova versão v' + state.latest + ' ‧ toque em atualizar');
       }
     } catch (error) {
-      state.error = 'não consegui verificar agora: ' + (error && (error.message || error.error || error)) + ' ‧ tente de novo em um minutinho ou abra o github.';
+      const code = error && error.code;
+      const message = String((error && (error.message || error.error || error)) || '');
+      if (code === 'PRIVATE_REPO' || message.indexOf('404') !== -1 || message.indexOf('privado') !== -1) {
+        state.error = 'o repositório do app está privado, então o app não consegue checar sozinho. toque em "ver no github" pra abrir a página de releases, baixar o sleep-my-angel.apk e instalar por cima — suas notas, playlists e áudios continuam guardados.';
+      } else {
+        state.error = 'não consegui verificar agora: ' + message + ' ‧ tente de novo em um minutinho ou abra o github.';
+      }
       paint();
     } finally {
       state.checking = false;

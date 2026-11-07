@@ -116,6 +116,10 @@ public class AppUpdaterPlugin extends Plugin {
                 connection.setConnectTimeout(15000);
                 connection.setReadTimeout(25000);
                 int status = connection.getResponseCode();
+                if (status == 404) {
+                    call.reject("o repositório de atualizações está privado ou o release ainda não existe", "PRIVATE_REPO");
+                    return;
+                }
                 if (status != 200) {
                     call.reject("o github respondeu " + status + " (tenta de novo em alguns minutos)");
                     return;
