@@ -37,6 +37,19 @@ function tracksFromDirectory(category, directory, prefix) {
     .map((fileName) => trackFromFile(category, path.join(directory, fileName), prefix));
 }
 
+function booksRoot() {
+  return path.join(__dirname, 'assets', 'books');
+}
+
+function safeBookPath(relativePath) {
+  if (typeof relativePath !== 'string') return null;
+  const root = booksRoot();
+  const target = path.resolve(__dirname, relativePath);
+  if (target !== root && !target.startsWith(root + path.sep)) return null;
+  if (!/\.(epub|pdf|txt|md)$/i.test(target)) return null;
+  return target;
+}
+
 function scriptFile() {
   return path.join(app.getPath('userData'), 'script-da-noite.json');
 }
@@ -165,4 +178,24 @@ ipcMain.handle('save-script-file', (event, content) => {
 
 ipcMain.handle('get-script-file', () => {
   return readScript();
+});
+
+ipcMain.handle('read-books-manifest', () => {
+  const manifestPath = path.join(booksRoot(), 'manifest.json');
+  if (!fs.existsSync(manifestPath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+  } catch (error) {
+    return null;
+  }
+});
+
+ipcMain.handle('read-book-file', (event, relativePath) => {
+  const target = safeBookPath(relativePath);
+  if (!target || !fs.existsSync(target)) return null;
+  try {
+    return fs.readFileSync(target);
+  } catch (error) {
+    return null;
+  }
 });

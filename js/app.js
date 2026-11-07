@@ -227,6 +227,11 @@
       handleTime(event.detail);
     });
     document.addEventListener('player:error', function (event) {
+      const track = player.current();
+      if (SMA.platform() === 'android' && track && String(track.fileUrl || '').indexOf('audios/') === 0) {
+        SMA.toast('no android, toque no ✎ do cartão e importe esse áudio uma vez');
+        return;
+      }
       SMA.toast(event.detail.message || 'algo saiu do tom');
     });
     document.addEventListener('player:mode', function (event) {
@@ -333,6 +338,7 @@
 
     SMA.Affirmations.init();
     SMA.Recipes.init();
+    await SMA.Books.init();
     SMA.ScriptNotes.init();
     bindPlayer(player, library);
     initKeyboard(player);

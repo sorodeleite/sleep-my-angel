@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f4f4f5">
   <meta name="description" content="sleep my angel — chuva, frequências relaxantes e rituais para dormir em paz.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' file: blob: data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: blob:; img-src 'self' data: blob:; media-src 'self' file: blob: data:; connect-src 'self' https://api.fxtwitter.com blob:; worker-src 'self' blob:; frame-src 'self' blob: data:; child-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>sleep my angel</title>
   <link rel="icon" type="image/png" href="assets/icon/icon-192.png">
   <link rel="apple-touch-icon" href="assets/icon/icon-180.png">
@@ -94,7 +94,14 @@
             <line x1="10" y1="1" x2="10" y2="4"></line>
             <line x1="14" y1="1" x2="14" y2="4"></line>
           </svg>
-          Receitas
+          Cookbook
+        </button>
+        <button class="nav-tab-btn" data-tab="tab-books" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          Livros
         </button>
         <button class="nav-tab-btn" data-tab="tab-timer" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -208,13 +215,35 @@
         </section>
 
         <section id="tab-recipes" class="tab-pane">
-          <div class="spotify-header">
-            <div class="spotify-title-group">
-              <h1 class="spotify-title">Receitas de Antes de Dormir</h1>
+          <div id="cookbook-root"></div>
+        </section>
+
+        <section id="tab-books" class="tab-pane">
+          <div class="books-wrapper">
+            <div class="books-hero">
+              <div>
+                <h1 class="books-title">a estante <span>‧°✧</span></h1>
+                <p class="books-subtitle">epub, pdf, txt e threads do twitter ‧ leitura sem distração, com cheirinho de kindle</p>
+              </div>
+              <div class="books-hero-actions">
+                <button class="btn-secondary" id="btn-import-book" type="button">＋ importar livro</button>
+                <input type="file" id="book-file-input" accept=".epub,.pdf,.txt,.md,.markdown,.azw3,.mobi,.azw,.prc" multiple hidden>
+              </div>
             </div>
-            <button class="btn-secondary" id="btn-add-recipe" type="button">+ Nova Receita</button>
+
+            <div class="thread-importer">
+              <div class="thread-importer-text">
+                <strong>thread do twitter</strong>
+                <span>cola o link e lê sem anúncios, sem distração, guardadinho offline</span>
+              </div>
+              <div class="thread-importer-row">
+                <input type="url" id="thread-link-input" class="form-input" placeholder="https://x.com/.../status/..." autocomplete="off">
+                <button class="btn-secondary" id="btn-import-thread" type="button">ler thread</button>
+              </div>
+            </div>
+
+            <div id="books-root"></div>
           </div>
-          <div class="recipes-container" id="recipes-container"></div>
         </section>
 
         <section id="tab-timer" class="tab-pane">
@@ -242,17 +271,37 @@
             <div class="notion-header-card">
               <div class="notion-heading">
                 <h3>Notion Script & Notas Offline</h3>
-                <p>Edite e leia seu script de manifestação e rotina noturna sem precisar de internet.</p>
+                <p>Importe seus scripts do Notion ou do Google Drive e leia tudo sem internet, dentro do app.</p>
               </div>
               <div class="notion-actions">
-                <span class="script-meta" id="script-meta">0 palavras</span>
-                <button class="btn-secondary" id="btn-download-script" type="button">Baixar .md</button>
-                <button class="btn-secondary" id="btn-save-script" type="button">Salvar Offline</button>
+                <button class="btn-secondary" id="btn-import-doc" type="button">↑ Importar do Notion/Drive</button>
+                <input type="file" id="doc-file-input" accept=".md,.markdown,.txt,.html,.htm,.json,.csv,.zip,.docx,.pdf" multiple hidden>
               </div>
             </div>
 
-            <div class="script-editor-container">
-              <textarea id="script-editor" class="script-textarea" spellcheck="false" placeholder="Escreva seu script aqui..."></textarea>
+            <p class="notion-hint">no notion: <strong>⋯ → Export → Markdown &amp; CSV</strong> e importa o zip aqui. no drive: baixa como <strong>.docx</strong>, <strong>.md</strong> ou <strong>.pdf</strong>. tudo fica guardado no aparelho, offline.</p>
+
+            <div class="notion-layout">
+              <aside class="doc-sidebar">
+                <div class="doc-sidebar-head">
+                  <span>minhas notas</span>
+                  <button class="action-btn" id="btn-new-doc" type="button" aria-label="nova nota" title="nova nota">＋</button>
+                </div>
+                <div class="doc-list" id="doc-list"></div>
+              </aside>
+
+              <div class="doc-editor">
+                <div class="doc-editor-head">
+                  <input type="text" id="doc-title-input" class="doc-title-input" placeholder="título da nota" maxlength="120">
+                  <span class="script-meta" id="script-meta">0 palavras</span>
+                </div>
+                <textarea id="script-editor" class="script-textarea" spellcheck="false" placeholder="Escreva seu script aqui..."></textarea>
+                <div class="doc-editor-actions">
+                  <button class="btn-secondary doc-delete" id="btn-delete-doc" type="button">apagar nota</button>
+                  <button class="btn-secondary" id="btn-download-script" type="button">Baixar .md</button>
+                  <button class="btn-secondary" id="btn-save-script" type="button">Salvar Offline</button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -354,23 +403,67 @@
     </div>
 
     <div class="modal-backdrop" id="modal-recipe">
-      <div class="modal-box">
-        <h3 class="modal-title">Nova Receita de Dormir</h3>
+      <div class="modal-box cookbook-modal">
+        <h3 class="modal-title" id="recipe-modal-title">Nova Receitinha</h3>
         <div class="form-group">
-          <label for="recipe-name-input">Nome da Bebida</label>
-          <input type="text" id="recipe-name-input" class="form-input" placeholder="ex: Leite Quente com Baunilha" maxlength="80">
+          <label for="recipe-name-input">Nome da Receita</label>
+          <input type="text" id="recipe-name-input" class="form-input" placeholder="ex: carrot cake, waffles, carbonara..." maxlength="80">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="recipe-section-input">Categoria</label>
+            <select id="recipe-section-input" class="form-input">
+              <option value="sweet">sweet ‧ doce</option>
+              <option value="savory">savory ‧ salgado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="recipe-tag-input">Etiqueta</label>
+            <input type="text" id="recipe-tag-input" class="form-input" placeholder="ex: favorito" maxlength="30">
+          </div>
         </div>
         <div class="form-group">
-          <label for="recipe-ingredients-input">Ingredientes</label>
-          <input type="text" id="recipe-ingredients-input" class="form-input" placeholder="ex: 200ml leite, 1 colher de mel, canela em pó">
+          <label for="recipe-ingredients-input">Ingredientes <span class="label-hint">um por linha</span></label>
+          <textarea id="recipe-ingredients-input" class="form-input form-textarea" placeholder="1/2 cup flour&#10;1/2 cup milk&#10;1 egg"></textarea>
         </div>
         <div class="form-group">
           <label for="recipe-prep-input">Modo de Preparo</label>
-          <textarea id="recipe-prep-input" class="form-input form-textarea" placeholder="Aqueça o leite sem ferver, misture o mel..."></textarea>
+          <textarea id="recipe-prep-input" class="form-input form-textarea" placeholder="Misture tudo com carinho, aqueça..."></textarea>
         </div>
         <div class="modal-buttons">
           <button class="btn-secondary" id="modal-cancel-recipe" type="button">Cancelar</button>
-          <button class="btn-primary" id="modal-save-recipe" type="button">Adicionar</button>
+          <button class="btn-primary" id="modal-save-recipe" type="button">Salvar Receitinha</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-track">
+      <div class="modal-box">
+        <h3 class="modal-title">Editar Áudio</h3>
+        <div class="track-edit-cover">
+          <img id="track-cover-preview" src="assets/images/default_meditacao.jpg" alt="capa do áudio">
+          <div>
+            <button class="btn-secondary" id="btn-track-cover" type="button">✎ trocar capa</button>
+            <p class="track-edit-hint">dá pra usar uma foto sua, um adesivo ou a capa padrão da categoria.</p>
+          </div>
+          <input type="file" id="track-cover-input" accept="image/*" hidden>
+        </div>
+        <div class="form-group">
+          <label for="track-title-input">Nome do Áudio</label>
+          <input type="text" id="track-title-input" class="form-input" maxlength="120">
+        </div>
+        <div class="track-file-row">
+          <div>
+            <span class="field-label">Arquivo</span>
+            <p id="track-file-label" class="track-file-label">áudio do app</p>
+          </div>
+          <button class="btn-secondary" id="btn-track-replace" type="button">↻ trocar áudio</button>
+          <input type="file" id="track-audio-input" accept="audio/*" hidden>
+        </div>
+        <div class="modal-buttons">
+          <button class="btn-secondary danger" id="btn-track-reset" type="button">Restaurar padrão</button>
+          <button class="btn-secondary" id="modal-cancel-track" type="button">Cancelar</button>
+          <button class="btn-primary" id="modal-save-track" type="button">Salvar</button>
         </div>
       </div>
     </div>
@@ -396,8 +489,48 @@
     <div class="toast-region" id="toast-region" aria-live="polite"></div>
   </div>
 
+  <div class="reader-overlay" id="reader-overlay" hidden>
+    <header class="reader-bar">
+      <div class="reader-bar-left">
+        <button class="reader-icon-btn" id="reader-close" type="button" aria-label="fechar leitor">←</button>
+        <div class="reader-heading">
+          <strong id="reader-title">livro</strong>
+          <span id="reader-author"></span>
+        </div>
+      </div>
+      <div class="reader-tools">
+        <button class="reader-icon-btn" id="reader-toc-btn" type="button" title="índice">índice</button>
+        <button class="reader-icon-btn" id="reader-cover-btn" type="button" title="trocar capa">capa</button>
+        <button class="reader-icon-btn" id="reader-font-smaller" type="button" title="diminuir letra">A−</button>
+        <button class="reader-icon-btn" id="reader-font-bigger" type="button" title="aumentar letra">A＋</button>
+        <button class="reader-icon-btn" id="reader-theme-btn" type="button" title="mudar tema">◐</button>
+      </div>
+    </header>
+
+    <main class="reader-stage">
+      <button class="reader-turn reader-turn-left" id="reader-prev" type="button" aria-label="página anterior">‹</button>
+      <div id="reader-view" class="reader-view"></div>
+      <button class="reader-turn reader-turn-right" id="reader-next" type="button" aria-label="próxima página">›</button>
+      <aside class="reader-toc" id="reader-toc" hidden>
+        <h4>índice</h4>
+        <div id="reader-toc-list"></div>
+      </aside>
+    </main>
+
+    <footer class="reader-bar reader-bottom">
+      <input type="range" id="reader-progress" min="0" max="100" step="0.1" value="0" aria-label="progresso de leitura">
+      <span id="reader-page-label">0%</span>
+    </footer>
+  </div>
+
+  <input type="file" id="book-cover-input" accept="image/*" hidden>
+
   <audio id="audio-player" preload="metadata"></audio>
 
+  <script src="js/vendor/jszip.min.js"></script>
+  <script src="js/vendor/epub.min.js"></script>
+  <script src="js/vendor/fflate.min.js"></script>
+  <script src="js/vendor/pdf.min.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/ambience.js"></script>
@@ -406,6 +539,7 @@
   <script src="js/affirmations.js"></script>
   <script src="js/recipes.js"></script>
   <script src="js/timer.js"></script>
+  <script src="js/books.js"></script>
   <script src="js/script.js"></script>
   <script src="js/app.js"></script>
 </body>

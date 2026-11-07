@@ -30,9 +30,14 @@ o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), co
 - **áudio em 2º plano no android**: serviço em primeiro plano com notificação e wake lock para o som continuar tocando quando você apagar a tela ou trocar de app.
 - **sons gerados na hora**: quando não existe nenhum arquivo local, o app cria chuva, pink noise, brown noise e theta wave pelo Web Audio, então nunca fica em silêncio.
 - **cantinho da lei da suposição & edward art**: cartões de afirmações e lembretes de que a imaginação é a única realidade. conta também com leitura em voz alta em português pra ouvir deitada antes de adormecer com a sensação do desejo já consumado.
-- **receitas de antes de dormir**: espaço dedicado pras minhas bebidinhas noturnas favoritas pra desacelerar o corpo (principalmente meu amado leite quente com mel e canela, mas também moon milk de camomila e chá relaxante). Você também pode colocar sua própria receitinha e personalizar sua listinha.
+- **cookbook personalizável**: as receitas agora ficam num caderninho estilo cookbook, com seções *sweet* e *savory*, ingredientes em listinha, modo de preparo e adesivos arrastáveis (emoji ou imagem da galeria) pra decorar cada página do seu jeito. Você também pode colocar sua própria receitinha.
+- **estante estilo kindle**: leitor de `.epub`, `.pdf` e `.txt` com temas (sépia, claro e escuro), tamanho de letra, índice, progresso salvo e troca de capa. os livros que já vêm em `assets/books` aparecem com capa, e dá pra importar outros por arquivo.
+- **threads do twitter sem distração**: cola o link de um post/thread, o app puxa o texto e guarda na estante pra ler offline, sem feed e sem anúncio.
+- **notion script offline**: editor de notas com importação de exports do **Notion** (Markdown & CSV, `.md`, `.html`, `.zip`) e do **Google Drive** (`.docx`, `.pdf`, `.md`), tudo salvo no aparelho pra ler sem internet.
+- **áudios editáveis**: cada cartão da library aceita troca de capa, troca de nome e troca do arquivo de áudio. quando você importa um áudio com o mesmo nome de uma meditação/chuva, ele se conecta automaticamente ao cartão em vez de duplicar.
+- **capas padrão**: todas as meditações usam `assets/images/default_meditacao.jpg` e as chuvas usam `assets/images/default_chuva.jpg`; você pode trocar a capa de qualquer uma individualmente.
 - **contador & sleep timer suave**: timer programável (15m, 30m, 45m, 1h, 1h30, 2h) que vai reduzindo o volume nos últimos sessenta segundos e desliga o som sem susto.
-- **notion script offline**: editor de texto para guardar e lapidar os scripts de manifestação e rotina noturna sem precisar de internet, com download em `.md`.
+- **estética retro mello**: janelinha com jeitinho de sistema antigo, perfil fofo, pílulas suaves e controles delicados.
 
 <br />
 
@@ -90,15 +95,28 @@ no windows pode ser `gradlew.bat assembleDebug`. o `.apk` gerado fica em `androi
 
 o workflow de `Build Android APK` também gera o APK e publica na aba de releases a cada push na `main`.
 
+### livros da estante
+
+os `.epub`, capas e o `manifest.json` que o app lê ficam em `assets/books/`. pra adicionar um livro novo, coloque o arquivo em `assets/books/` e rode:
+
+```bash
+node scripts/prepare-books.js
+```
+
+ele usa o **Calibre** (`ebook-convert` / `ebook-meta`) pra converter `.azw3`, `.mobi` e `.prc` em `.epub`, extrair a capa e atualizar o manifest. depois é só rodar o build normal. os arquivos de origem do Kindle ficam fora do git; os `.epub` prontos e as capas vão junto com o app.
+
+também dá pra importar livros direto pelo botão **importar livro** (epub, pdf, txt ou md) e escolher uma capa diferente tocando em **✎ capa**.
+
 <br />
 
 ### estrutura
 
 ```
 audios/        minhas faixas locais (não vão pro git)
-assets/        ícone, fotos e imagens do readme
-js/            módulos do app (player, library, timer, notas...)
-scripts/       build da versão web e servidor local
+assets/        ícone, fotos, livros (epub + capas + manifest) e imagens do readme
+js/            módulos do app (player, library, cookbook, estante, notas...)
+js/vendor/     epub.js, JSZip, pdf.js e fflate pro leitor rodar offline
+scripts/       build da versão web, servidor local e preparo dos livros
 android/       projeto nativo em Capacitor
 index.html     shell compartilhado entre desktop, android e web
 main.js        processo principal do Electron

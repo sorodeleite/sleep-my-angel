@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { generate: generateAudioManifest } = require('./audio-manifest');
 
 const root = path.resolve(__dirname, '..');
 const targets = process.argv.includes('--site-only') ? ['site'] : ['www', 'site'];
@@ -19,6 +20,21 @@ function copyFile(name, destination) {
   fs.copyFileSync(source, path.join(destination, name));
 }
 
+function copyDirectory(name, destination) {
+  const source = path.join(root, name);
+  fs.cpSync(source, path.join(destination, name), {
+    recursive: true,
+    filter: function (file) {
+      // os arquivos de origem do Kindle ficam só no computador; o app lê os
+      // .epub já convertidos por scripts/prepare-books.js
+      if (/\.(azw3|azw|mobi|prc)$/i.test(file)) return false;
+      return true;
+    }
+  });
+}
+
+generateAudioManifest({ quiet: true });
+
 for (const target of targets) {
   const destination = path.join(root, target);
   fs.rmSync(destination, { recursive: true, force: true });
@@ -29,7 +45,7 @@ for (const target of targets) {
   });
 
   directories.forEach(function (name) {
-    fs.cpSync(path.join(root, name), path.join(destination, name), { recursive: true });
+    copyDirectory(name, destination);
   });
 
   console.log('build ' + target + ' pronto');

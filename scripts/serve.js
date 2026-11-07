@@ -30,7 +30,11 @@ const mime = {
   '.flac': 'audio/flac',
   '.opus': 'audio/ogg',
   '.aac': 'audio/aac',
-  '.md': 'text/markdown; charset=utf-8'
+  '.md': 'text/markdown; charset=utf-8',
+  '.epub': 'application/epub+zip',
+  '.pdf': 'application/pdf',
+  '.zip': 'application/zip',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 };
 
 function cleanTitle(fileName) {

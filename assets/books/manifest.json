@@ -1,0 +1,185 @@
+{
+  "generatedAt": "2026-11-07T18:37:08.476Z",
+  "books": [
+    {
+      "id": "book-autocuriosidade-edward-art",
+      "title": "Autocuriosidade",
+      "author": "Edward Art",
+      "file": "assets/books/epub/autocuriosidade-edward-art.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/autocuriosidade-edward-art.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-autossustentador-edward-art",
+      "title": "Autossustentador",
+      "author": "Edward Art",
+      "file": "assets/books/epub/autossustentador-edward-art.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/autossustentador-edward-art.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-exercicio-proposto-por-neville-flaviano",
+      "title": "exercicio proposto por neville goddard para provar que a sua imaginação cria a sua realidade",
+      "author": "Flaviano",
+      "file": "assets/books/epub/exercicio-proposto-por-neville-flaviano.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/exercicio-proposto-por-neville-flaviano.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-gigantes-e-gafanhotos-edward-art",
+      "title": "Gigantes e gafanhotos",
+      "author": "Edward Art",
+      "file": "assets/books/epub/gigantes-e-gafanhotos-edward-art.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/gigantes-e-gafanhotos-edward-art.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-honrar-o-nome-edward-art",
+      "title": "Honrar o nome",
+      "author": "Edward Art",
+      "file": "assets/books/epub/honrar-o-nome-edward-art.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/honrar-o-nome-edward-art.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-i-ao-seu-comando-neville-goddard",
+      "title": "I. Ao Seu Comando",
+      "author": "Neville Goddard",
+      "file": "assets/books/epub/i-ao-seu-comando-neville-goddard.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/i-ao-seu-comando-neville-goddard.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-ii-sua-fe-e-sua-fortuna-neville-goddard",
+      "title": "II. Sua Fé é Sua Fortuna",
+      "author": "Neville Goddard",
+      "file": "assets/books/epub/ii-sua-fe-e-sua-fortuna-neville-goddard.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/ii-sua-fe-e-sua-fortuna-neville-goddard.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-iii-oracao-a-arte-de-acredit-neville-goddard",
+      "title": "III. Oração - A Arte de Acreditar",
+      "author": "Neville Goddard",
+      "file": "assets/books/epub/iii-oracao-a-arte-de-acredit-neville-goddard.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/iii-oracao-a-arte-de-acredit-neville-goddard.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-iv-o-sentimento-e-o-segredo-neville-goddard",
+      "title": "IV. O Sentimento e o Segredo",
+      "author": "Neville Goddard",
+      "file": "assets/books/epub/iv-o-sentimento-e-o-segredo-neville-goddard.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/iv-o-sentimento-e-o-segredo-neville-goddard.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-lei-do-ser-lei-do-ter-joao-victor",
+      "title": "Lei do Ser, Lei do Ter",
+      "author": "João Victor",
+      "file": "assets/books/epub/lei-do-ser-lei-do-ter-joao-victor.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/lei-do-ser-lei-do-ter-joao-victor.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-liberdade-para-todos-neville-goddard",
+      "title": "Liberdade para todos",
+      "author": "Neville Goddard",
+      "file": "assets/books/epub/liberdade-para-todos-neville-goddard.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/liberdade-para-todos-neville-goddard.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-nao-ha-outro-joao-victor",
+      "title": "Não Há Outro",
+      "author": "João Victor",
+      "file": "assets/books/epub/nao-ha-outro-joao-victor.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/nao-ha-outro-joao-victor.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-nao-lute-contra-as-sombras-edward-art",
+      "title": "Nao lute contra as sombras",
+      "author": "Edward Art",
+      "file": "assets/books/epub/nao-lute-contra-as-sombras-edward-art.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/nao-lute-contra-as-sombras-edward-art.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-o-desejo-da-a-luz-joao-victor",
+      "title": "O desejo dá à luz",
+      "author": "João Victor",
+      "file": "assets/books/epub/o-desejo-da-a-luz-joao-victor.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/o-desejo-da-a-luz-joao-victor.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-o-rei-que-conquistou-a-morte-edward-art",
+      "title": "O rei que conquistou a morte.",
+      "author": "Edward Art",
+      "file": "assets/books/epub/o-rei-que-conquistou-a-morte-edward-art.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/o-rei-que-conquistou-a-morte-edward-art.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-revelacoes-em-nos-edward-art",
+      "title": "Revelações em nós",
+      "author": "Edward Art",
+      "file": "assets/books/epub/revelacoes-em-nos-edward-art.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/revelacoes-em-nos-edward-art.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-v-o-poder-da-consciencia-nev-neville-goddard",
+      "title": "V. O Poder da Consciencia",
+      "author": "Neville Goddard",
+      "file": "assets/books/epub/v-o-poder-da-consciencia-nev-neville-goddard.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/v-o-poder-da-consciencia-nev-neville-goddard.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-vi-o-despertar-da-imaginacao-neville-goddard",
+      "title": "VI. O Despertar da Imaginacao",
+      "author": "Neville Goddard",
+      "file": "assets/books/epub/vi-o-despertar-da-imaginacao-neville-goddard.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/vi-o-despertar-da-imaginacao-neville-goddard.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-vii-tempo-de-semear-e-colher-neville-goddard",
+      "title": "VII. Tempo de Semear e Colher",
+      "author": "Neville Goddard",
+      "file": "assets/books/epub/vii-tempo-de-semear-e-colher-neville-goddard.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/vii-tempo-de-semear-e-colher-neville-goddard.jpg",
+      "builtin": true
+    },
+    {
+      "id": "book-viii-tudo-que-quiser-e-seu-neville-goddard",
+      "title": "VIII. Tudo que Quiser é Seu",
+      "author": "Neville Goddard",
+      "file": "assets/books/epub/viii-tudo-que-quiser-e-seu-neville-goddard.epub",
+      "format": "epub",
+      "cover": "assets/books/covers/viii-tudo-que-quiser-e-seu-neville-goddard.jpg",
+      "builtin": true
+    }
+  ]
+}

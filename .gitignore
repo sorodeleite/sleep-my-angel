@@ -15,3 +15,8 @@ script-da-noite.json
 *.apk
 *.log
 smoke-temp.js
+smoke-*.png
+assets/books/*.azw3
+assets/books/*.azw
+assets/books/*.mobi
+assets/books/*.prc
