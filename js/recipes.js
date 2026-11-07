@@ -258,7 +258,7 @@
 
     const top = createElement('header', 'zine-top');
     top.appendChild(createElement('span', '', 'sleep my angel : ☾'));
-    top.appendChild(createElement('span', 'zine-top-mid', '✧, noites de 2026 !!'));
+    top.appendChild(createElement('span', 'zine-top-mid', '✧, noites de ' + new Date().getFullYear() + ' !!'));
     top.appendChild(createElement('span', '', '# night drinks'));
     page.appendChild(top);
 
@@ -374,6 +374,11 @@
     persist();
     SMA.select('#modal-recipe')?.classList.remove('open');
     render();
+    if (!previous) {
+      const cards = root.querySelectorAll('.zine-recipe');
+      const last = cards[cards.length - 1];
+      if (last) last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     SMA.toast(previous ? 'receitinha atualizada ‧°' : 'receitinha guardada ‧°');
   }
 

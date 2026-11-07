@@ -3110,6 +3110,10 @@ body {
   .book-cover-btn {
     opacity: 1;
   }
+
+  .notion-page-actions {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 860px) {
