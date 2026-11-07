@@ -115,7 +115,9 @@
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: track.title,
-          artist: track.isPlaylist ? 'sleep my angel ‧ playlist' : 'sleep my angel ‧ ' + track.category,
+          artist: track.isPlaylist
+            ? 'sleep my angel ‧ playlist'
+            : (track.artist || 'sleep my angel ‧ ' + track.category),
           album: 'sleep my angel',
           artwork: artwork
         });

@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
+const { splitTrackName } = require('../js/track-name');
 
 const root = path.resolve(__dirname, '..');
 const site = path.join(root, 'site');
@@ -37,14 +38,6 @@ const mime = {
   '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 };
 
-function cleanTitle(fileName) {
-  return fileName
-    .replace(audioExtensions, '')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 function listTracks() {
   const tracks = [];
   categories.forEach(function (category) {
@@ -58,9 +51,11 @@ function listTracks() {
         return a.localeCompare(b, 'pt-BR');
       })
       .forEach(function (name) {
+        const parsed = splitTrackName(name, category);
         tracks.push({
           id: category + '-' + name,
-          title: cleanTitle(name),
+          title: parsed.title,
+          artist: parsed.artist,
           category: category,
           fileName: name,
           fileUrl: 'audios/' + category + '/' + encodeURIComponent(name)

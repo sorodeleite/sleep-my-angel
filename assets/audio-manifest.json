@@ -1,149 +1,170 @@
 {
-  "generatedAt": "2026-11-07T19:43:56.887Z",
+  "generatedAt": "2026-11-07T22:22:56.247Z",
   "tracks": [
     {
-      "id": "meditacao-Adyashanti - Meditação - Apenas Seja.m4a",
-      "title": "Adyashanti Meditação Apenas Seja",
+      "id": "meditacao-A Caverna do Coração_Paul Brunton.m4a",
+      "title": "A Caverna do Coração",
+      "artist": "Paul Brunton",
       "category": "meditacao",
-      "fileName": "Adyashanti - Meditação - Apenas Seja.m4a",
-      "fileUrl": "audios/meditacao/Adyashanti%20-%20Medita%C3%A7%C3%A3o%20-%20Apenas%20Seja.m4a"
+      "fileName": "A Caverna do Coração_Paul Brunton.m4a",
+      "fileUrl": "audios/meditacao/A%20Caverna%20do%20Cora%C3%A7%C3%A3o_Paul%20Brunton.m4a"
     },
     {
-      "id": "meditacao-Ajahn Chah - Meditação - Concentre-se na Respiração.m4a",
-      "title": "Ajahn Chah Meditação Concentre se na Respiração",
+      "id": "meditacao-Abra Seu Coração_Tarthang Tulku.m4a",
+      "title": "Abra Seu Coração",
+      "artist": "Tarthang Tulku",
       "category": "meditacao",
-      "fileName": "Ajahn Chah - Meditação - Concentre-se na Respiração.m4a",
-      "fileUrl": "audios/meditacao/Ajahn%20Chah%20-%20Medita%C3%A7%C3%A3o%20-%20Concentre-se%20na%20Respira%C3%A7%C3%A3o.m4a"
+      "fileName": "Abra Seu Coração_Tarthang Tulku.m4a",
+      "fileUrl": "audios/meditacao/Abra%20Seu%20Cora%C3%A7%C3%A3o_Tarthang%20Tulku.m4a"
     },
     {
-      "id": "meditacao-Ajahn Chah - Meditação - Pare de Pensar.m4a",
-      "title": "Ajahn Chah Meditação Pare de Pensar",
+      "id": "meditacao-Apenas Seja_Adyashanti.m4a",
+      "title": "Apenas Seja",
+      "artist": "Adyashanti",
       "category": "meditacao",
-      "fileName": "Ajahn Chah - Meditação - Pare de Pensar.m4a",
-      "fileUrl": "audios/meditacao/Ajahn%20Chah%20-%20Medita%C3%A7%C3%A3o%20-%20Pare%20de%20Pensar.m4a"
+      "fileName": "Apenas Seja_Adyashanti.m4a",
+      "fileUrl": "audios/meditacao/Apenas%20Seja_Adyashanti.m4a"
     },
     {
-      "id": "meditacao-Jack Kornfield - Meditação - Concentre-se na Respiração.m4a",
-      "title": "Jack Kornfield Meditação Concentre se na Respiração",
+      "id": "meditacao-Concentre_se_na_Consciência_Nisargadatta Maharaj.m4a",
+      "title": "Concentre-se na Consciência",
+      "artist": "Nisargadatta Maharaj",
       "category": "meditacao",
-      "fileName": "Jack Kornfield - Meditação - Concentre-se na Respiração.m4a",
-      "fileUrl": "audios/meditacao/Jack%20Kornfield%20-%20Medita%C3%A7%C3%A3o%20-%20Concentre-se%20na%20Respira%C3%A7%C3%A3o.m4a"
+      "fileName": "Concentre_se_na_Consciência_Nisargadatta Maharaj.m4a",
+      "fileUrl": "audios/meditacao/Concentre_se_na_Consci%C3%AAncia_Nisargadatta%20Maharaj.m4a"
     },
     {
-      "id": "meditacao-Jack Kornfield - Meditação - Observe as Mudanças Internas.m4a",
-      "title": "Jack Kornfield Meditação Observe as Mudanças Internas",
+      "id": "meditacao-Concentre-se na Respiração_Ajahn Chahr.m4a",
+      "title": "Concentre-se na Respiração",
+      "artist": "Ajahn Chah",
       "category": "meditacao",
-      "fileName": "Jack Kornfield - Meditação - Observe as Mudanças Internas.m4a",
-      "fileUrl": "audios/meditacao/Jack%20Kornfield%20-%20Medita%C3%A7%C3%A3o%20-%20Observe%20as%20Mudan%C3%A7as%20Internas.m4a"
+      "fileName": "Concentre-se na Respiração_Ajahn Chahr.m4a",
+      "fileUrl": "audios/meditacao/Concentre-se%20na%20Respira%C3%A7%C3%A3o_Ajahn%20Chahr.m4a"
     },
     {
-      "id": "meditacao-Jiddu Krishnamurti - Meditação - Conheça seus Pensamentos.m4a",
-      "title": "Jiddu Krishnamurti Meditação Conheça seus Pensamentos",
+      "id": "meditacao-Concentre-se na Respiração_Jack Kornfield.m4a",
+      "title": "Concentre-se na Respiração",
+      "artist": "Jack Kornfield",
       "category": "meditacao",
-      "fileName": "Jiddu Krishnamurti - Meditação - Conheça seus Pensamentos.m4a",
-      "fileUrl": "audios/meditacao/Jiddu%20Krishnamurti%20-%20Medita%C3%A7%C3%A3o%20-%20Conhe%C3%A7a%20seus%20Pensamentos.m4a"
+      "fileName": "Concentre-se na Respiração_Jack Kornfield.m4a",
+      "fileUrl": "audios/meditacao/Concentre-se%20na%20Respira%C3%A7%C3%A3o_Jack%20Kornfield.m4a"
     },
     {
-      "id": "meditacao-Kyabgon Phakchok Rinpoche - Meditação - Sinta-se Vazio.m4a",
-      "title": "Kyabgon Phakchok Rinpoche Meditação Sinta se Vazio",
+      "id": "meditacao-Conheça seus Pensamentos_Jiddu Krishnamurti.m4a",
+      "title": "Conheça seus Pensamentos",
+      "artist": "Jiddu Krishnamurti",
       "category": "meditacao",
-      "fileName": "Kyabgon Phakchok Rinpoche - Meditação - Sinta-se Vazio.m4a",
-      "fileUrl": "audios/meditacao/Kyabgon%20Phakchok%20Rinpoche%20-%20Medita%C3%A7%C3%A3o%20-%20Sinta-se%20Vazio.m4a"
+      "fileName": "Conheça seus Pensamentos_Jiddu Krishnamurti.m4a",
+      "fileUrl": "audios/meditacao/Conhe%C3%A7a%20seus%20Pensamentos_Jiddu%20Krishnamurti.m4a"
     },
     {
-      "id": "meditacao-Lama Yeshe - Meditação - Examine seu Problema.m4a",
-      "title": "Lama Yeshe Meditação Examine seu Problema",
+      "id": "meditacao-Descanse no Refúgio Interior_Tenzin_Wangyal_Rinpoche.m4a",
+      "title": "Descanse no Refúgio Interior",
+      "artist": "Tenzin Wangyal Rinpoche",
       "category": "meditacao",
-      "fileName": "Lama Yeshe - Meditação - Examine seu Problema.m4a",
-      "fileUrl": "audios/meditacao/Lama%20Yeshe%20-%20Medita%C3%A7%C3%A3o%20-%20Examine%20seu%20Problema.m4a"
+      "fileName": "Descanse no Refúgio Interior_Tenzin_Wangyal_Rinpoche.m4a",
+      "fileUrl": "audios/meditacao/Descanse%20no%20Ref%C3%BAgio%20Interior_Tenzin_Wangyal_Rinpoche.m4a"
     },
     {
-      "id": "meditacao-Mestre Eckhart - Meditação - Esvazie-se.m4a",
-      "title": "Mestre Eckhart Meditação Esvazie se",
+      "id": "meditacao-Descanse no Silêncio_Rupert Spira.m4a",
+      "title": "Descanse no Silêncio",
+      "artist": "Rupert Spira",
       "category": "meditacao",
-      "fileName": "Mestre Eckhart - Meditação - Esvazie-se.m4a",
-      "fileUrl": "audios/meditacao/Mestre%20Eckhart%20-%20Medita%C3%A7%C3%A3o%20-%20Esvazie-se.m4a"
+      "fileName": "Descanse no Silêncio_Rupert Spira.m4a",
+      "fileUrl": "audios/meditacao/Descanse%20no%20Sil%C3%AAncio_Rupert%20Spira.m4a"
     },
     {
-      "id": "meditacao-Mooji - Meditação - Eu Sou.m4a",
-      "title": "Mooji Meditação Eu Sou",
+      "id": "meditacao-Esvazie-se_Mestre Eckhart.m4a",
+      "title": "Esvazie-se",
+      "artist": "Mestre Eckhart",
       "category": "meditacao",
-      "fileName": "Mooji - Meditação - Eu Sou.m4a",
-      "fileUrl": "audios/meditacao/Mooji%20-%20Medita%C3%A7%C3%A3o%20-%20Eu%20Sou.m4a"
+      "fileName": "Esvazie-se_Mestre Eckhart.m4a",
+      "fileUrl": "audios/meditacao/Esvazie-se_Mestre%20Eckhart.m4a"
     },
     {
-      "id": "meditacao-Nisargadatta_Maharaj_Meditação_Concentre_se_na_Consciência.m4a",
-      "title": "Nisargadatta Maharaj Meditação Concentre se na Consciência",
+      "id": "meditacao-Eu Sou_Mooji.m4a",
+      "title": "Eu Sou",
+      "artist": "Mooji",
       "category": "meditacao",
-      "fileName": "Nisargadatta_Maharaj_Meditação_Concentre_se_na_Consciência.m4a",
-      "fileUrl": "audios/meditacao/Nisargadatta_Maharaj_Medita%C3%A7%C3%A3o_Concentre_se_na_Consci%C3%AAncia.m4a"
+      "fileName": "Eu Sou_Mooji.m4a",
+      "fileUrl": "audios/meditacao/Eu%20Sou_Mooji.m4a"
     },
     {
-      "id": "meditacao-Paul Brunton - Meditação - A Caverna do Coração.m4a",
-      "title": "Paul Brunton Meditação A Caverna do Coração",
+      "id": "meditacao-Examine seu Problema_Lama Yeshe.m4a",
+      "title": "Examine seu Problema",
+      "artist": "Lama Yeshe",
       "category": "meditacao",
-      "fileName": "Paul Brunton - Meditação - A Caverna do Coração.m4a",
-      "fileUrl": "audios/meditacao/Paul%20Brunton%20-%20Medita%C3%A7%C3%A3o%20-%20A%20Caverna%20do%20Cora%C3%A7%C3%A3o.m4a"
+      "fileName": "Examine seu Problema_Lama Yeshe.m4a",
+      "fileUrl": "audios/meditacao/Examine%20seu%20Problema_Lama%20Yeshe.m4a"
     },
     {
-      "id": "meditacao-Pema Chodron - Relaxe na Incerteza.m4a",
-      "title": "Pema Chodron Relaxe na Incerteza",
+      "id": "meditacao-Observe as Mudanças Internas_Jack Kornfield.m4a",
+      "title": "Observe as Mudanças Internas",
+      "artist": "Jack Kornfield",
       "category": "meditacao",
-      "fileName": "Pema Chodron - Relaxe na Incerteza.m4a",
-      "fileUrl": "audios/meditacao/Pema%20Chodron%20-%20Relaxe%20na%20Incerteza.m4a"
+      "fileName": "Observe as Mudanças Internas_Jack Kornfield.m4a",
+      "fileUrl": "audios/meditacao/Observe%20as%20Mudan%C3%A7as%20Internas_Jack%20Kornfield.m4a"
     },
     {
-      "id": "meditacao-Ram Dass - Meditação - Permaneça Presente!.m4a",
-      "title": "Ram Dass Meditação Permaneça Presente!",
+      "id": "meditacao-Observe_se_na_Luz_da_Consciência_Thich_Nhat_Hanh.m4a",
+      "title": "Observe-se na Luz da Consciência",
+      "artist": "Thich Nhat Hanh",
       "category": "meditacao",
-      "fileName": "Ram Dass - Meditação - Permaneça Presente!.m4a",
-      "fileUrl": "audios/meditacao/Ram%20Dass%20-%20Medita%C3%A7%C3%A3o%20-%20Permane%C3%A7a%20Presente!.m4a"
+      "fileName": "Observe_se_na_Luz_da_Consciência_Thich_Nhat_Hanh.m4a",
+      "fileUrl": "audios/meditacao/Observe_se_na_Luz_da_Consci%C3%AAncia_Thich_Nhat_Hanh.m4a"
     },
     {
-      "id": "meditacao-Rupert Spira - Meditação - Descanse no Silêncio.m4a",
-      "title": "Rupert Spira Meditação Descanse no Silêncio",
+      "id": "meditacao-Pare de Pensa_Ajahn-Chahr.m4a",
+      "title": "Pare de Pensar",
+      "artist": "Ajahn Chah",
       "category": "meditacao",
-      "fileName": "Rupert Spira - Meditação - Descanse no Silêncio.m4a",
-      "fileUrl": "audios/meditacao/Rupert%20Spira%20-%20Medita%C3%A7%C3%A3o%20-%20Descanse%20no%20Sil%C3%AAncio.m4a"
+      "fileName": "Pare de Pensa_Ajahn-Chahr.m4a",
+      "fileUrl": "audios/meditacao/Pare%20de%20Pensa_Ajahn-Chahr.m4a"
     },
     {
-      "id": "meditacao-Tarthang Tulku - Meditação - Abra Seu Coração.m4a",
-      "title": "Tarthang Tulku Meditação Abra Seu Coração",
+      "id": "meditacao-Permaneça Presente_Ram Dass.m4a",
+      "title": "Permaneça Presente",
+      "artist": "Ram Dass",
       "category": "meditacao",
-      "fileName": "Tarthang Tulku - Meditação - Abra Seu Coração.m4a",
-      "fileUrl": "audios/meditacao/Tarthang%20Tulku%20-%20Medita%C3%A7%C3%A3o%20-%20Abra%20Seu%20Cora%C3%A7%C3%A3o.m4a"
+      "fileName": "Permaneça Presente_Ram Dass.m4a",
+      "fileUrl": "audios/meditacao/Permane%C3%A7a%20Presente_Ram%20Dass.m4a"
     },
     {
-      "id": "meditacao-Tenzin_Wangyal_Rinpoche_Meditação_Descanse_no_Refúgio_Interi.m4a",
-      "title": "Tenzin Wangyal Rinpoche Meditação Descanse no Refúgio Interi",
+      "id": "meditacao-Relaxe na Incerteza_Pema Chodron.m4a",
+      "title": "Relaxe na Incerteza",
+      "artist": "Pema Chodron",
       "category": "meditacao",
-      "fileName": "Tenzin_Wangyal_Rinpoche_Meditação_Descanse_no_Refúgio_Interi.m4a",
-      "fileUrl": "audios/meditacao/Tenzin_Wangyal_Rinpoche_Medita%C3%A7%C3%A3o_Descanse_no_Ref%C3%BAgio_Interi.m4a"
+      "fileName": "Relaxe na Incerteza_Pema Chodron.m4a",
+      "fileUrl": "audios/meditacao/Relaxe%20na%20Incerteza_Pema%20Chodron.m4a"
     },
     {
-      "id": "meditacao-Thich Nhat Hanh - Meditação - Relaxe seu Corpo.m4a",
-      "title": "Thich Nhat Hanh Meditação Relaxe seu Corpo",
+      "id": "meditacao-Relaxe seu Corpo_Thich Nhat Hanh.m4a",
+      "title": "Relaxe seu Corpo",
+      "artist": "Thich Nhat Hanh",
       "category": "meditacao",
-      "fileName": "Thich Nhat Hanh - Meditação - Relaxe seu Corpo.m4a",
-      "fileUrl": "audios/meditacao/Thich%20Nhat%20Hanh%20-%20Medita%C3%A7%C3%A3o%20-%20Relaxe%20seu%20Corpo.m4a"
+      "fileName": "Relaxe seu Corpo_Thich Nhat Hanh.m4a",
+      "fileUrl": "audios/meditacao/Relaxe%20seu%20Corpo_Thich%20Nhat%20Hanh.m4a"
     },
     {
-      "id": "meditacao-Thich_Nhat_Hanh_Meditação_Observe_se_na_Luz_da_Consciência.m4a",
-      "title": "Thich Nhat Hanh Meditação Observe se na Luz da Consciência",
+      "id": "meditacao-Sinta-se Vazio_Kyabgon Phakchok Rinpoche.m4a",
+      "title": "Sinta-se Vazio",
+      "artist": "Kyabgon Phakchok Rinpoche",
       "category": "meditacao",
-      "fileName": "Thich_Nhat_Hanh_Meditação_Observe_se_na_Luz_da_Consciência.m4a",
-      "fileUrl": "audios/meditacao/Thich_Nhat_Hanh_Medita%C3%A7%C3%A3o_Observe_se_na_Luz_da_Consci%C3%AAncia.m4a"
+      "fileName": "Sinta-se Vazio_Kyabgon Phakchok Rinpoche.m4a",
+      "fileUrl": "audios/meditacao/Sinta-se%20Vazio_Kyabgon%20Phakchok%20Rinpoche.m4a"
     },
     {
       "id": "ondas-Pink Noise Black Screen - Sleep, Focus, Study - 10 Hours.m4a",
-      "title": "Pink Noise Black Screen Sleep, Focus, Study 10 Hours",
+      "title": "Pink Noise Black Screen - Sleep, Focus, Study - 10 Hours",
+      "artist": "",
       "category": "ondas",
       "fileName": "Pink Noise Black Screen - Sleep, Focus, Study - 10 Hours.m4a",
       "fileUrl": "audios/ondas/Pink%20Noise%20Black%20Screen%20-%20Sleep%2C%20Focus%2C%20Study%20-%2010%20Hours.m4a"
     },
     {
       "id": "ondas-Theta Wave 2.0 - Pure Theta Frequency (8 Hour Binaural Beat).m4a",
-      "title": "Theta Wave 2.0 Pure Theta Frequency (8 Hour Binaural Beat)",
+      "title": "Theta Wave 2.0 - Pure Theta Frequency (8 Hour Binaural Beat)",
+      "artist": "",
       "category": "ondas",
       "fileName": "Theta Wave 2.0 - Pure Theta Frequency (8 Hour Binaural Beat).m4a",
       "fileUrl": "audios/ondas/Theta%20Wave%202.0%20-%20Pure%20Theta%20Frequency%20(8%20Hour%20Binaural%20Beat).m4a"

@@ -26,14 +26,16 @@ o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), co
 
 ### o que tem no app
 
-- **library estilo spotify (clean & cinza)**: grade com estética suave em tons de cinza e pastéis para navegar pelas meditações e frequências sonoras (ondas theta, pink noise e ruídos suaves). dá pra criar playlists por cor, escolher os sons de cada uma e buscar qualquer faixa.
+- **library estilo spotify (clean & cinza)**: grade com estética suave em tons de cinza e pastéis para navegar pelas meditações e frequências sonoras (ondas theta, pink noise e ruídos suaves). dá pra criar playlists por cor, escolher os sons de cada uma e buscar qualquer faixa. já vem com a playlist **corvo seco**, que junta todas as meditações que estão no app.
 - **áudio em 2º plano no android**: serviço em primeiro plano com notificação e wake lock para o som continuar tocando quando você apagar a tela ou trocar de app.
 - **sons gerados na hora**: quando um arquivo de áudio não está no aparelho, o app cria pink noise, brown noise ou theta wave pelo Web Audio pra faixa não ficar em silêncio.
+- **atualização pelo próprio app**: no android aparece um botão **atualizar app** no cartão do perfil. ele procura a versão nova no github, baixa o apk e instala **por cima**, sem desinstalar e sem perder notas, playlists, capas ou áudios importados.
 - **cantinho da lei da suposição & edward art**: cartões de afirmações e lembretes de que a imaginação é a única realidade. conta também com leitura em voz alta em português pra ouvir deitada antes de adormecer com a sensação do desejo já consumado.
-- **cookbook em formato de zine**: as receitas viraram páginas de revista com título em serifa, fotos com marca d'água, ingredientes comentados e modo de preparo. as receitas antigas de bebidas quentes voltaram, e dá pra editar, apagar ou adicionar a sua com foto própria.
-- **estante estilo kindle**: leitor de `.epub`, `.pdf` e `.txt` com temas (sépia, claro e escuro), tamanho de letra, índice, progresso salvo e troca de capa. os livros que já vêm em `assets/books` aparecem com capa, e dá pra importar outros por arquivo.
+- **cookbook em grade com fotos**: receitas em cartões com fotos recortadas, busca e filtros. dá pra marcar ingredientes e passos (o item risca), editar, restaurar ou apagar, e adicionar a sua com foto própria.
+- **meditações com nome e autor**: os arquivos seguem o padrão `nome_pessoa`, e a biblioteca mostra o nome da meditação primeiro e o nome da pessoa embaixo, no estilo Spotify.
+- **estante estilo kindle**: leitor de `.epub`, `.pdf` e `.txt` com temas (sépia, claro e escuro), tamanho de letra, índice, progresso salvo, troca de capa e agora também troca de nome e autor de qualquer livro. os livros que já vêm em `assets/books` aparecem com capa, e dá pra importar outros por arquivo.
 - **threads do twitter sem distração**: cola o link de um post/thread, o app puxa o texto e guarda na estante pra ler offline, sem feed e sem anúncio.
-- **notion script offline**: a exportação do **Notion** (Markdown & CSV, `.md`, `.html`, `.zip`) é importada com o layout do próprio Notion dentro do app: títulos, listas, checklists, tabelas, citações, callouts, código e as fotos que vêm no zip. também aceita `.docx` e `.pdf` do Google Drive, tudo salvo no aparelho.
+- **notion script offline com imagens**: a exportação do **Notion** (Markdown & CSV `.zip`, `.md` + pasta de imagens, `.html`) é importada com o layout do próprio Notion dentro do app: títulos, listas, checklists, tabelas, citações, callouts, código e **as fotos que vêm no zip**. as imagens são convertidas e ficam guardadas offline dentro da nota, inclusive as de links externos quando o Notion permite. também aceita `.docx` (com as imagens de dentro dele) e `.pdf` do **Google Drive**, dá pra arrastar os arquivos pra dentro da nota e tem um botão **＋ imagem** pra colar um print direto na nota. o botão **＋ importar** fica no topo da página e abre um painel explicando qual export escolher.
 - **áudios editáveis**: cada cartão da library aceita troca de capa, troca de nome e troca do arquivo de áudio. quando você importa um áudio com o mesmo nome de uma meditação, ele se conecta automaticamente ao cartão em vez de duplicar.
 - **capas padrão**: as meditações usam `assets/images/default_meditacao.jpg`; você pode trocar a capa de qualquer uma individualmente.
 - **contador com chuva em loop**: além do timer programável (15m, 30m, 45m, 1h, 1h30, 2h) que reduz o volume nos últimos sessenta segundos, agora dá pra escolher uma chuva suave, na janela ou forte. ela toca em loop até o contador acabar e some junto com o resto do som.
@@ -57,6 +59,9 @@ o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), co
 2. baixe o arquivo `sleep-my-angel.apk`.
 3. abra o arquivo no seu celular Android e confirme a instalação (se pedir, autorize a instalação de fontes desconhecidas).
 4. prontinho! o app vai aparecer na sua tela inicial.
+5. **pra atualizar depois:** não precisa desinstalar nada. dentro do app, no cartão do perfil, toque em **atualizar app** (ou no aviso “nova versão”). ele baixa a versão nova e instala por cima — suas notas, playlists, capas e áudios importados ficam guardados.
+
+> se você instalou uma versão antiga que foi gerada antes da assinatura fixa, pode ser preciso desinstalar **uma única vez** pra trocar a assinatura. depois dessa, todas as atualizações seguintes instalam por cima.
 
 <br />
 
@@ -77,23 +82,24 @@ npm install
 ```bash
 npm start
 ```
+ou dê dois cliques em **`abrir-app.bat`**. é esse modo que abre a janela com os três botões coloridos no canto (fechar, minimizar e maximizar), iguais aos do macOS. eles são desenhados pelo próprio app em Electron, não são do Windows.
 4. pra abrir a versão web no navegador:
 ```bash
 npm run web
 ```
-ela sobe em `http://127.0.0.1:4173` e usa os áudios da pasta `audios/` quando eles existem. sem os arquivos, a biblioteca cai nos sons gerados e nas demonstrações.
+ela sobe em `http://127.0.0.1:4173` e usa os áudios da pasta `audios/` quando eles existem. sem os arquivos, a biblioteca cai nos sons gerados e nas demonstrações. essa versão abre no navegador e **não** mostra os botões coloridos.
 
 ### como gerar o APK
 
 ```bash
 npm run cap:sync
 cd android
-./gradlew assembleDebug
+./gradlew assembleRelease
 ```
 
-no windows pode ser `gradlew.bat assembleDebug`. o `.apk` gerado fica em `android/app/build/outputs/apk/debug/app-debug.apk`.
+no windows pode ser `gradlew.bat assembleRelease`. o `.apk` assinado gerado fica em `android/app/build/outputs/apk/release/app-release.apk`.
 
-o workflow de `Build Android APK` também gera o APK e publica na aba de releases a cada push na `main`.
+a assinatura fica em `android/keystore/sleep-my-angel.jks` (com as senhas em `android/keystore.properties`) pra todos os builds usarem a mesma chave. é isso que permite instalar a versão nova por cima da antiga, sem desinstalar. o workflow de `Build Android APK` gera o APK assinado e publica na aba de releases a cada push na `main`, usando a versão do `package.json` como tag.
 
 ### livros da estante
 
@@ -115,9 +121,11 @@ também dá pra importar livros direto pelo botão **importar livro** (epub, pdf
 audios/        minhas faixas locais (não vão pro git)
 assets/        ícone, fotos, livros (epub + capas + manifest) e imagens do readme
 js/            módulos do app (player, library, cookbook, estante, notas...)
+js/updater.js  botão de atualizar o app (fala com o plugin nativo no android)
 js/vendor/     epub.js, JSZip, pdf.js e fflate pro leitor rodar offline
 scripts/       build da versão web, servidor local e preparo dos livros
 android/       projeto nativo em Capacitor
+android/keystore/  chave fixa que assina o APK (permite atualizar por cima)
 index.html     shell compartilhado entre desktop, android e web
 main.js        processo principal do Electron
 preload.js     ponte segura do Electron

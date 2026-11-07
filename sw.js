@@ -1,4 +1,4 @@
-const CACHE = 'sleep-my-angel-v3';
+const CACHE = 'sleep-my-angel-v6';
 const SHELL = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const SHELL = [
   './js/vendor/pdf.min.js',
   './js/vendor/pdf.worker.min.js',
   './js/utils.js',
+  './js/track-name.js',
   './js/storage.js',
   './js/ambience.js',
   './js/keepalive.js',
@@ -21,21 +22,18 @@ const SHELL = [
   './js/timer.js',
   './js/books.js',
   './js/script.js',
+  './js/updater.js',
   './js/app.js',
   './assets/icon/icon-192.png',
   './assets/icon/icon-512.png',
   './assets/images/default_meditacao.jpg',
-  './assets/images/recipes/hero.jpg',
-  './assets/images/recipes/leite-quente.jpg',
-  './assets/images/recipes/moon-milk.jpg',
-  './assets/images/recipes/golden-milk.jpg',
-  './assets/images/recipes/chocolate.jpg',
+  './assets/recips/leite_dos_sonhos.webp',
+  './assets/recips/waffles.webp',
+  './assets/recips/cookies.webp',
+  './assets/recips/brownie_na_air_fryer.webp',
+  './assets/recips/cupcake.webp',
   './assets/audio-manifest.json',
   './assets/books/manifest.json',
-  './assets/readme-photos/tumblr_095bd1f9adbbfc70eabb0168b575af87_0802485b_1280.jpg',
-  './assets/readme-photos/tumblr_3627acec240809122de5d5afa6912f5b_16b02d5f_1280.webp',
-  './assets/readme-photos/tumblr_91662fd1300010d18e42efd98b8460b6_324119a2_1280.jpg',
-  './assets/readme-photos/tumblr_bd8e9efc0a9c6fd799342197e304508b_3adc1fa5_1280.jpg',
   './assets/readme-photos/tumblr_db6ab36987b578f88c6ed96f4578a05c_fcb8ffe3_400.png'
 ];
 
@@ -63,6 +61,27 @@ self.addEventListener('activate', function (event) {
   );
 });
 
+function staleWhileRevalidate(request) {
+  return caches.open(CACHE).then(function (cache) {
+    return cache.match(request).then(function (cached) {
+      const fallback = cached || new Response('offline', {
+        status: 503,
+        statusText: 'offline',
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+      });
+      const network = fetch(request).then(function (response) {
+        if (response && response.ok) {
+          cache.put(request, response.clone());
+        }
+        return response;
+      }).catch(function () {
+        return fallback;
+      });
+      return cached || network;
+    });
+  });
+}
+
 self.addEventListener('fetch', function (event) {
   const request = event.request;
   if (request.method !== 'GET') return;
@@ -71,19 +90,22 @@ self.addEventListener('fetch', function (event) {
   if (url.pathname.indexOf('/audios/') !== -1 || url.pathname.indexOf('/api/') !== -1) return;
   if (request.headers.has('range')) return;
 
-  event.respondWith(
-    fetch(request).then(function (response) {
-      if (response.ok) {
-        const copy = response.clone();
-        caches.open(CACHE).then(function (cache) {
-          cache.put(request, copy);
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).then(function (response) {
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE).then(function (cache) { cache.put(request, copy); });
+        }
+        return response;
+      }).catch(function () {
+        return caches.match(request).then(function (cached) {
+          return cached || caches.match('./index.html');
         });
-      }
-      return response;
-    }).catch(function () {
-      return caches.match(request).then(function (cached) {
-        return cached || caches.match('./index.html');
-      });
-    })
-  );
+      })
+    );
+    return;
+  }
+
+  event.respondWith(staleWhileRevalidate(request));
 });

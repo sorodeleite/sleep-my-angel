@@ -2,6 +2,7 @@
   const SMA = window.SMA;
   const META_KEY = 'sma_books';
   const COVER_KEY = 'sma_book_covers';
+  const BOOK_META_KEY = 'sma_book_meta';
   const PROGRESS_KEY = 'sma_book_progress';
   const FONT_KEY = 'sma_reader_font';
   const THEME_KEY = 'sma_reader_theme';
@@ -10,10 +11,12 @@
   let books = [];
   let importedMeta = [];
   let coverOverrides = {};
+  let metaOverrides = {};
   let progress = {};
   let root = null;
   let reader = null;
   let coverTargetId = null;
+  let editingBook = null;
 
   const el = {};
 
@@ -42,6 +45,8 @@
     });
     coverOverrides = SMA.readJSON(COVER_KEY, {});
     if (!coverOverrides || typeof coverOverrides !== 'object' || Array.isArray(coverOverrides)) coverOverrides = {};
+    metaOverrides = SMA.readJSON(BOOK_META_KEY, {});
+    if (!metaOverrides || typeof metaOverrides !== 'object' || Array.isArray(metaOverrides)) metaOverrides = {};
     progress = SMA.readJSON(PROGRESS_KEY, {});
     if (!progress || typeof progress !== 'object' || Array.isArray(progress)) progress = {};
   }
@@ -96,17 +101,20 @@
     }
   }
 
+  function applyBookOverrides(book) {
+    const meta = metaOverrides[book.id] || {};
+    return Object.assign({}, book, {
+      cover: coverOverrides[book.id] || book.cover,
+      title: meta.title || book.title,
+      author: meta.author != null ? meta.author : book.author,
+      baseTitle: book.title,
+      baseAuthor: book.author
+    });
+  }
+
   function allBooks() {
-    const builtins = books.filter(function (book) { return book.builtin; }).map(function (book) {
-      return Object.assign({}, book, {
-        cover: coverOverrides[book.id] || book.cover
-      });
-    });
-    const imported = books.filter(function (book) { return !book.builtin; }).map(function (book) {
-      return Object.assign({}, book, {
-        cover: coverOverrides[book.id] || book.cover
-      });
-    });
+    const builtins = books.filter(function (book) { return book.builtin; }).map(applyBookOverrides);
+    const imported = books.filter(function (book) { return !book.builtin; }).map(applyBookOverrides);
     return builtins.concat(imported);
   }
 
@@ -181,6 +189,17 @@
     open.textContent = percent > 0 ? 'continuar' : 'ler';
     open.addEventListener('click', function () { openBook(book); });
     actions.appendChild(open);
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'action-btn book-edit';
+    edit.textContent = '✎';
+    edit.title = 'mudar nome e autor';
+    edit.setAttribute('aria-label', 'editar ' + book.title);
+    edit.addEventListener('click', function (event) {
+      event.stopPropagation();
+      openBookMetaEditor(book);
+    });
+    actions.appendChild(edit);
     if (!book.builtin) {
       const remove = document.createElement('button');
       remove.type = 'button';
@@ -234,6 +253,91 @@
   function chooseCover(id) {
     coverTargetId = id;
     el.coverInput?.click();
+  }
+
+  function persistBookMeta() {
+    if (!SMA.writeJSON(BOOK_META_KEY, metaOverrides)) {
+      SMA.toast('não consegui guardar o nome desse livro');
+    }
+  }
+
+  function openBookMetaEditor(book) {
+    if (!book) return;
+    editingBook = book;
+    const modal = SMA.select('#modal-book');
+    const titleInput = SMA.select('#book-title-input');
+    const authorInput = SMA.select('#book-author-input');
+    const preview = SMA.select('#book-edit-cover');
+    const fallback = SMA.select('#book-edit-cover-fallback');
+    const format = SMA.select('#book-edit-format');
+    if (titleInput) titleInput.value = book.title || '';
+    if (authorInput) authorInput.value = book.author || '';
+    if (format) format.textContent = formatLabel(book.format);
+    if (preview) {
+      if (book.cover) {
+        preview.src = book.cover;
+        preview.hidden = false;
+        if (fallback) fallback.hidden = true;
+      } else {
+        preview.removeAttribute('src');
+        preview.hidden = true;
+        if (fallback) {
+          fallback.textContent = (book.title || '?').slice(0, 1).toUpperCase();
+          fallback.hidden = false;
+        }
+      }
+    }
+    modal?.classList.add('open');
+    setTimeout(function () {
+      if (titleInput) {
+        titleInput.focus();
+        titleInput.select();
+      }
+    }, 60);
+  }
+
+  function closeBookMetaEditor() {
+    editingBook = null;
+    SMA.select('#modal-book')?.classList.remove('open');
+  }
+
+  function saveBookMeta() {
+    if (!editingBook) return;
+    const titleInput = SMA.select('#book-title-input');
+    const authorInput = SMA.select('#book-author-input');
+    const title = titleInput ? titleInput.value.trim() : '';
+    const author = authorInput ? authorInput.value.trim() : '';
+    if (!title) {
+      SMA.toast('dá um nome pro livro primeiro');
+      titleInput?.focus();
+      return;
+    }
+    const baseTitle = editingBook.baseTitle || editingBook.title || '';
+    const baseAuthor = editingBook.baseAuthor != null ? editingBook.baseAuthor : (editingBook.author || '');
+    const record = {};
+    if (title !== baseTitle) record.title = title;
+    if (author !== baseAuthor) record.author = author;
+    if (Object.keys(record).length) {
+      metaOverrides[editingBook.id] = record;
+    } else {
+      delete metaOverrides[editingBook.id];
+    }
+    persistBookMeta();
+    if (reader && reader.id === editingBook.id) {
+      if (el.readerTitle) el.readerTitle.textContent = title;
+      if (el.readerAuthor) el.readerAuthor.textContent = author;
+    }
+    closeBookMetaEditor();
+    render();
+    SMA.toast('livro atualizado ‧°');
+  }
+
+  function restoreBookMetaFields() {
+    if (!editingBook) return;
+    const titleInput = SMA.select('#book-title-input');
+    const authorInput = SMA.select('#book-author-input');
+    if (titleInput) titleInput.value = editingBook.baseTitle || editingBook.title || '';
+    if (authorInput) authorInput.value = editingBook.baseAuthor || '';
   }
 
   async function applyCover(file) {
@@ -432,6 +536,8 @@
     persistImported();
     delete coverOverrides[book.id];
     SMA.writeJSON(COVER_KEY, coverOverrides);
+    delete metaOverrides[book.id];
+    persistBookMeta();
     delete progress[book.id];
     persistProgress();
     books = books.filter(function (item) { return item.id !== book.id; });
@@ -904,6 +1010,7 @@
     el.progressLabel = SMA.select('#reader-page-label');
     el.readerTitle = SMA.select('#reader-title');
     el.readerAuthor = SMA.select('#reader-author');
+    el.readerEditButton = SMA.select('#reader-edit-btn');
     el.importInput = SMA.select('#book-file-input');
     el.threadInput = SMA.select('#thread-link-input');
     el.threadButton = SMA.select('#btn-import-thread');
@@ -931,6 +1038,20 @@
         event.preventDefault();
         importThread();
       }
+    });
+    SMA.select('#modal-cancel-book')?.addEventListener('click', closeBookMetaEditor);
+    SMA.select('#modal-save-book')?.addEventListener('click', saveBookMeta);
+    SMA.select('#btn-book-restore')?.addEventListener('click', restoreBookMetaFields);
+    SMA.select('#modal-book')?.addEventListener('keydown', function (event) {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        saveBookMeta();
+      }
+    });
+    el.readerEditButton?.addEventListener('click', function () {
+      if (!reader) return;
+      const book = allBooks().find(function (item) { return item.id === reader.id; });
+      if (book) openBookMetaEditor(book);
     });
   }
 

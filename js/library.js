@@ -53,6 +53,11 @@
     meditacao: 'assets/images/default_meditacao.jpg'
   };
   const OVERRIDES_KEY = 'sma_track_overrides';
+  const CORVO_SECO = {
+    id: 'corvo-seco',
+    name: 'corvo seco',
+    color: '#e6e1d8'
+  };
 
   class Library {
     constructor(player) {
@@ -91,7 +96,41 @@
       await this.loadTracks();
       await this.loadImports();
       await this.applyOverrides();
+      this.ensureCorvoSeco();
       this.render();
+    }
+
+    ensureCorvoSeco() {
+      if (SMA.readText('corvo_seco_hidden', '') === '1') return;
+      const meditationIds = this.tracks
+        .filter(function (track) { return track.category === 'meditacao'; })
+        .map(function (track) { return track.id; });
+      let playlist = this.playlists.find(function (item) {
+        return item.id === CORVO_SECO.id || String(item.name || '').toLowerCase() === CORVO_SECO.name;
+      });
+      if (!playlist) {
+        playlist = {
+          id: CORVO_SECO.id,
+          name: CORVO_SECO.name,
+          color: CORVO_SECO.color,
+          trackIds: meditationIds,
+          builtin: true
+        };
+        this.playlists.unshift(playlist);
+      } else {
+        playlist.id = CORVO_SECO.id;
+        playlist.builtin = true;
+        playlist.name = playlist.name || CORVO_SECO.name;
+        playlist.color = playlist.color || CORVO_SECO.color;
+        const known = new Set(playlist.trackIds.map(String));
+        meditationIds.forEach(function (id) {
+          if (!known.has(id)) {
+            playlist.trackIds.push(id);
+            known.add(id);
+          }
+        });
+      }
+      this.persistPlaylists();
     }
 
     normalizePlaylists(value) {
@@ -179,13 +218,21 @@
       const id = String(track.id || 'track-' + SMA.hash((track.title || '') + (track.fileUrl || '')));
       const category = track.category || 'custom';
       const cover = track.cover || this.defaultCover(category, id, coverIndex);
-      const resolvedTitle = track.title || 'áudio sem nome';
+      const parsed = SMA.splitTrackName
+        ? SMA.splitTrackName(track.fileName || track.title || '', category)
+        : { title: track.title || '', artist: '' };
+      const resolvedTitle = track.title || parsed.title || 'áudio sem nome';
+      const resolvedArtist = track.artist != null && track.artist !== ''
+        ? track.artist
+        : (parsed.artist || '');
       const resolvedFileUrl = track.fileUrl || '';
       return {
         id: id,
         baseId: track.baseId || id,
         title: resolvedTitle,
         originalTitle: track.originalTitle || resolvedTitle,
+        artist: resolvedArtist,
+        originalArtist: track.originalArtist != null ? track.originalArtist : resolvedArtist,
         category: category,
         fileName: track.fileName || '',
         originalFileName: track.originalFileName || track.fileName || '',
@@ -220,6 +267,9 @@
         if (!track) continue;
         const override = this.overrides[id] || {};
         if (override.title) track.title = override.title;
+        if (override.artist !== undefined) {
+          track.artist = override.artist || '';
+        }
         if (override.cover) {
           track.cover = override.cover;
           track.usingDefaultCover = false;
@@ -387,6 +437,7 @@
           title: playlist.name,
           category: 'playlists',
           isPlaylist: true,
+          builtin: Boolean(playlist.builtin) || playlist.id === CORVO_SECO.id,
           color: playlist.color,
           trackIds: playlist.trackIds,
           cover: self.coverFor(playlist.id),
@@ -404,18 +455,19 @@
           .filter(Boolean)
           .filter((track) => {
             if (!this.search) return true;
-            return (track.title + ' ' + (CATEGORY_LABELS[track.category] || '')).toLowerCase().indexOf(this.search) !== -1;
+            const haystack = (track.title + ' ' + (track.artist || '') + ' ' + (CATEGORY_LABELS[track.category] || '')).toLowerCase();
+            return haystack.indexOf(this.search) !== -1;
           });
       }
 
       const cards = this.filter === 'playlists'
         ? this.playlistCards()
-        : this.tracks.concat(this.playlistCards());
+        : this.playlistCards().concat(this.tracks);
 
       return cards.filter((track) => {
         const matchesFilter = this.filter === 'all'
           || (this.filter === 'playlists' ? track.isPlaylist : track.category === this.filter);
-        const haystack = (track.title + ' ' + (CATEGORY_LABELS[track.category] || '')).toLowerCase();
+        const haystack = (track.title + ' ' + (track.artist || '') + ' ' + (CATEGORY_LABELS[track.category] || '')).toLowerCase();
         const matchesSearch = !this.search || haystack.indexOf(this.search) !== -1;
         return matchesFilter && matchesSearch;
       });
@@ -503,7 +555,8 @@
       const text = document.createElement('span');
       text.textContent = track.isPlaylist
         ? track.trackIds.length + (track.trackIds.length === 1 ? ' som' : ' sons')
-        : 'áudio ‧ ' + (CATEGORY_LABELS[track.category] || track.category);
+        : (track.artist || 'áudio ‧ ' + (CATEGORY_LABELS[track.category] || track.category));
+      text.title = text.textContent;
       subtitle.appendChild(dot);
       subtitle.appendChild(text);
       card.appendChild(subtitle);
@@ -524,16 +577,18 @@
       card.appendChild(play);
 
       if (track.isPlaylist) {
-        const remove = document.createElement('button');
-        remove.type = 'button';
-        remove.className = 'card-remove';
-        remove.setAttribute('aria-label', 'apagar playlist');
-        remove.textContent = '×';
-        remove.addEventListener('click', function (event) {
-          event.stopPropagation();
-          self.removePlaylist(track.playlistId);
-        });
-        card.appendChild(remove);
+        if (!track.builtin) {
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'card-remove';
+          remove.setAttribute('aria-label', 'apagar playlist');
+          remove.textContent = '×';
+          remove.addEventListener('click', function (event) {
+            event.stopPropagation();
+            self.removePlaylist(track.playlistId);
+          });
+          card.appendChild(remove);
+        }
       } else {
         const edit = document.createElement('button');
         edit.type = 'button';
@@ -705,6 +760,7 @@
       if (!playlist) return;
       if (!window.confirm('apagar a playlist "' + playlist.name + '"?')) return;
       this.playlists = this.playlists.filter((item) => item.id !== playlistId);
+      if (playlistId === CORVO_SECO.id) SMA.writeText('corvo_seco_hidden', '1');
       this.persistPlaylists();
       if (this.activePlaylistId === playlistId) this.activePlaylistId = null;
       this.render();
@@ -732,10 +788,12 @@
       this.pendingAudioId = '';
       this.pendingAudioName = '';
       const titleInput = SMA.select('#track-title-input');
+      const artistInput = SMA.select('#track-artist-input');
       const preview = SMA.select('#track-cover-preview');
       const label = SMA.select('#track-file-label');
       const resetButton = SMA.select('#btn-track-reset');
       if (titleInput) titleInput.value = track.title;
+      if (artistInput) artistInput.value = track.artist || '';
       if (preview) preview.src = track.cover || this.defaultCover(track.category, track.id);
       if (label) {
         label.textContent = track.replaced
@@ -764,11 +822,17 @@
       const track = this.editingTrack;
       if (!track) return;
       const titleInput = SMA.select('#track-title-input');
+      const artistInput = SMA.select('#track-artist-input');
       const title = titleInput ? titleInput.value.trim() : '';
+      const artist = artistInput ? artistInput.value.trim() : track.artist || '';
       const override = this.overrides[track.id] || {};
       if (title && title !== track.title) {
         track.title = title;
         override.title = title;
+      }
+      if (artist !== track.artist) {
+        track.artist = artist;
+        override.artist = artist;
       }
       if (this.coverDraft) {
         track.cover = this.coverDraft;
@@ -822,6 +886,7 @@
       delete this.overrides[track.id];
       this.persistOverrides();
       track.title = track.originalTitle;
+      track.artist = track.originalArtist || '';
       track.fileName = track.originalFileName;
       track.cover = track.originalCover || this.defaultCover(track.category, track.id);
       track.usingDefaultCover = Boolean(CATEGORY_COVERS[track.category]);

@@ -1,20 +1,13 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
+const { splitTrackName } = require('../js/track-name');
 
 const root = path.resolve(__dirname, '..');
 const audiosDir = path.join(root, 'audios');
 const manifestFile = path.join(root, 'assets', 'audio-manifest.json');
 const categories = ['meditacao', 'ondas'];
 const audioPattern = /\.(m4a|mp3|wav|ogg|flac|opus|aac)$/i;
-
-function cleanTitle(fileName) {
-  return String(fileName)
-    .replace(audioPattern, '')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 function listTracks() {
   const tracks = [];
@@ -25,9 +18,11 @@ function listTracks() {
       .filter((name) => audioPattern.test(name))
       .sort((a, b) => a.localeCompare(b, 'pt-BR'))
       .forEach((name) => {
+        const parsed = splitTrackName(name, category);
         tracks.push({
           id: category + '-' + name,
-          title: cleanTitle(name),
+          title: parsed.title,
+          artist: parsed.artist,
           category: category,
           fileName: name,
           fileUrl: 'audios/' + category + '/' + encodeURIComponent(name)

@@ -35,6 +35,28 @@
     if (label) label.textContent = SMA.todayLabel();
   }
 
+  const lazyTabs = {
+    'tab-books': function () { return SMA.Books.init(); },
+    'tab-notion': function () { return SMA.ScriptNotes.init(); }
+  };
+  const lazyStarted = Object.create(null);
+
+  function ensureTab(tabId) {
+    const loader = lazyTabs[tabId];
+    if (!loader || lazyStarted[tabId]) return;
+    lazyStarted[tabId] = true;
+    try {
+      const result = loader();
+      if (result && typeof result.catch === 'function') {
+        result.catch(function () {
+          lazyStarted[tabId] = false;
+        });
+      }
+    } catch (error) {
+      lazyStarted[tabId] = false;
+    }
+  }
+
   function initTabs() {
     const buttons = SMA.selectAll('.nav-tab-btn');
     const panes = SMA.selectAll('.tab-pane');
@@ -51,8 +73,11 @@
           area.classList.toggle('notion-active', button.dataset.tab === 'tab-notion');
           if (window.innerWidth < 769) area.scrollTop = 0;
         }
+        ensureTab(button.dataset.tab);
       });
     });
+    const active = buttons.find(function (button) { return button.classList.contains('active'); });
+    if (active) ensureTab(active.dataset.tab);
   }
 
   function initProfileFields() {
@@ -192,7 +217,7 @@
       if (nowArtist) {
         nowArtist.textContent = track.isPlaylist
           ? 'sleep my angel ‧ playlist'
-          : 'sleep my angel ‧ ' + (categoryNames[track.category] || track.category);
+          : (track.artist || 'sleep my angel ‧ ' + (categoryNames[track.category] || track.category));
       }
       if (nowCover && track.cover) nowCover.src = track.cover;
       document.title = track.title + ' ‧ sleep my angel';
@@ -343,11 +368,18 @@
 
     SMA.Affirmations.init();
     SMA.Recipes.init();
-    await SMA.Books.init();
-    SMA.ScriptNotes.init();
     bindPlayer(player, library);
     initKeyboard(player);
     initServiceWorker();
+
+    if (SMA.Updater) {
+      try {
+        const updater = SMA.Updater.init();
+        if (updater && typeof updater.catch === 'function') updater.catch(function () {});
+      } catch (error) {
+        // sem updater no navegador
+      }
+    }
 
     SMA.App = {
       player: player,

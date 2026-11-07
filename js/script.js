@@ -163,9 +163,16 @@
     if (!doc) return;
     titleInput.value = doc.title;
     editor.value = doc.text;
+    resizeDocTitle();
     renderPage(doc);
     updateMeta(label || sourceLabel(doc.source));
     renderList();
+  }
+
+  function resizeDocTitle() {
+    if (!titleInput) return;
+    titleInput.style.height = 'auto';
+    titleInput.style.height = Math.min(titleInput.scrollHeight, 180) + 'px';
   }
 
   function renderPage(doc) {
@@ -292,6 +299,58 @@
       .replace(/&#(\d+);/g, function (_, number) { return String.fromCodePoint(parseInt(number, 10)); });
   }
 
+  function inlineHtml(node) {
+    if (!node) return '';
+    if (node.nodeType === Node.TEXT_NODE) return node.nodeValue || '';
+    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+    const tag = node.tagName.toLowerCase();
+    if (tag === 'br') return '\n';
+    if (tag === 'img') {
+      const src = node.getAttribute('src') || '';
+      const alt = node.getAttribute('alt') || '';
+      return src ? '![' + alt + '](' + src + ')' : '';
+    }
+    if (tag === 'input') return '';
+    let inner = '';
+    Array.prototype.forEach.call(node.childNodes, function (child) {
+      inner += inlineHtml(child);
+    });
+    const style = node.getAttribute('style') || '';
+    const bold = /^(strong|b)$/.test(tag) || /font-weight\s*:\s*(bold|[6-9]00)/i.test(style);
+    const italic = /^(em|i)$/.test(tag) || /font-style\s*:\s*italic/i.test(style);
+    const strike = /^(del|s|strike)$/.test(tag) || /line-through/i.test(style);
+    const underline = tag === 'u' || /text-decoration[^;]*underline/i.test(style);
+    if (tag === 'code') return '`' + inner + '`';
+    if (tag === 'a') {
+      const href = node.getAttribute('href') || '';
+      return /^(https?:|mailto:)/i.test(href) ? '[' + inner + '](' + href + ')' : inner;
+    }
+    if (bold) return '**' + inner + '**';
+    if (italic) return '*' + inner + '*';
+    if (strike) return '~~' + inner + '~~';
+    if (underline) return '<u>' + inner + '</u>';
+    return inner;
+  }
+
+  function htmlTableToMarkdown(table) {
+    const rows = Array.prototype.map.call(table.querySelectorAll('tr'), function (row) {
+      return Array.prototype.map.call(row.children, function (cell) {
+        return inlineHtml(cell).replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
+      });
+    }).filter(function (row) { return row.length > 0; });
+    if (rows.length === 0) return '';
+    const columns = Math.max.apply(null, rows.map(function (row) { return row.length; }));
+    rows.forEach(function (row) {
+      while (row.length < columns) row.push('');
+    });
+    const header = '| ' + rows[0].join(' | ') + ' |';
+    const divider = '| ' + rows[0].map(function () { return '---'; }).join(' | ') + ' |';
+    const body = rows.slice(1).map(function (row) {
+      return '| ' + row.join(' | ') + ' |';
+    });
+    return [header, divider].concat(body).join('\n');
+  }
+
   function htmlToMarkdown(html) {
     const parsed = new DOMParser().parseFromString(html, 'text/html');
     parsed.querySelectorAll('script,style,head,meta,link,svg,noscript,iframe').forEach(function (node) {
@@ -316,22 +375,46 @@
       if (/^(h1|h2|h3|h4|h5|h6)$/.test(tag)) {
         flush();
         const level = Number(tag.slice(1));
-        buffer += '\n' + '#'.repeat(level) + ' ' + node.textContent.trim() + '\n';
+        blocks.push('#'.repeat(level) + ' ' + inlineHtml(node).trim());
+        return;
+      }
+      if (tag === 'p') {
         flush();
+        const text = inlineHtml(node).trim();
+        if (text) blocks.push(text);
         return;
       }
       if (tag === 'li') {
         flush();
-        buffer += '- ' + node.textContent.trim() + '\n';
+        const checkbox = node.querySelector('input[type="checkbox"]');
+        const checked = checkbox && checkbox.checked;
+        const ordered = node.parentElement && node.parentElement.tagName.toLowerCase() === 'ol';
+        const prefix = checkbox ? (checked ? '- [x] ' : '- [ ] ') : (ordered ? '1. ' : '- ');
+        const item = prefix + inlineHtml(node).trim();
+        const previous = blocks[blocks.length - 1] || '';
+        if (/^\s*([-*+]|\d+[.)])\s+/.test(previous)) {
+          blocks[blocks.length - 1] = previous + '\n' + item;
+        } else {
+          blocks.push(item);
+        }
+        return;
+      }
+      if (tag === 'table') {
         flush();
+        const table = htmlTableToMarkdown(node);
+        if (table) blocks.push(table);
+        return;
+      }
+      if (tag === 'aside') {
+        flush();
+        const text = inlineHtml(node).trim();
+        if (text) blocks.push('<aside>' + text + '</aside>');
         return;
       }
       if (tag === 'img') {
         flush();
-        const src = node.getAttribute('src') || '';
-        const alt = node.getAttribute('alt') || '';
-        if (src) buffer += '![' + alt + '](' + src + ')\n';
-        flush();
+        const rendered = inlineHtml(node);
+        if (rendered) blocks.push(rendered);
         return;
       }
       if (tag === 'br') {
@@ -340,20 +423,23 @@
       }
       if (tag === 'pre') {
         flush();
-        buffer += '```\n' + node.textContent + '\n```\n';
-        flush();
+        blocks.push('```\n' + node.textContent + '\n```');
         return;
       }
       if (tag === 'blockquote') {
         flush();
-        const quote = node.textContent.trim().split('\n').map(function (line) {
+        const quote = inlineHtml(node).trim().split('\n').map(function (line) {
           return '> ' + line;
         }).join('\n');
-        buffer += quote + '\n';
-        flush();
+        if (quote.trim()) blocks.push(quote);
         return;
       }
-      if (/^(p|div|section|article|tr|table|ul|ol)$/.test(tag)) {
+      if (tag === 'hr') {
+        flush();
+        blocks.push('---');
+        return;
+      }
+      if (/^(p|div|section|article|tr|table|ul|ol|figure|figcaption)$/.test(tag)) {
         flush();
         Array.prototype.forEach.call(node.childNodes, walk);
         flush();
@@ -366,12 +452,228 @@
     return blocks.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
   }
 
-  function docxToText(arrayBuffer) {
+  function xmlVal(node) {
+    if (!node) return '';
+    return node.getAttribute('w:val') || node.getAttribute('val') || '';
+  }
+
+  function xmlFlag(parent, tag) {
+    if (!parent) return false;
+    const node = parent.getElementsByTagName('w:' + tag)[0];
+    if (!node) return false;
+    const value = xmlVal(node).toLowerCase();
+    return value !== '0' && value !== 'false' && value !== 'none';
+  }
+
+  function docxHeadingLevel(style) {
+    if (!style) return 0;
+    if (/^title$/i.test(style)) return 1;
+    if (/^subtitle$/i.test(style)) return 2;
+    const match = style.match(/heading\s*([1-6])/i) || style.match(/^h([1-6])$/i);
+    return match ? Number(match[1]) : 0;
+  }
+
+  function docxNumbering(files) {
+    const result = { nums: {}, formats: {} };
+    const target = Object.keys(files).find(function (name) { return /word\/numbering\.xml$/i.test(name); });
+    if (!target) return result;
+    try {
+      const xml = new TextDecoder('utf-8').decode(files[target]);
+      const doc = new DOMParser().parseFromString(xml, 'application/xml');
+      Array.prototype.forEach.call(doc.getElementsByTagName('w:abstractNum'), function (abstract) {
+        const abstractId = xmlVal(abstract.getElementsByTagName('w:abstractNumId')[0]);
+        if (!abstractId) return;
+        Array.prototype.forEach.call(abstract.getElementsByTagName('w:lvl'), function (level) {
+          const index = xmlVal(level.getElementsByTagName('w:ilvl')[0]) || '0';
+          const format = xmlVal(level.getElementsByTagName('w:numFmt')[0]) || 'bullet';
+          result.formats[abstractId + ':' + index] = format;
+        });
+      });
+      Array.prototype.forEach.call(doc.getElementsByTagName('w:num'), function (num) {
+        const numId = xmlVal(num.getElementsByTagName('w:numId')[0]);
+        const abstractId = xmlVal(num.getElementsByTagName('w:abstractNumId')[0]);
+        if (numId && abstractId) result.nums[numId] = abstractId;
+      });
+    } catch (error) {
+      return result;
+    }
+    return result;
+  }
+
+  function docxRunText(run) {
+    const parts = [];
+    Array.prototype.forEach.call(run.childNodes, function (node) {
+      if (node.nodeType !== 1) return;
+      const name = node.tagName.toLowerCase();
+      if (name === 'w:t') parts.push(node.textContent || '');
+      else if (name === 'w:tab') parts.push('\t');
+      else if (name === 'w:br' || name === 'w:cr') parts.push('\n');
+    });
+    return parts.join('');
+  }
+
+  function docxRunMarkdown(run) {
+    let text = docxRunText(run);
+    if (!text.trim()) return text;
+    const props = run.getElementsByTagName('w:rPr')[0];
+    if (xmlFlag(props, 'b')) {
+      text = '**' + text + '**';
+    } else if (xmlFlag(props, 'i')) {
+      text = '*' + text + '*';
+    } else if (xmlFlag(props, 'strike')) {
+      text = '~~' + text + '~~';
+    } else if (xmlFlag(props, 'u')) {
+      text = '<u>' + text + '</u>';
+    }
+    return text;
+  }
+
+  function docxImageMarkdown(node, rels) {
+    if (!node || !rels) return '';
+    const refs = [];
+    const seen = new Set();
+    const push = function (id) {
+      if (!id || seen.has(id)) return;
+      const target = rels[id];
+      if (!target) return;
+      seen.add(id);
+      refs.push('![](' + target + ')');
+    };
+    Array.prototype.forEach.call(node.getElementsByTagName('a:blip'), function (blip) {
+      push(blip.getAttribute('r:embed') || blip.getAttribute('r:link') || blip.getAttribute('embed') || blip.getAttribute('link'));
+    });
+    Array.prototype.forEach.call(node.getElementsByTagName('v:imagedata'), function (image) {
+      push(image.getAttribute('r:id') || image.getAttribute('id'));
+    });
+    Array.prototype.forEach.call(node.getElementsByTagName('w:drawing'), function (drawing) {
+      Array.prototype.forEach.call(drawing.getElementsByTagName('a:blip'), function (blip) {
+        push(blip.getAttribute('r:embed') || blip.getAttribute('r:link'));
+      });
+    });
+    return refs.join('\n');
+  }
+
+  function docxParagraphMarkdown(paragraph, numbering, rels) {
+    const props = paragraph.getElementsByTagName('w:pPr')[0];
+    const style = xmlVal(props && props.getElementsByTagName('w:pStyle')[0]);
+    const heading = docxHeadingLevel(style);
+    const quote = /^quote$/i.test(style);
+    let prefix = '';
+    if (heading) prefix = '#'.repeat(Math.min(heading, 4)) + ' ';
+    else if (quote) prefix = '> ';
+
+    let listPrefix = '';
+    const numberingProps = props && props.getElementsByTagName('w:numPr')[0];
+    if (numberingProps) {
+      const numId = xmlVal(numberingProps.getElementsByTagName('w:numId')[0]);
+      const level = Number(xmlVal(numberingProps.getElementsByTagName('w:ilvl')[0])) || 0;
+      const abstractId = numbering.nums[numId];
+      const format = abstractId ? numbering.formats[abstractId + ':' + level] : '';
+      if (format !== 'none') {
+        const ordered = format && format !== 'bullet' && format !== 'none';
+        listPrefix = '  '.repeat(Math.min(level, 6)) + (ordered ? '1. ' : '- ');
+      }
+    }
+    if (!listPrefix && /List\s*(Bullet|Number)/i.test(style)) {
+      listPrefix = /List\s*Number/i.test(style) ? '1. ' : '- ';
+    }
+    if (!listPrefix && /^ListParagraph$/i.test(style)) {
+      listPrefix = '- ';
+    }
+
+    const pieces = [];
+    Array.prototype.forEach.call(paragraph.childNodes, function (node) {
+      if (node.nodeType !== 1) return;
+      const name = node.tagName.toLowerCase();
+      if (name === 'w:r') {
+        const images = docxImageMarkdown(node, rels);
+        if (images) pieces.push('\n\n' + images + '\n\n');
+        else pieces.push(docxRunMarkdown(node));
+      } else if (name === 'w:hyperlink') {
+        const runs = node.getElementsByTagName('w:r');
+        const label = Array.prototype.map.call(runs, function (run) {
+          return docxRunText(run);
+        }).join('');
+        const relId = node.getAttribute('r:id') || node.getAttribute('id');
+        const href = relId && rels ? rels[relId] : '';
+        if (label.trim()) {
+          pieces.push(/^https?:/i.test(href) ? '[' + label + '](' + href + ')' : label);
+        }
+      } else if (name === 'w:ins' || name === 'w:smartTag') {
+        Array.prototype.forEach.call(node.getElementsByTagName('w:r'), function (run) {
+          pieces.push(docxRunMarkdown(run));
+        });
+      }
+    });
+
+    const text = pieces.join('').trim();
+    if (!text) return '';
+    if (listPrefix) return listPrefix + text;
+    return prefix + text;
+  }
+
+  function docxTableMarkdown(table) {
+    const rows = Array.prototype.map.call(table.getElementsByTagName('w:tr'), function (row) {
+      return Array.prototype.map.call(row.getElementsByTagName('w:tc'), function (cell) {
+        return Array.prototype.map.call(cell.getElementsByTagName('w:t'), function (node) {
+          return node.textContent || '';
+        }).join(' ').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
+      });
+    }).filter(function (row) { return row.length > 0; });
+    if (rows.length === 0) return '';
+    const columns = Math.max.apply(null, rows.map(function (row) { return row.length; }));
+    rows.forEach(function (row) {
+      while (row.length < columns) row.push('');
+    });
+    const header = '| ' + rows[0].join(' | ') + ' |';
+    const divider = '| ' + rows[0].map(function () { return '---'; }).join(' | ') + ' |';
+    const body = rows.slice(1).map(function (row) {
+      return '| ' + row.join(' | ') + ' |';
+    });
+    return [header, divider].concat(body).join('\n');
+  }
+
+  function docxToMarkdown(arrayBuffer) {
     if (!window.fflate) return '';
     const files = window.fflate.unzipSync(new Uint8Array(arrayBuffer));
     const target = Object.keys(files).find(function (name) { return /word\/document\.xml$/i.test(name); });
     if (!target) return '';
     const xml = new TextDecoder('utf-8').decode(files[target]);
+    try {
+      const doc = new DOMParser().parseFromString(xml, 'application/xml');
+      const rels = {};
+      const relTarget = Object.keys(files).find(function (name) { return /word\/_rels\/document\.xml\.rels$/i.test(name); });
+      if (relTarget) {
+        const relDoc = new DOMParser().parseFromString(new TextDecoder('utf-8').decode(files[relTarget]), 'application/xml');
+        Array.prototype.forEach.call(relDoc.getElementsByTagName('Relationship'), function (rel) {
+          const id = rel.getAttribute('Id');
+          const url = rel.getAttribute('Target');
+          if (id && url) rels[id] = url;
+        });
+      }
+      const numbering = docxNumbering(files);
+      const body = doc.getElementsByTagName('w:body')[0] || doc.documentElement;
+      const blocks = [];
+      Array.prototype.forEach.call(body.childNodes, function (node) {
+        if (node.nodeType !== 1) return;
+        const name = node.tagName.toLowerCase();
+        let block = '';
+        if (name === 'w:p') block = docxParagraphMarkdown(node, numbering, rels);
+        else if (name === 'w:tbl') block = docxTableMarkdown(node);
+        if (!block) return;
+        const isList = /^\s*([-*+]|\d+[.)])\s+/.test(block);
+        const previous = blocks[blocks.length - 1] || '';
+        if (isList && /^\s*([-*+]|\d+[.)])\s+/.test(previous)) {
+          blocks[blocks.length - 1] = previous + '\n' + block;
+        } else {
+          blocks.push(block);
+        }
+      });
+      const markdown = blocks.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+      if (markdown) return markdown;
+    } catch (error) {
+      // se o xml vier estranho, cai no texto puro abaixo
+    }
     return decodeEntities(
       xml
         .replace(/<w:tab\/?>/gi, '\t')
@@ -379,6 +681,40 @@
         .replace(/<\/w:p>/gi, '\n')
         .replace(/<[^>]+>/g, '')
     ).replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  async function docxAssets(arrayBuffer) {
+    const assets = {};
+    if (!window.fflate) return assets;
+    let files;
+    try {
+      files = window.fflate.unzipSync(new Uint8Array(arrayBuffer));
+    } catch (error) {
+      return assets;
+    }
+    const names = Object.keys(files).filter(function (name) {
+      return /^word\/media\//i.test(name) && IMAGE_EXT.test(name);
+    });
+    for (const name of names) {
+      const type = /\.png$/i.test(name) ? 'image/png'
+        : /\.jpe?g$/i.test(name) ? 'image/jpeg'
+          : /\.gif$/i.test(name) ? 'image/gif'
+            : /\.webp$/i.test(name) ? 'image/webp'
+              : /\.svg$/i.test(name) ? 'image/svg+xml'
+                : /\.bmp$/i.test(name) ? 'image/bmp'
+                  : '';
+      try {
+        const dataUrl = await imageToDataUrl(new Blob([files[name]], { type: type }));
+        if (!dataUrl) continue;
+        const clean = normalizePath(name).toLowerCase();
+        assets[clean] = dataUrl;
+        assets[clean.replace(/^word\//, '')] = dataUrl;
+        assets[baseName(name).toLowerCase()] = dataUrl;
+      } catch (error) {
+        continue;
+      }
+    }
+    return assets;
   }
 
   async function pdfToText(arrayBuffer) {
@@ -460,26 +796,39 @@
     return parts.join('/');
   }
 
+  function cleanImageRef(value) {
+    let ref = String(value || '').trim();
+    if (!ref) return '';
+    if (ref.charAt(0) === '<' && ref.charAt(ref.length - 1) === '>') {
+      ref = ref.slice(1, -1).trim();
+    }
+    const titled = ref.match(/^([\s\S]*?)\s+(?:"[^"]*"|'[^']*')\s*$/);
+    if (titled) ref = titled[1].trim();
+    ref = decodeEntities(ref).trim();
+    return ref;
+  }
+
   function collectImageRefs(text) {
     const refs = [];
     const seen = new Set();
-    const markdown = /!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
-    const html = /<img[^>]+src=["']([^"']+)["']/gi;
-    let match = markdown.exec(text);
+    const push = function (value) {
+      const ref = cleanImageRef(value);
+      if (!ref || seen.has(ref)) return;
+      seen.add(ref);
+      refs.push(ref);
+    };
+    const source = String(text || '');
+    const markdown = /!\[[^\]]*\]\(([^)]+)\)/g;
+    let match = markdown.exec(source);
     while (match) {
-      if (!seen.has(match[1])) {
-        seen.add(match[1]);
-        refs.push(match[1]);
-      }
-      match = markdown.exec(text);
+      push(match[1]);
+      match = markdown.exec(source);
     }
-    match = html.exec(text);
+    const html = /<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/gi;
+    match = html.exec(source);
     while (match) {
-      if (!seen.has(match[1])) {
-        seen.add(match[1]);
-        refs.push(match[1]);
-      }
-      match = html.exec(text);
+      push(match[1]);
+      match = html.exec(source);
     }
     return refs;
   }
@@ -546,27 +895,96 @@
     }
   }
 
+  const remoteImageCache = new Map();
+
+  async function fetchRemoteImage(url) {
+    const key = String(url || '');
+    if (!key || /^data:/i.test(key)) return '';
+    if (remoteImageCache.has(key)) return remoteImageCache.get(key);
+    const load = async function () {
+      try {
+        const controller = typeof AbortController === 'function' ? new AbortController() : null;
+        const timer = controller ? setTimeout(function () { controller.abort(); }, 15000) : null;
+        const response = await fetch(key, {
+          mode: 'cors',
+          credentials: 'omit',
+          cache: 'force-cache',
+          signal: controller ? controller.signal : undefined
+        });
+        if (timer) clearTimeout(timer);
+        if (!response.ok) return '';
+        const blob = await response.blob();
+        if (!blob || !blob.size || blob.size > 14 * 1024 * 1024) return '';
+        const dataUrl = await imageToDataUrl(blob, 1400);
+        return dataUrl || '';
+      } catch (error) {
+        return '';
+      }
+    };
+    const result = await load();
+    remoteImageCache.set(key, result);
+    return result;
+  }
+
   async function assetsForText(text, baseDir, lookup) {
     const assets = {};
     const refs = collectImageRefs(text);
+    let images = 0;
+    let missing = 0;
     for (const ref of refs) {
-      if (/^(https?:|data:|blob:)/i.test(ref)) continue;
-      const source = assetKeyFor(ref, baseDir, lookup);
-      if (!source) continue;
+      if (!ref) continue;
+      if (/^data:/i.test(ref)) {
+        images += 1;
+        continue;
+      }
+      if (/^https?:/i.test(ref)) {
+        const key = normalizePath(ref).toLowerCase();
+        if (assets[key]) {
+          images += 1;
+          continue;
+        }
+        const dataUrl = await fetchRemoteImage(ref);
+        if (dataUrl) {
+          assets[key] = dataUrl;
+          assets[String(ref).toLowerCase()] = dataUrl;
+          images += 1;
+        } else {
+          missing += 1;
+        }
+        continue;
+      }
+      if (/^blob:/i.test(ref)) continue;
+      const source = lookup ? assetKeyFor(ref, baseDir, lookup) : null;
+      if (!source) {
+        missing += 1;
+        continue;
+      }
       try {
         const blob = source.blob || new Blob([source.bytes], { type: source.type || '' });
         const dataUrl = await imageToDataUrl(blob);
-        if (!dataUrl) continue;
+        if (!dataUrl) {
+          missing += 1;
+          continue;
+        }
         const clean = normalizePath(ref).toLowerCase();
         const name = baseName(ref).toLowerCase();
         assets[clean] = dataUrl;
         assets[name] = dataUrl;
         if (baseDir) assets[(baseDir + '/' + clean).toLowerCase()] = dataUrl;
+        images += 1;
       } catch (error) {
-        continue;
+        missing += 1;
       }
     }
-    return assets;
+    return { assets: assets, images: images, missing: missing };
+  }
+
+  function countImageAssets(assets) {
+    const set = new Set();
+    Object.keys(assets || {}).forEach(function (key) {
+      if (assets[key]) set.add(assets[key]);
+    });
+    return set.size;
   }
 
   function lookupFromZip(files) {
@@ -591,20 +1009,22 @@
   async function importZip(arrayBuffer) {
     if (!window.fflate) {
       SMA.toast('não consegui abrir o zip neste navegador');
-      return 0;
+      return { count: 0, images: 0, missing: 0, lastDoc: null };
     }
     let files;
     try {
       files = window.fflate.unzipSync(new Uint8Array(arrayBuffer));
     } catch (error) {
       SMA.toast('esse zip parece quebrado');
-      return 0;
+      return { count: 0, images: 0, missing: 0, lastDoc: null };
     }
     const lookup = lookupFromZip(files);
     const names = Object.keys(files).filter(function (name) {
       return TEXT_EXT.test(name) && !/(^|\/)(__MACOSX|\.)/.test(name);
     }).slice(0, 80);
     let imported = 0;
+    let images = 0;
+    let missing = 0;
     let lastDoc = null;
     for (const name of names) {
       const bytes = files[name];
@@ -620,17 +1040,19 @@
         text = text.replace(/^\s*#\s+.+?\s*$/m, '').replace(/^\s+/, '');
       }
       if (!text.trim()) continue;
-      const assets = await assetsForText(text, dirName(name), lookup);
+      const result = await assetsForText(text, dirName(name), lookup);
+      images += result.images;
+      missing += result.missing;
       lastDoc = addImportedDoc({
         title: title,
         text: text,
         source: 'notion',
-        assets: assets
+        assets: result.assets
       });
       imported += 1;
     }
     if (names.length === 0) SMA.toast('nenhuma nota de texto dentro do zip');
-    return { count: imported, lastDoc: lastDoc };
+    return { count: imported, images: images, missing: missing, lastDoc: lastDoc };
   }
 
   function addImportedDoc(data) {
@@ -657,19 +1079,80 @@
     return lookup;
   }
 
+  function isImageFile(file) {
+    if (!file) return false;
+    return /^image\//i.test(file.type || '') || IMAGE_EXT.test(file.name || '');
+  }
+
+  async function addImagesToDoc(files) {
+    const doc = activeDoc() || docs[0];
+    if (!doc) {
+      SMA.toast('crie uma nota primeiro');
+      return;
+    }
+    const images = Array.from(files || []).filter(isImageFile);
+    if (!images.length) {
+      SMA.toast('não encontrei imagens nesses arquivos');
+      return;
+    }
+    doc.assets = doc.assets || {};
+    let added = 0;
+    const blocks = [];
+    for (const file of images) {
+      try {
+        const dataUrl = await imageToDataUrl(file, 1500);
+        if (!dataUrl) continue;
+        const extension = (/\.([a-z0-9]+)$/i.exec(file.name || '') || [])[1] || 'png';
+        const key = 'anexo-' + Date.now() + '-' + added + '.' + extension.toLowerCase();
+        doc.assets[key.toLowerCase()] = dataUrl;
+        const alt = SMA.fileNameTitle(file.name || '') || 'imagem';
+        blocks.push('![' + alt + '](' + key + ')');
+        added += 1;
+      } catch (error) {
+        continue;
+      }
+    }
+    if (!added) {
+      SMA.toast('não consegui abrir essas imagens');
+      return;
+    }
+    doc.text = String(doc.text || '').replace(/\s+$/, '') + '\n\n' + blocks.join('\n\n') + '\n';
+    setEditing(false);
+    paintEditor(doc, 'imagem adicionada');
+    await persistDoc(doc, 'salvo offline', false);
+    const scroll = SMA.select('.notion-scroll');
+    if (scroll) scroll.scrollTop = scroll.scrollHeight;
+    SMA.toast(added + (added === 1 ? ' imagem na nota ‧°' : ' imagens na nota ‧°'));
+  }
+
   async function importFiles(files) {
     const list = Array.from(files || []);
     if (!list.length) return;
+    if (list.every(isImageFile)) {
+      await addImagesToDoc(list);
+      return;
+    }
     const lookup = lookupFromFiles(list);
     let imported = 0;
+    let images = 0;
+    let missing = 0;
     let lastDoc = null;
     for (const file of list) {
+      if (isImageFile(file)) continue;
       const lower = file.name.toLowerCase();
       try {
         if (/\.docx$/i.test(lower)) {
-          const text = docxToText(await file.arrayBuffer());
+          const buffer = await file.arrayBuffer();
+          const text = docxToMarkdown(buffer);
           if (text.trim()) {
-            lastDoc = addImportedDoc({ title: SMA.fileNameTitle(file.name), text: text, source: 'drive' });
+            const assets = await docxAssets(buffer);
+            images += countImageAssets(assets);
+            lastDoc = addImportedDoc({
+              title: SMA.fileNameTitle(file.name),
+              text: text,
+              source: 'drive',
+              assets: assets
+            });
             imported += 1;
           }
         } else if (/\.pdf$/i.test(lower)) {
@@ -683,6 +1166,8 @@
         } else if (/\.zip$/i.test(lower)) {
           const result = await importZip(await file.arrayBuffer());
           imported += result.count;
+          images += result.images;
+          missing += result.missing;
           if (result.lastDoc) lastDoc = result.lastDoc;
         } else if (TEXT_EXT.test(lower)) {
           const raw = await file.text();
@@ -696,8 +1181,11 @@
             text = text.replace(/^\s*#\s+.+?\s*$/m, '').replace(/^\s+/, '');
           }
           if (!text.trim()) continue;
-          const assets = await assetsForText(text, '', lookup);
-          lastDoc = addImportedDoc({ title: title, text: text, source: 'notion', assets: assets });
+          const baseDir = dirName(file.webkitRelativePath || file.name);
+          const result = await assetsForText(text, baseDir, lookup);
+          images += result.images;
+          missing += result.missing;
+          lastDoc = addImportedDoc({ title: title, text: text, source: 'notion', assets: result.assets });
           imported += 1;
         }
       } catch (error) {
@@ -714,7 +1202,23 @@
     setEditing(false);
     paintEditor(target, 'importado');
     await persistDoc(target, 'salvo offline', false);
-    SMA.toast(imported + (imported === 1 ? ' nota importada' : ' notas importadas') + ' ‧°');
+    const pieces = [imported + (imported === 1 ? ' nota importada' : ' notas importadas')];
+    if (images) pieces.push(images + (images === 1 ? ' imagem' : ' imagens'));
+    SMA.toast(pieces.join(' ‧ ') + ' ‧°');
+    if (missing > 0) {
+      setTimeout(function () {
+        SMA.toast('algumas imagens não vieram no export — importe o .zip completo do notion');
+      }, 900);
+    }
+  }
+
+  function openImportModal() {
+    SMA.select('#modal-import-doc')?.classList.add('open');
+  }
+
+  function closeImportModal() {
+    SMA.select('#modal-import-doc')?.classList.remove('open');
+    SMA.select('#import-dropzone')?.classList.remove('is-dropping');
   }
 
   function createElement(tag, className, text) {
@@ -771,9 +1275,9 @@
   }
 
   function resolveImage(source, assets) {
-    const url = String(source || '').trim();
+    const url = cleanImageRef(source);
     if (!url) return '';
-    if (/^(data:|blob:|https?:)/i.test(url)) return url;
+    if (/^(data:|blob:)/i.test(url)) return url;
     const map = assets || {};
     const clean = normalizePath(url).toLowerCase();
     if (map[clean]) return map[clean];
@@ -783,6 +1287,7 @@
     for (const key of keys) {
       if (key.endsWith('/' + name)) return map[key];
     }
+    if (/^https?:/i.test(url)) return url;
     return '';
   }
 
@@ -792,7 +1297,10 @@
     if (!url) {
       const missing = createElement('div', 'notion-image-missing');
       missing.appendChild(createElement('span', '', '🖼'));
-      missing.appendChild(createElement('span', '', alt || 'imagem não encontrada'));
+      const label = createElement('span', '', (alt ? alt + ' ‧ ' : '') + 'imagem não encontrada');
+      missing.appendChild(label);
+      const hint = createElement('small', '', 'importe o .zip completo do notion (ou o .md junto com a pasta de imagens)');
+      missing.appendChild(hint);
       figure.appendChild(missing);
       return figure;
     }
@@ -1113,6 +1621,114 @@
     return { list: root, next: index };
   }
 
+  function openPasteModal() {
+    const modal = SMA.select('#modal-paste-doc');
+    const title = SMA.select('#paste-title-input');
+    const source = SMA.select('#paste-source-input');
+    const text = SMA.select('#paste-text-input');
+    if (title) title.value = '';
+    if (source) source.value = 'notion';
+    if (text) text.value = '';
+    modal?.classList.add('open');
+    setTimeout(function () {
+      if (title) title.focus();
+    }, 60);
+  }
+
+  function closePasteModal() {
+    SMA.select('#modal-paste-doc')?.classList.remove('open');
+  }
+
+  async function pasteFromClipboard() {
+    const textArea = SMA.select('#paste-text-input');
+    if (!textArea) return;
+    try {
+      let pasted = '';
+      const pastedImages = [];
+      if (navigator.clipboard && typeof navigator.clipboard.read === 'function') {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          const imageType = item.types.find(function (type) { return /^image\//i.test(type); });
+          if (imageType) {
+            const blob = await item.getType(imageType);
+            const extension = (imageType.split('/')[1] || 'png').replace(/[^a-z0-9]/gi, '');
+            pastedImages.push(new File([blob], 'colado-' + Date.now() + '.' + extension, { type: imageType }));
+          }
+          if (item.types.indexOf('text/html') !== -1) {
+            const blob = await item.getType('text/html');
+            pasted = htmlToMarkdown(await blob.text());
+            break;
+          }
+          if (!pasted && item.types.indexOf('text/plain') !== -1) {
+            const blob = await item.getType('text/plain');
+            pasted = await blob.text();
+          }
+        }
+      }
+      if (!pasted && navigator.clipboard && typeof navigator.clipboard.readText === 'function') {
+        pasted = await navigator.clipboard.readText();
+      }
+      if (!pasted.trim()) {
+        if (pastedImages.length) {
+          closePasteModal();
+          await addImagesToDoc(pastedImages);
+          return;
+        }
+        SMA.toast('não encontrei texto na área de transferência');
+        textArea.focus();
+        return;
+      }
+      textArea.value = pasted.trim();
+      const title = SMA.select('#paste-title-input');
+      if (title && !title.value.trim()) {
+        const heading = pasted.match(/^\s*#{1,3}\s+(.+?)\s*$/m);
+        if (heading) title.value = heading[1].trim().slice(0, 120);
+      }
+      SMA.toast('texto colado ‧°');
+    } catch (error) {
+      SMA.toast('não consegui ler a área de transferência; cola com Ctrl+V');
+      textArea.focus();
+    }
+  }
+
+  async function savePastedDoc() {
+    const titleInputPaste = SMA.select('#paste-title-input');
+    const sourceInput = SMA.select('#paste-source-input');
+    const textArea = SMA.select('#paste-text-input');
+    let text = textArea ? textArea.value.trim() : '';
+    if (!text) {
+      SMA.toast('cola o conteúdo da nota primeiro');
+      textArea?.focus();
+      return;
+    }
+    if (/^\s*<(html|body|article|section|div|p|h[1-6]|ul|ol|table|aside|details|figure|meta)\b/i.test(text)) {
+      text = htmlToMarkdown(text);
+    }
+    const heading = text.match(/^\s*#\s+(.+?)\s*$/m);
+    let title = titleInputPaste ? titleInputPaste.value.trim() : '';
+    if (!title && heading) title = heading[1].trim();
+    if (!title) title = 'nota colada';
+    if (heading) {
+      text = text.replace(/^\s*#\s+.+?\s*$/m, '').replace(/^\s+/, '');
+    }
+    const downloadResult = await assetsForText(text, '', null);
+    const doc = addImportedDoc({
+      title: title.slice(0, 120),
+      text: text,
+      source: sourceInput && sourceInput.value === 'drive' ? 'drive' : 'notion',
+      assets: downloadResult.assets
+    });
+    activeId = doc.id;
+    setEditing(false);
+    paintEditor(doc, 'importado');
+    saveFallback();
+    await persistDoc(doc, 'salvo offline', false);
+    closePasteModal();
+    const scroll = SMA.select('.notion-scroll');
+    if (scroll) scroll.scrollTop = 0;
+    SMA.toast('nota adicionada ‧°');
+  }
+
   async function init() {
     editor = SMA.select('#script-editor');
     meta = SMA.select('#script-meta');
@@ -1169,11 +1785,104 @@
     setEditing(false);
     paintEditor(docs[0]);
 
-    importInput?.addEventListener('change', function (event) {
+    const zipInput = SMA.select('#doc-zip-input');
+    const folderInput = SMA.select('#doc-folder-input');
+    const imageInput = SMA.select('#doc-image-input');
+    const pickFiles = function (input) {
+      return function (event) {
+        const files = Array.from(event.target.files || []);
+        event.target.value = '';
+        if (!files.length) return;
+        closeImportModal();
+        importFiles(files);
+      };
+    };
+
+    importInput?.addEventListener('change', pickFiles(importInput));
+    zipInput?.addEventListener('change', pickFiles(zipInput));
+    folderInput?.addEventListener('change', pickFiles(folderInput));
+    imageInput?.addEventListener('change', function (event) {
       const files = Array.from(event.target.files || []);
       event.target.value = '';
-      importFiles(files);
+      if (files.length) addImagesToDoc(files);
     });
+
+    ['#btn-open-import', '#btn-side-import', '#import-dropzone'].forEach(function (selector) {
+      SMA.select(selector)?.addEventListener('click', openImportModal);
+    });
+    SMA.select('#btn-pick-zip')?.addEventListener('click', function () { zipInput?.click(); });
+    SMA.select('#btn-pick-files')?.addEventListener('click', function () { importInput?.click(); });
+    SMA.select('#btn-pick-folder')?.addEventListener('click', function () { folderInput?.click(); });
+    SMA.select('#btn-pick-paste')?.addEventListener('click', function () {
+      closeImportModal();
+      openPasteModal();
+    });
+    SMA.select('#modal-cancel-import')?.addEventListener('click', closeImportModal);
+    SMA.select('#btn-add-image')?.addEventListener('click', function () { imageInput?.click(); });
+
+    const dropzone = SMA.select('#import-dropzone');
+    if (dropzone) {
+      ['dragenter', 'dragover'].forEach(function (name) {
+        dropzone.addEventListener(name, function (event) {
+          event.preventDefault();
+          if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+          dropzone.classList.add('is-dropping');
+        });
+      });
+      dropzone.addEventListener('dragleave', function () {
+        dropzone.classList.remove('is-dropping');
+      });
+      dropzone.addEventListener('drop', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        dropzone.classList.remove('is-dropping');
+        const files = Array.from(event.dataTransfer?.files || []);
+        if (!files.length) return;
+        closeImportModal();
+        importFiles(files);
+      });
+    }
+
+    SMA.select('#btn-paste-doc')?.addEventListener('click', openPasteModal);
+    SMA.select('#modal-cancel-paste')?.addEventListener('click', closePasteModal);
+    SMA.select('#modal-save-paste')?.addEventListener('click', savePastedDoc);
+    SMA.select('#btn-paste-clipboard')?.addEventListener('click', pasteFromClipboard);
+
+    ['#paste-text-input', '#script-editor'].forEach(function (selector) {
+      SMA.select(selector)?.addEventListener('paste', function (event) {
+        const items = Array.from(event.clipboardData?.items || []);
+        const images = items
+          .filter(function (item) { return item.kind === 'file' && /^image\//i.test(item.type || ''); })
+          .map(function (item) { return item.getAsFile(); })
+          .filter(Boolean);
+        if (!images.length) return;
+        event.preventDefault();
+        closePasteModal();
+        addImagesToDoc(images);
+      });
+    });
+
+    const notionMain = SMA.select('.notion-main');
+    if (notionMain) {
+      ['dragenter', 'dragover'].forEach(function (name) {
+        notionMain.addEventListener(name, function (event) {
+          event.preventDefault();
+          if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+          notionMain.classList.add('is-dropping');
+        });
+      });
+      notionMain.addEventListener('dragleave', function (event) {
+        if (!event.relatedTarget || !notionMain.contains(event.relatedTarget)) {
+          notionMain.classList.remove('is-dropping');
+        }
+      });
+      notionMain.addEventListener('drop', function (event) {
+        event.preventDefault();
+        notionMain.classList.remove('is-dropping');
+        const files = Array.from(event.dataTransfer?.files || []);
+        if (files.length) importFiles(files);
+      });
+    }
 
     document.addEventListener('keydown', function (event) {
       if (!document.getElementById('tab-notion')?.classList.contains('active')) return;
@@ -1198,6 +1907,7 @@
       const doc = activeDoc();
       if (!doc) return;
       doc.title = titleInput.value.trim() || 'nota sem título';
+      resizeDocTitle();
       const crumb = SMA.select('#notion-crumb');
       if (crumb) crumb.textContent = doc.title;
       clearTimeout(saveTimer);
@@ -1206,14 +1916,18 @@
       }, 450);
     });
 
+    titleInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        titleInput.blur();
+      }
+    });
+
     document.addEventListener('keydown', function (event) {
       if (event.key !== 'Escape' || !lightbox) return;
       lightbox.classList.remove('open');
     });
 
-    SMA.select('#btn-import-doc')?.addEventListener('click', function () {
-      importInput?.click();
-    });
     SMA.select('#btn-new-doc')?.addEventListener('click', newDoc);
     SMA.select('#btn-delete-doc')?.addEventListener('click', deleteDoc);
     SMA.select('#btn-toggle-view')?.addEventListener('click', function () {
@@ -1238,6 +1952,7 @@
         saveFallback();
       }
     });
+    window.addEventListener('resize', resizeDocTitle);
   }
 
   async function saveNow(showFeedback) {
@@ -1263,5 +1978,10 @@
     if (showFeedback) SMA.toast('nota guardada ‧°');
   }
 
-  SMA.ScriptNotes = { init: init };
+  SMA.ScriptNotes = {
+    init: init,
+    importFiles: importFiles,
+    docxToMarkdown: docxToMarkdown,
+    htmlToMarkdown: htmlToMarkdown
+  };
 })();

@@ -59,20 +59,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Read app version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Build web assets
         run: node scripts/build.js
 
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Build APK
+      - name: Build signed APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease --no-daemon
 
       - name: Copy APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk sleep-my-angel.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk sleep-my-angel.apk
+
+      - name: Verify signature
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs sleep-my-angel.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
@@ -86,9 +95,15 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/main')
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: v1.2.0
-          name: sleep my angel v1.2.0
-          body: cookbook em layout de zine com fotos, notas do Notion renderizadas como no Notion, chuva em loop no contador e player mais estável no Android.
+          tag_name: v${{ steps.version.outputs.version }}
+          name: sleep my angel v${{ steps.version.outputs.version }}
+          body: |
+            atualização do sleep my angel v${{ steps.version.outputs.version }}
+
+            - importação do notion agora traz as **imagens** junto (zip, pasta, md + imagens e .docx com fotos)
+            - botão de importar bem visível no celular, com modal explicando o export certo
+            - botão "atualizar app" dentro do app (atualiza por cima, sem desinstalar)
+            - playlist pronta **corvo seco** com todas as meditações
           files: sleep-my-angel.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

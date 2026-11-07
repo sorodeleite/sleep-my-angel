@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, shell, Menu } = require('electron')
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
+const { splitTrackName } = require('./js/track-name');
 
 const AUDIO_PATTERN = /\.(m4a|mp3|wav|ogg|flac|opus|aac)$/i;
 const CATEGORIES = ['meditacao', 'ondas'];
@@ -14,14 +15,11 @@ let mainWindow = null;
 
 function trackFromFile(category, filePath, prefix) {
   const fileName = path.basename(filePath);
-  const title = fileName
-    .replace(AUDIO_PATTERN, '')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const parsed = splitTrackName(fileName, category);
   return {
     id: prefix + '-' + fileName,
-    title: title,
+    title: parsed.title,
+    artist: parsed.artist,
     category: category,
     fileName: fileName,
     filePath: filePath,

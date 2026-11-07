@@ -5,11 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f4f4f5">
   <meta name="description" content="sleep my angel — chuva, frequências relaxantes e rituais para dormir em paz.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: blob:; img-src 'self' data: blob:; media-src 'self' file: blob: data:; connect-src 'self' https://api.fxtwitter.com blob:; worker-src 'self' blob:; frame-src 'self' blob: data:; child-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: blob:; img-src 'self' data: blob: https:; media-src 'self' file: blob: data:; connect-src 'self' https: blob:; worker-src 'self' blob:; frame-src 'self' blob: data:; child-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>sleep my angel</title>
   <link rel="icon" type="image/png" href="assets/icon/icon-192.png">
   <link rel="apple-touch-icon" href="assets/icon/icon-180.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -51,6 +54,10 @@
             <div class="profile-info">
               <h2>sleep my angel</h2>
               <p>dolly girl ‧ law of assumption</p>
+              <button class="update-chip" id="btn-update-app" type="button" hidden>
+                <span class="update-chip-dot" aria-hidden="true"></span>
+                <span id="update-chip-label">atualizar app</span>
+              </button>
             </div>
           </div>
 
@@ -291,9 +298,8 @@
               </div>
               <div class="doc-list" id="doc-list"></div>
               <div class="notion-side-foot">
-                <button class="notion-import" id="btn-import-doc" type="button">↑ importar do notion</button>
-                <input type="file" id="doc-file-input" accept=".md,.markdown,.txt,.html,.htm,.json,.csv,.zip,.docx,.pdf" multiple hidden>
-                <p>no notion: <strong>⋯ → export → markdown &amp; csv</strong><br>e solta o zip aqui. as fotos vêm junto.</p>
+                <button class="notion-import notion-import-big" id="btn-side-import" type="button" title="importar do notion ou do google drive, com as imagens">＋ importar nota</button>
+                <p><strong>notion:</strong> exporte em <strong>markdown &amp; csv</strong> e traga o <strong>.zip</strong> inteiro (as imagens vêm junto).<br><strong>drive:</strong> baixe o <strong>.docx</strong> (melhor) ou .pdf e importe.</p>
               </div>
             </aside>
 
@@ -306,6 +312,8 @@
                 </div>
                 <div class="notion-topbar-actions">
                   <span class="script-meta" id="script-meta">0 palavras</span>
+                  <button class="notion-tool notion-tool-primary" id="btn-open-import" type="button" title="importar do notion com as imagens">＋ importar</button>
+                  <button class="notion-tool" id="btn-paste-doc" type="button" title="colar texto do notion ou do google drive">colar</button>
                   <button class="notion-tool" id="btn-toggle-view" type="button">editar</button>
                   <button class="notion-tool" id="btn-save-script" type="button">salvar</button>
                 </div>
@@ -314,11 +322,12 @@
               <div class="notion-scroll">
                 <article class="notion-page">
                   <div class="notion-page-icon" id="notion-page-icon">☾</div>
-                  <input type="text" id="doc-title-input" class="doc-title-input" placeholder="sem título" maxlength="120">
+                  <textarea id="doc-title-input" class="doc-title-input" rows="1" placeholder="sem título" maxlength="120"></textarea>
                   <div id="doc-view" class="notion-blocks"></div>
                   <textarea id="script-editor" class="script-textarea" spellcheck="false" placeholder="Escreva seu script aqui..." hidden></textarea>
                   <div class="notion-page-actions">
                     <button class="notion-page-delete" id="btn-delete-doc" type="button">apagar nota</button>
+                    <button class="notion-page-button" id="btn-add-image" type="button">＋ imagem</button>
                     <button class="notion-page-button" id="btn-download-script" type="button">baixar .md</button>
                   </div>
                 </article>
@@ -423,17 +432,73 @@
       </div>
     </div>
 
+    <div class="modal-backdrop" id="modal-recipe-view">
+      <article class="modal-box recipe-sheet" role="dialog" aria-modal="true" aria-labelledby="recipe-view-title">
+        <button class="recipe-sheet-close" id="recipe-view-close" type="button" aria-label="fechar receita">×</button>
+        <div class="recipe-sheet-scroll">
+          <div class="recipe-sheet-hero">
+            <img id="recipe-view-image" alt="" decoding="async" hidden>
+            <div class="recipe-sheet-fallback" id="recipe-view-fallback" aria-hidden="true">
+              <span>☾</span>
+              <small>sleep my angel</small>
+            </div>
+          </div>
+          <div class="recipe-sheet-body">
+            <div class="recipe-sheet-heading">
+              <span class="recipe-sheet-tag" id="recipe-view-tag">receita</span>
+              <h2 class="recipe-sheet-title" id="recipe-view-title">receita</h2>
+            </div>
+            <p class="recipe-sheet-intro" id="recipe-view-intro"></p>
+            <div class="recipe-sheet-toolbar">
+              <div class="recipe-progress">
+                <div class="recipe-progress-track" aria-hidden="true">
+                  <span class="recipe-progress-fill" id="recipe-view-progress-fill"></span>
+                </div>
+                <span class="recipe-progress-label" id="recipe-view-progress-label">0 de 0 marcados</span>
+              </div>
+              <button class="recipe-text-btn" id="recipe-view-reset" type="button">zerar marcações</button>
+            </div>
+            <section class="recipe-block">
+              <div class="recipe-block-head">
+                <h3>ingredientes</h3>
+                <span id="recipe-view-ing-count"></span>
+              </div>
+              <div class="recipe-checklist" id="recipe-view-ingredients"></div>
+            </section>
+            <section class="recipe-block">
+              <div class="recipe-block-head">
+                <h3>modo de preparo</h3>
+                <span id="recipe-view-step-count"></span>
+              </div>
+              <div class="recipe-checklist recipe-steps" id="recipe-view-steps"></div>
+            </section>
+            <div class="recipe-sheet-actions">
+              <button class="btn-secondary" id="recipe-view-edit" type="button">✎ editar receita</button>
+              <button class="btn-secondary danger" id="recipe-view-delete" type="button">apagar</button>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
     <div class="modal-backdrop" id="modal-recipe">
       <div class="modal-box cookbook-modal">
         <h3 class="modal-title" id="recipe-modal-title">Nova Receitinha</h3>
         <div class="form-group">
           <label for="recipe-name-input">Nome da Receita</label>
-          <input type="text" id="recipe-name-input" class="form-input" placeholder="ex: moon milk, leite quente, chá dourado..." maxlength="80">
+          <input type="text" id="recipe-name-input" class="form-input" placeholder="ex: leite dos sonhos, cookies, waffles..." maxlength="80">
         </div>
         <div class="form-row">
           <div class="form-group">
             <label for="recipe-tag-input">Etiqueta</label>
-            <input type="text" id="recipe-tag-input" class="form-input" placeholder="ex: favorito, relaxamento" maxlength="30">
+            <input type="text" id="recipe-tag-input" class="form-input" placeholder="ex: doce, bebida da noite" maxlength="30" list="recipe-tag-options">
+            <datalist id="recipe-tag-options">
+              <option value="bebida"></option>
+              <option value="doce"></option>
+              <option value="air fryer"></option>
+              <option value="café"></option>
+              <option value="favorito"></option>
+            </datalist>
           </div>
           <div class="form-group">
             <label for="recipe-intro-input">Descrição</label>
@@ -441,24 +506,143 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="recipe-ingredients-input">Ingredientes <span class="label-hint">um por linha ‧ use nome: detalhe</span></label>
-          <textarea id="recipe-ingredients-input" class="form-input form-textarea" placeholder="leite de amêndoas: 200ml&#10;mel: 1 colher de chá&#10;camomila: um punhado"></textarea>
+          <label for="recipe-ingredients-input">Ingredientes <span class="label-hint">um por linha ‧ nome: quantidade</span></label>
+          <textarea id="recipe-ingredients-input" class="form-input form-textarea" placeholder="leite de amêndoas: 200 ml&#10;mel: 1 colher de chá&#10;camomila: um punhado"></textarea>
         </div>
         <div class="form-group">
-          <label for="recipe-prep-input">Modo de Preparo</label>
-          <textarea id="recipe-prep-input" class="form-input form-textarea" placeholder="Aqueça o leite em fogo baixo, misture o mel e sirva..."></textarea>
+          <label for="recipe-prep-input">Modo de Preparo <span class="label-hint">um passo por linha</span></label>
+          <textarea id="recipe-prep-input" class="form-input form-textarea tall" placeholder="Aqueça o leite em fogo baixo.&#10;Misture o mel e a baunilha.&#10;Sirva quentinho."></textarea>
         </div>
         <div class="form-group">
           <label>Foto da Receita <span class="label-hint">opcional</span></label>
           <div class="recipe-photo-row">
             <img id="recipe-photo-preview" alt="foto da receita" hidden>
             <button class="btn-secondary" id="btn-recipe-photo" type="button">escolher foto</button>
+            <button class="btn-secondary" id="btn-recipe-photo-remove" type="button" hidden>remover</button>
             <input type="file" id="recipe-photo-input" accept="image/*" hidden>
           </div>
         </div>
-        <div class="modal-buttons">
+        <div class="modal-buttons recipe-modal-buttons">
+          <button class="btn-secondary danger" id="btn-recipe-restore" type="button" hidden>restaurar original</button>
           <button class="btn-secondary" id="modal-cancel-recipe" type="button">Cancelar</button>
           <button class="btn-primary" id="modal-save-recipe" type="button">Salvar Receitinha</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-paste-doc">
+      <div class="modal-box notion-paste-modal">
+        <h3 class="modal-title">Trazer script do Notion ou Drive</h3>
+        <p class="notion-paste-hint">cola aqui o texto da página. se você copiou do Notion ou do Google Docs com formatação, o app tenta manter títulos, listas, checklists e tabelas.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="paste-title-input">Nome da nota</label>
+            <input type="text" id="paste-title-input" class="form-input" maxlength="120" placeholder="ex: meu script da noite">
+          </div>
+          <div class="form-group">
+            <label for="paste-source-input">Origem</label>
+            <select id="paste-source-input" class="form-input">
+              <option value="notion">Notion</option>
+              <option value="drive">Google Drive</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="paste-text-input">Conteúdo</label>
+          <textarea id="paste-text-input" class="form-input form-textarea tall" placeholder="cola o conteúdo aqui..."></textarea>
+        </div>
+        <div class="notion-paste-tools">
+          <button class="btn-secondary" id="btn-paste-clipboard" type="button">colar da área de transferência</button>
+          <span>ou usa Ctrl+V no campo</span>
+        </div>
+        <div class="modal-buttons">
+          <button class="btn-secondary" id="modal-cancel-paste" type="button">Cancelar</button>
+          <button class="btn-primary" id="modal-save-paste" type="button">Adicionar nota</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-import-doc">
+      <div class="modal-box import-modal">
+        <h3 class="modal-title">importar do notion</h3>
+        <p class="import-lead">pra as <strong>imagens virem junto</strong>, exporte a página como <strong>markdown &amp; csv</strong> e importe o <strong>.zip</strong> inteiro. o app abre as fotos e guarda tudo dentro da nota, offline.</p>
+
+        <button class="import-drop" id="import-dropzone" type="button">
+          <span class="import-drop-icon" aria-hidden="true">☁︎</span>
+          <strong>solta o zip aqui</strong>
+          <span>ou toca pra escolher o arquivo</span>
+          <small>.zip ‧ .md + imagens ‧ .html ‧ .docx ‧ .pdf</small>
+        </button>
+
+        <div class="import-choices">
+          <button class="btn-primary" id="btn-pick-zip" type="button">escolher .zip do notion</button>
+          <button class="btn-secondary" id="btn-pick-files" type="button">escolher arquivos + imagens</button>
+          <button class="btn-secondary is-desktop-only" id="btn-pick-folder" type="button">importar uma pasta</button>
+          <button class="btn-secondary" id="btn-pick-paste" type="button">colar texto</button>
+        </div>
+
+        <p class="import-hint">no celular, o <strong>zip</strong> é o jeito mais seguro de trazer as imagens. se o export veio como <strong>.md</strong> solto, escolha o arquivo junto com a pasta de imagens (ou solte os dois aqui).</p>
+
+        <div class="modal-buttons">
+          <button class="btn-secondary" id="modal-cancel-import" type="button">fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <input type="file" id="doc-file-input" accept=".zip,.md,.markdown,.txt,.html,.htm,.json,.csv,.docx,.pdf,image/*" multiple hidden>
+    <input type="file" id="doc-zip-input" accept=".zip,application/zip" hidden>
+    <input type="file" id="doc-folder-input" webkitdirectory directory multiple hidden>
+    <input type="file" id="doc-image-input" accept="image/*" multiple hidden>
+
+    <div class="modal-backdrop" id="modal-update">
+      <div class="modal-box update-modal">
+        <h3 class="modal-title">atualizar o app</h3>
+        <p class="update-sub">atualiza por cima da versão atual, sem desinstalar e sem perder suas notas, playlists ou áudios.</p>
+        <div class="update-version-row">
+          <span class="update-version-pill">instalado <strong id="update-current-version">—</strong></span>
+          <span class="update-version-arrow" aria-hidden="true">→</span>
+          <span class="update-version-pill is-new" id="update-latest-pill" hidden>nova <strong id="update-latest-version">—</strong></span>
+        </div>
+        <div class="update-status" id="update-status">toque em verificar pra procurar uma versão nova.</div>
+        <div class="update-progress" id="update-progress" hidden>
+          <span id="update-progress-fill"></span>
+        </div>
+        <pre class="update-notes" id="update-notes" hidden></pre>
+        <div class="modal-buttons">
+          <button class="btn-secondary" id="update-check-again" type="button">verificar de novo</button>
+          <button class="btn-secondary" id="update-open-releases" type="button" hidden>ver no github</button>
+          <button class="btn-secondary" id="modal-cancel-update" type="button">fechar</button>
+          <button class="btn-primary" id="update-download" type="button" hidden>baixar atualização</button>
+          <button class="btn-primary" id="update-install" type="button" hidden>instalar agora</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-book">
+      <div class="modal-box book-edit-modal">
+        <h3 class="modal-title">Editar livro</h3>
+        <div class="book-edit-head">
+          <div class="book-edit-cover">
+            <img id="book-edit-cover" alt="" hidden>
+            <span id="book-edit-cover-fallback">☾</span>
+          </div>
+          <div>
+            <span class="book-edit-format" id="book-edit-format">epub</span>
+            <p class="book-edit-hint">o nome e o autor aparecem na estante e no leitor. as suas anotações e o progresso continuam salvos.</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="book-title-input">Nome do livro</label>
+          <input type="text" id="book-title-input" class="form-input" maxlength="160" placeholder="ex: o poder da consciência">
+        </div>
+        <div class="form-group">
+          <label for="book-author-input">Autor / Pessoa</label>
+          <input type="text" id="book-author-input" class="form-input" maxlength="120" placeholder="ex: Neville Goddard">
+        </div>
+        <div class="modal-buttons">
+          <button class="btn-secondary" id="btn-book-restore" type="button">Restaurar original</button>
+          <button class="btn-secondary" id="modal-cancel-book" type="button">Cancelar</button>
+          <button class="btn-primary" id="modal-save-book" type="button">Salvar</button>
         </div>
       </div>
     </div>
@@ -477,6 +661,10 @@
         <div class="form-group">
           <label for="track-title-input">Nome do Áudio</label>
           <input type="text" id="track-title-input" class="form-input" maxlength="120">
+        </div>
+        <div class="form-group">
+          <label for="track-artist-input">Autor / Pessoa</label>
+          <input type="text" id="track-artist-input" class="form-input" placeholder="ex: Adyashanti, Thich Nhat Hanh" maxlength="120">
         </div>
         <div class="track-file-row">
           <div>
@@ -527,6 +715,7 @@
       <div class="reader-tools">
         <button class="reader-icon-btn" id="reader-toc-btn" type="button" title="índice">índice</button>
         <button class="reader-icon-btn" id="reader-cover-btn" type="button" title="trocar capa">capa</button>
+        <button class="reader-icon-btn" id="reader-edit-btn" type="button" title="mudar nome e autor">nome</button>
         <button class="reader-icon-btn" id="reader-font-smaller" type="button" title="diminuir letra">A−</button>
         <button class="reader-icon-btn" id="reader-font-bigger" type="button" title="aumentar letra">A＋</button>
         <button class="reader-icon-btn" id="reader-theme-btn" type="button" title="mudar tema">◐</button>
@@ -558,6 +747,7 @@
   <script src="js/vendor/fflate.min.js"></script>
   <script src="js/vendor/pdf.min.js"></script>
   <script src="js/utils.js"></script>
+  <script src="js/track-name.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/ambience.js"></script>
   <script src="js/keepalive.js"></script>
@@ -569,6 +759,7 @@
   <script src="js/timer.js"></script>
   <script src="js/books.js"></script>
   <script src="js/script.js"></script>
+  <script src="js/updater.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
