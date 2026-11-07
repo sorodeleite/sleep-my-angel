@@ -4,7 +4,7 @@
 
 # sleep my angel
 
-**meu aplicativo de sono, frequências relaxantes, afirmações da lei da suposição e rituais da noite**
+**meu aplicativo de afirmações da lei da suposição e rituais da noite**
 
 <img src="assets/readme-photos/start_readme.png" width="460" alt="sleep my angel vibe" />
 
@@ -16,7 +16,7 @@ esse é um projeto que eu já estava rascunhando há um tempo e finalmente resol
 
 a ideia central do **sleep my angel** é juntar sons de chuva, ruídos relaxantes e meditações funcionando em segundo plano no celular ou computador, sem anúncios ou interrupções chatas, com um cantinho dedicado à lei da suposição (principalmente inspirada nas palestras e visões do Edward Art e Neville Goddard).
 
-o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), como aplicativo de desktop em Electron e também tem uma **versão web** pra abrir no navegador e ver tudo maior.
+o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), como aplicativo de desktop em Electron e também tem uma **versão web** pra abrir no navegador.
 
 <br />
 
@@ -26,15 +26,13 @@ o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), co
 
 ### o que tem no app
 
-- **ícone oficial & foto customizável**: o ícone do APK no seu celular é a arte oficial da pastinha `assets/icon/`, e dentro do app você pode tocar na foto de perfil para escolher qualquer foto da sua galeria.
 - **library estilo spotify (clean & cinza)**: grade com estética suave em tons de cinza e pastéis para navegar pelos áudios de chuva, meditações e frequências sonoras (ondas theta, pink noise e ruídos suaves). dá pra criar playlists por cor, escolher os sons de cada uma e buscar qualquer faixa.
 - **áudio em 2º plano no android**: serviço em primeiro plano com notificação e wake lock para o som continuar tocando quando você apagar a tela ou trocar de app.
 - **sons gerados na hora**: quando não existe nenhum arquivo local, o app cria chuva, pink noise, brown noise e theta wave pelo Web Audio, então nunca fica em silêncio.
 - **cantinho da lei da suposição & edward art**: cartões de afirmações e lembretes de que a imaginação é a única realidade. conta também com leitura em voz alta em português pra ouvir deitada antes de adormecer com a sensação do desejo já consumado.
-- **receitas de antes de dormir**: espaço dedicado pras minhas bebidinhas noturnas favoritas pra desacelerar o corpo (principalmente meu amado leite quente com mel e canela kkk, mas também moon milk de camomila e chá relaxante).
+- **receitas de antes de dormir**: espaço dedicado pras minhas bebidinhas noturnas favoritas pra desacelerar o corpo (principalmente meu amado leite quente com mel e canela, mas também moon milk de camomila e chá relaxante). Você também pode colocar sua própria receitinha e personalizar sua listinha.
 - **contador & sleep timer suave**: timer programável (15m, 30m, 45m, 1h, 1h30, 2h) que vai reduzindo o volume nos últimos sessenta segundos e desliga o som sem susto.
 - **notion script offline**: editor de texto para guardar e lapidar os scripts de manifestação e rotina noturna sem precisar de internet, com download em `.md`.
-- **estética retro mello**: janelinha com jeitinho de sistema antigo, perfil fofo, pílulas suaves e controles delicados.
 
 <br />
 
