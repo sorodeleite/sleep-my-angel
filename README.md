@@ -29,7 +29,7 @@ o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), co
 - **library estilo spotify (clean & cinza)**: grade com estética suave em tons de cinza e pastéis para navegar pelas meditações e frequências sonoras (ondas theta, pink noise e ruídos suaves). dá pra criar playlists por cor, escolher os sons de cada uma e buscar qualquer faixa. já vem com a playlist **corvo seco**, que junta todas as meditações que estão no app.
 - **áudio em 2º plano no android**: serviço em primeiro plano com notificação e wake lock para o som continuar tocando quando você apagar a tela ou trocar de app.
 - **sons gerados na hora**: quando um arquivo de áudio não está no aparelho, o app cria pink noise, brown noise ou theta wave pelo Web Audio pra faixa não ficar em silêncio.
-- **atualização pelo próprio app**: no android aparece um botão **atualizar app** no cartão do perfil. ele procura a versão nova no github, baixa o apk e instala **por cima**, sem desinstalar e sem perder notas, playlists, capas ou áudios importados.
+- **atualização pelo próprio app**: no android aparece um botão **atualizar app** no cartão do perfil. ele procura a versão nova no github; quando o repositório está público, baixa o apk e instala **por cima** sozinho. como este repositório está **privado**, o botão mostra o aviso e o **ver no github** abre a página de releases pra baixar o apk novo — instalar por cima mantém notas, playlists, capas e áudios importados.
 - **cantinho da lei da suposição & edward art**: cartões de afirmações e lembretes de que a imaginação é a única realidade. conta também com leitura em voz alta em português pra ouvir deitada antes de adormecer com a sensação do desejo já consumado.
 - **cookbook em grade com fotos**: receitas em cartões com fotos recortadas, busca e filtros. dá pra marcar ingredientes e passos (o item risca), editar, restaurar ou apagar, e adicionar a sua com foto própria.
 - **meditações com nome e autor**: os arquivos seguem o padrão `nome_pessoa`, e a biblioteca mostra o nome da meditação primeiro e o nome da pessoa embaixo, no estilo Spotify.
@@ -62,6 +62,8 @@ o app roda como **APK nativo para Android** (com projeto Capacitor e Gradle), co
 5. **pra atualizar depois:** não precisa desinstalar nada. dentro do app, no cartão do perfil, toque em **atualizar app** (ou no aviso “nova versão”). ele baixa a versão nova e instala por cima — suas notas, playlists, capas e áudios importados ficam guardados.
 
 > se você instalou uma versão antiga que foi gerada antes da assinatura fixa, pode ser preciso desinstalar **uma única vez** pra trocar a assinatura. depois dessa, todas as atualizações seguintes instalam por cima.
+>
+> **repositório privado:** o app não consegue consultar os releases sozinho (o github exige login). o botão **atualizar app** explica isso e o **ver no github** abre a página de releases. baixe o `sleep-my-angel.apk` mais novo e instale por cima — **não desinstale**, pra suas notas, playlists e áudios importados continuarem aí.
 
 <br />
 
