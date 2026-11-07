@@ -1,12 +1,15 @@
 {
   "name": "sleep-my-angel",
   "version": "1.0.0",
-  "description": "cozy desktop sleep companion & aesthetic sound player",
+  "private": true,
+  "description": "cozy sleep companion with rain, ambient frequencies, affirmations and night rituals",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "node copy-www.js",
-    "cap:sync": "node copy-www.js && npx cap sync android"
+    "web": "node scripts/build.js --site-only && node scripts/serve.js --open",
+    "serve": "node scripts/serve.js",
+    "build": "node scripts/build.js",
+    "cap:sync": "node scripts/build.js && npx cap sync android"
   },
   "keywords": [
     "sleep",
@@ -18,12 +21,15 @@
   ],
   "author": "u3unicornios",
   "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
     "electron": "^40.8.0"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",
-    "@capacitor/cli": "^8.6.0",
     "@capacitor/core": "^8.6.0"
   }
 }

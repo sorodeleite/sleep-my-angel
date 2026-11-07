@@ -1,0 +1,28 @@
+{
+  "name": "sleep my angel",
+  "short_name": "sleep angel",
+  "description": "chuva, frequências relaxantes, afirmações e rituais para dormir em paz",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f4f5",
+  "theme_color": "#f4f4f5",
+  "categories": ["lifestyle", "health", "music"],
+  "icons": [
+    {
+      "src": "assets/icon/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,31 +1,108 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { pathToFileURL } = require('url');
 
-let mainWindow;
+const AUDIO_PATTERN = /\.(m4a|mp3|wav|ogg|flac|opus|aac)$/i;
+const CATEGORIES = ['chuva', 'meditacao', 'ondas'];
+const WINDOW_WIDTH = 1180;
+const WINDOW_HEIGHT = 900;
+
+app.setAppUserModelId('com.u3unicornios.sleepmyangel');
+
+let mainWindow = null;
+
+function trackFromFile(category, filePath, prefix) {
+  const fileName = path.basename(filePath);
+  const title = fileName
+    .replace(AUDIO_PATTERN, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return {
+    id: prefix + '-' + fileName,
+    title: title,
+    category: category,
+    fileName: fileName,
+    filePath: filePath,
+    fileUrl: pathToFileURL(filePath).href
+  };
+}
+
+function tracksFromDirectory(category, directory, prefix) {
+  if (!fs.existsSync(directory)) return [];
+  return fs.readdirSync(directory)
+    .filter((fileName) => AUDIO_PATTERN.test(fileName))
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+    .map((fileName) => trackFromFile(category, path.join(directory, fileName), prefix));
+}
+
+function scriptFile() {
+  return path.join(app.getPath('userData'), 'script-da-noite.json');
+}
+
+function legacyScriptFile() {
+  return path.join(__dirname, 'script_offline.json');
+}
+
+function readScript() {
+  const candidates = [scriptFile(), legacyScriptFile()];
+  for (const file of candidates) {
+    if (!fs.existsSync(file)) continue;
+    try {
+      const parsed = JSON.parse(fs.readFileSync(file, 'utf-8'));
+      if (parsed && typeof parsed.text === 'string') return parsed;
+    } catch (error) {
+      continue;
+    }
+  }
+  return null;
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1080,
-    height: 880,
-    minWidth: 840,
-    minHeight: 640,
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
+    minWidth: 860,
+    minHeight: 620,
+    show: false,
     frame: false,
     titleBarStyle: 'hidden',
-    backgroundColor: '#f5f5f6',
-    icon: path.join(__dirname, 'assets', 'icon', '38f3b2b5d4fcc838e12253d7235e8e65.jpg'),
+    backgroundColor: '#f4f4f5',
+    autoHideMenuBar: true,
+    icon: path.join(__dirname, 'assets', 'icon', 'icon-512.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      spellcheck: false,
       backgroundThrottling: false
     }
   });
 
-  mainWindow.loadFile('index.html');
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  });
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:/i.test(url)) shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!url.startsWith('file://')) event.preventDefault();
+  });
+
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
 }
 
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
   createWindow();
 
   app.on('activate', () => {
@@ -38,79 +115,54 @@ app.on('window-all-closed', () => {
 });
 
 ipcMain.on('window-control', (event, action) => {
-  if (!mainWindow) return;
-  if (action === 'minimize') mainWindow.minimize();
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+  if (action === 'minimize') window.minimize();
   if (action === 'maximize') {
-    mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
-  }
-  if (action === 'close') mainWindow.close();
-});
-
-ipcMain.handle('get-audios', async () => {
-  const audiosDir = path.join(__dirname, 'audios');
-  const categories = ['chuva', 'meditacao', 'ondas'];
-  const list = [];
-
-  for (const cat of categories) {
-    const dir = path.join(audiosDir, cat);
-    if (!fs.existsSync(dir)) continue;
-
-    const files = fs.readdirSync(dir);
-    for (const f of files) {
-      if (!f.match(/\.(m4a|mp3|wav|ogg)$/i)) continue;
-      const fullPath = path.join(dir, f);
-      const cleanName = f
-        .replace(/\.(m4a|mp3|wav|ogg)$/i, '')
-        .replace(/_/g, ' ');
-      
-      list.push({
-        id: `${cat}-${f}`,
-        title: cleanName,
-        category: cat,
-        filePath: fullPath,
-        fileUrl: `file://${fullPath.replace(/\\/g, '/')}`,
-        fileName: f
-      });
+    if (window.isMaximized()) {
+      window.unmaximize();
+    } else {
+      window.maximize();
     }
   }
+  if (action === 'close') window.close();
+});
 
-  return list;
+ipcMain.handle('get-audios', () => {
+  const tracks = [];
+  CATEGORIES.forEach((category) => {
+    tracks.push.apply(tracks, tracksFromDirectory(category, path.join(__dirname, 'audios', category), category));
+  });
+  return tracks;
 });
 
 ipcMain.handle('select-audio-folder', async () => {
+  if (!mainWindow) return [];
   const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openDirectory']
+    title: 'escolha uma pasta de áudios',
+    properties: ['openDirectory', 'multiSelections']
   });
-  if (result.canceled || result.filePaths.length === 0) return null;
-  const targetDir = result.filePaths[0];
-  const files = fs.readdirSync(targetDir);
-  return files
-    .filter(f => f.match(/\.(m4a|mp3|wav|ogg)$/i))
-    .map(f => {
-      const fullPath = path.join(targetDir, f);
-      return {
-        id: `custom-${f}`,
-        title: f.replace(/\.(m4a|mp3|wav|ogg)$/i, '').replace(/_/g, ' '),
-        category: 'custom',
-        filePath: fullPath,
-        fileUrl: `file://${fullPath.replace(/\\/g, '/')}`,
-        fileName: f
-      };
-    });
+  if (result.canceled) return [];
+  const tracks = [];
+  result.filePaths.forEach((directory) => {
+    tracks.push.apply(tracks, tracksFromDirectory('custom', directory, 'custom-' + path.basename(directory)));
+  });
+  return tracks;
 });
 
-ipcMain.handle('save-script-file', async (event, content) => {
-  const filePath = path.join(__dirname, 'script_offline.json');
-  fs.writeFileSync(filePath, JSON.stringify(content, null, 2), 'utf-8');
+ipcMain.handle('save-script-file', (event, content) => {
+  if (!content || typeof content.text !== 'string') return false;
+  const target = scriptFile();
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  const temporary = target + '.tmp';
+  fs.writeFileSync(temporary, JSON.stringify({
+    text: content.text,
+    updated: typeof content.updated === 'string' ? content.updated : new Date().toISOString()
+  }, null, 2), 'utf-8');
+  fs.renameSync(temporary, target);
   return true;
 });
 
-ipcMain.handle('get-script-file', async () => {
-  const filePath = path.join(__dirname, 'script_offline.json');
-  if (!fs.existsSync(filePath)) return null;
-  try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-  } catch {
-    return null;
-  }
+ipcMain.handle('get-script-file', () => {
+  return readScript();
 });
