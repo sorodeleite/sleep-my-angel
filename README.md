@@ -84,20 +84,6 @@ a chave fica em `android/keystore/` e é a mesma em todos os builds — é isso 
 
 <br />
 
-### como exportar do notion
-
-pra ficar igualzinho ao notion, o jeito certo é o **HTML**:
-
-1. na página, clica em **⋯ → export**.
-2. escolhe **HTML**.
-3. liga **include subpages**.
-4. baixa o `.zip`.
-5. no app, toca em **＋ importar → escolher .zip do notion**.
-
-as imagens são guardadas dentro da nota, e as subpáginas entram **dentro da mesma nota**, uma embaixo da outra. o **markdown & csv** também funciona e deixa o texto editável, mas perde as cores e as colunas.
-
-<br />
-
 ### livros da estante
 
 os `.epub`, capas e o `manifest.json` ficam em `assets/books/`. pra adicionar um livro novo, coloca o arquivo lá e roda:
@@ -114,10 +100,9 @@ ele usa o **Calibre** pra converter `.azw3`, `.mobi` e `.prc`, tirar a capa e at
 
 ```
 audios/            minhas faixas locais (não vão pro git)
-media/meditacao/   meditações leves que vão dentro do apk
+media/meditacao/   meditações que vão dentro do apk **todos os créditos pro canal CORVO SECO**
 assets/            ícone, fotos, livros e imagens do readme
 js/                módulos do app
-js/notion.js       importação fiel do notion (html, markdown, subpáginas, imagens e pdf)
 js/updater.js      botão de atualizar o app
 js/vendor/         epub.js, JSZip, pdf.js e fflate pro leitor rodar offline
 scripts/           build da versão web, servidor local e preparo dos livros
@@ -127,18 +112,6 @@ index.html         shell compartilhado entre desktop, android e web
 main.js            processo principal do Electron
 preload.js         ponte segura do Electron
 ```
-
-<br />
-
-### créditos das fotos
-
-as fotos das receitas vêm de bancos livres e estão sob licenças Creative Commons:
-
-- **leite quente** — [“A company to warm the heart...”](https://www.flickr.com/photo.gne?id=3655318767), Mira Pangkey, CC BY 2.0
-- **moon milk** — [“Purple Sweet Potato Latte”](https://www.flickr.com/photo.gne?id=11834306445), Dushan and Miae, CC BY-SA 2.0
-- **golden milk** — [“Turmeric Latte”](https://www.flickr.com/photo.gne?id=43134398655), ella.o, CC BY 2.0
-- **chocolate noturno** — [rawpixel](https://www.rawpixel.com/), CC0
-- **cappuccino do topo** — [“Cappuccino”](https://www.flickr.com/photo.gne?id=3016206629), DeaPeaJay, CC BY-SA 2.0
 
 <br />
 
