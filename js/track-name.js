@@ -1,9 +1,6 @@
 (function (global) {
   'use strict';
 
-  // Arquivos de meditação seguem o padrão "nome da meditação_pessoa".
-  // Alguns nomes antigos usavam "-" e "_" no meio do título, então a lista de
-  // pessoas conhecidas evita quebrar o título no lugar errado.
   const ARTISTS = [
     { name: 'Kyabgon Phakchok Rinpoche', aliases: ['Kyabgon Phakchok Rinpoche'] },
     { name: 'Tenzin Wangyal Rinpoche', aliases: ['Tenzin Wangyal Rinpoche'] },

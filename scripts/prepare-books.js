@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
@@ -179,7 +178,6 @@ function main() {
         && !existing.equals(incoming)
         && fs.statSync(coverPath).mtimeMs > fs.statSync(source).mtimeMs;
       if (coverIsCustom) {
-        // capa trocada à mão depois do livro: mantém a capa nova
         hasCover = true;
         fs.rmSync(temporaryCover, { force: true });
       } else {

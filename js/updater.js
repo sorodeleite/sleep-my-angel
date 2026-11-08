@@ -140,7 +140,6 @@
         state.canInstall = info.canInstall !== false;
       }
     } catch (error) {
-      // segue com o que já temos
     }
     paintVersions();
   }
@@ -223,7 +222,6 @@
       const info = await native.info();
       state.canInstall = info.canInstall !== false;
     } catch (error) {
-      // segue pro install mesmo assim
     }
     if (!state.canInstall) {
       state.installing = false;
@@ -262,7 +260,6 @@
         await native.openUrl({ url: url });
         return;
       } catch (error) {
-        // tenta pelo navegador abaixo
       }
     }
     window.open(url, '_blank', 'noopener');

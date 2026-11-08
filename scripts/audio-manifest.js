@@ -1,17 +1,13 @@
-#!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
 const { splitTrackName } = require('../js/track-name');
 
 const root = path.resolve(__dirname, '..');
-// versão leve das meditações que vai dentro do app (o APK não cabe os originais)
 const appAudioDir = path.join(root, 'media', 'meditacao');
 const localAudioDir = path.join(root, 'audios', 'meditacao');
 const manifestFile = path.join(root, 'assets', 'audio-manifest.json');
 const audioPattern = /\.(m4a|mp3|wav|ogg|flac|opus|aac)$/i;
 
-// as ondas são geradas na hora pelo app (loop infinito). os arquivos de 8/10h
-// ficam só no desktop e no site local, que leem a pasta audios direto.
 const ONDAS = [
   {
     id: 'ondas-Pink Noise Black Screen - Sleep, Focus, Study - 10 Hours.m4a',

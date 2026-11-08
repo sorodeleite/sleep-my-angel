@@ -374,7 +374,6 @@
         const updater = SMA.Updater.init();
         if (updater && typeof updater.catch === 'function') updater.catch(function () {});
       } catch (error) {
-        // sem updater no navegador
       }
     }
 
