@@ -27,8 +27,6 @@
     dragPinId: null
   };
 
-  /* ── helpers ───────────────────────────────────────────────────── */
-
   function uid(prefix) {
     return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
   }
@@ -74,8 +72,6 @@
   function deckle() {
     return '<span class="mood-spark" aria-hidden="true">✦</span>';
   }
-
-  /* ── data ──────────────────────────────────────────────────────── */
 
   function boardById(id) {
     return state.boards.find(function (board) { return board.id === id; }) || null;
@@ -202,8 +198,6 @@
     });
     if (tasks.length) await Promise.all(tasks);
   }
-
-  /* ── render ────────────────────────────────────────────────────── */
 
   function render(options) {
     if (!root) return;
@@ -444,8 +438,6 @@
       + '</div>';
   }
 
-  /* ── lazy images ───────────────────────────────────────────────── */
-
   function hydrateImages() {
     if (!root) return;
     const images = SMA.selectAll('img[data-mood-pin]', root);
@@ -489,8 +481,6 @@
     const holder = image.closest('.mood-pin, .mood-cover, .mood-folder-card');
     if (holder) holder.classList.add('is-missing');
   }
-
-  /* ── actions ───────────────────────────────────────────────────── */
 
   function openShelf() {
     state.view = 'shelf';
@@ -780,8 +770,6 @@
     await applyPinOrder(list);
   }
 
-  /* ── menu ──────────────────────────────────────────────────────── */
-
   function closeMenu() {
     if (menu) {
       menu.remove();
@@ -865,8 +853,6 @@
     ].filter(Boolean));
   }
 
-  /* ── lightbox ──────────────────────────────────────────────────── */
-
   function closeLightbox() {
     if (!lightbox) return;
     lightbox.remove();
@@ -914,8 +900,6 @@
       });
     });
   }
-
-  /* ── import modal ──────────────────────────────────────────────── */
 
   function importModalOpen() {
     const modal = document.getElementById('modal-mood-import');
@@ -1011,8 +995,6 @@
     setBusy('');
   }
 
-  /* ── pinterest ─────────────────────────────────────────────────── */
-
   function normalizePinterestUrl(value) {
     let raw = String(value || '').trim();
     if (!raw) throw new Error('cola o link da sua pasta do pinterest primeiro.');
@@ -1098,7 +1080,6 @@
       const direct = await fetchText(url, 10000);
       if (looksLikePinterest(direct)) return direct;
     } catch (error) {
-      // o navegador costuma barrar o pinterest por cors ‧ tentamos pelos atalhos abaixo
     }
 
     const proxies = [
@@ -1111,7 +1092,6 @@
         const text = await fetchText(proxy(url), 18000);
         if (looksLikePinterest(text)) return text;
       } catch (error) {
-        // tenta o próximo atalho
       }
     }
     throw new Error('o pinterest bloqueou a leitura automática aqui. tenta de novo, importa uma pasta de imagens ou usa o app do computador.');
@@ -1491,7 +1471,6 @@
           if (blob && blob.size) return blob;
         }
       } catch (error) {
-        // tenta pelo fetch normal abaixo
       }
     }
     try {
@@ -1686,8 +1665,6 @@
       if (button) button.disabled = false;
     }
   }
-
-  /* ── uploads ───────────────────────────────────────────────────── */
 
   function imageFilesFrom(list) {
     return Array.prototype.slice.call(list || [])
@@ -1903,8 +1880,6 @@
     });
   }
 
-  /* ── name modal ────────────────────────────────────────────────── */
-
   function askName(options) {
     const modal = document.getElementById('modal-mood-name');
     const title = document.getElementById('mood-name-title');
@@ -1941,8 +1916,6 @@
     if (modal) modal.classList.remove('open');
     if (resolve) resolve(value == null ? null : String(value).trim().slice(0, 80) || null);
   }
-
-  /* ── events ────────────────────────────────────────────────────── */
 
   function onRootClick(event) {
     const actionEl = event.target.closest('[data-mood-act]');
@@ -2137,7 +2110,6 @@
       }
     });
 
-    /* import modal */
     const importModal = document.getElementById('modal-mood-import');
     if (importModal) {
       importModal.addEventListener('click', function (event) {
@@ -2187,7 +2159,6 @@
       importLooseImages(files);
     });
 
-    /* name modal */
     const nameModal = document.getElementById('modal-mood-name');
     if (nameModal) {
       nameModal.addEventListener('click', function (event) {
@@ -2211,7 +2182,6 @@
       });
     }
 
-    /* move modal */
     const moveModal = document.getElementById('modal-mood-move');
     if (moveModal) {
       moveModal.addEventListener('click', function (event) {

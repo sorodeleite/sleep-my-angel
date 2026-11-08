@@ -32,8 +32,6 @@ function copyDirectory(name, destination) {
   });
 }
 
-// o webview do android não tem acesso à pasta audios/: as meditações precisam
-// ir dentro do www para tocar offline. usamos a versão leve de media/.
 function copyAppAudio(destination) {
   if (!fs.existsSync(appAudio)) {
     throw new Error('media/meditacao ausente: o app sairia sem as meditações');

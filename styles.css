@@ -905,7 +905,6 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
-
 .bottom-player {
   position: fixed;
   bottom: 0;
@@ -1353,30 +1352,30 @@ body {
   .titlebar-date {
     justify-self: end;
   }
-  
+
   .window-controls {
     display: none;
   }
-  
+
   .top-mello-widget {
     padding: 10px 14px;
   }
-  
+
   .retro-window-frame {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .mello-fields {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .field-input {
     width: 85px;
   }
-  
+
   .nav-tabs {
     padding: 0 10px;
     overflow-x: auto;
@@ -1387,37 +1386,37 @@ body {
   .nav-tabs::-webkit-scrollbar {
     display: none;
   }
-  
+
   .nav-tab-btn {
     padding: 8px 12px;
     font-size: 12px;
     white-space: nowrap;
   }
-  
+
   .tab-content-area {
     padding: 16px 14px 150px 14px;
   }
-  
+
   .spotify-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
-  
+
   .spotify-actions {
     width: 100%;
   }
-  
+
   .search-box {
     flex: 1;
     width: auto;
   }
-  
+
   .music-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
-  
+
   .bottom-player {
     height: auto;
     padding: 10px 14px;
@@ -1425,17 +1424,17 @@ body {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .player-left {
     width: 100%;
     justify-content: flex-start;
   }
-  
+
   .player-center {
     width: 100%;
     max-width: 100%;
   }
-  
+
   .player-right {
     display: none;
   }
@@ -1504,8 +1503,6 @@ body {
   outline-offset: 2px;
 }
 
-
-
 .card-edit {
   position: absolute;
   top: 16px;
@@ -1532,8 +1529,6 @@ body {
   color: var(--accent-pink-text);
 }
 
-
-/* ── cookbook ─────────────────────────────────────── */
 .cookbook {
   max-width: 1120px;
   margin: 0 auto;
@@ -1660,7 +1655,7 @@ body {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover; /* corta, nunca estica */
+  object-fit: cover;
   object-position: center;
   transition: transform 0.35s ease;
 }
@@ -1835,7 +1830,6 @@ body {
   line-height: 1.5;
 }
 
-/* modal de leitura da receita */
 .recipe-sheet {
   position: relative;
   width: min(760px, 94vw);
@@ -1890,7 +1884,7 @@ body {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover; /* corta sem distorcer */
+  object-fit: cover;
   object-position: center;
 }
 
@@ -2407,8 +2401,6 @@ body {
   background: #fff6f8;
 }
 
-
-
 .books-wrapper {
   max-width: 1080px;
   margin: 0 auto;
@@ -2747,8 +2739,6 @@ body {
 .books-empty {
   grid-column: 1 / -1;
 }
-
-
 
 .reader-overlay {
   position: fixed;
@@ -3412,11 +3402,6 @@ body {
   display: none !important;
 }
 
-
-
-
-/* ── atualizar app ─────────────────────────────────────────────── */
-
 .update-chip {
   display: inline-flex;
   align-items: center;
@@ -3563,10 +3548,6 @@ body {
 #update-install {
   display: inline-flex;
 }
-
-
-
-/* ── moodboard (pinterest vibes) ───────────────────────────────── */
 
 .mood-root {
   width: 100%;
@@ -4380,8 +4361,6 @@ body {
   outline-offset: 10px;
 }
 
-/* menu */
-
 .mood-menu {
   position: fixed;
   z-index: 2600;
@@ -4424,8 +4403,6 @@ body {
 .mood-menu-item.is-danger:hover {
   background: #fceef1;
 }
-
-/* lightbox */
 
 .mood-lightbox {
   position: fixed;
@@ -4534,8 +4511,6 @@ body {
   color: #ffc8d2;
 }
 
-/* busy */
-
 .mood-busy {
   position: fixed;
   left: 50%;
@@ -4568,8 +4543,6 @@ body {
 @keyframes moodSpin {
   to { transform: rotate(360deg); }
 }
-
-/* import + name modals */
 
 .mood-import-modal {
   position: relative;

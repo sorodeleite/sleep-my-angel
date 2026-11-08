@@ -187,8 +187,6 @@
       .trim();
   };
 
-  /* ── caminhos e imagens (notion, livros, receitas) ─────────────── */
-
   SMA.decodeEntities = function (value) {
     return String(value)
       .replace(/&nbsp;/g, ' ')
