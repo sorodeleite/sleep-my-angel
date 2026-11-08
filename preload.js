@@ -8,5 +8,7 @@ contextBridge.exposeInMainWorld('api', {
   saveScriptFile: (content) => ipcRenderer.invoke('save-script-file', content),
   getScriptFile: () => ipcRenderer.invoke('get-script-file'),
   readBooksManifest: () => ipcRenderer.invoke('read-books-manifest'),
-  readBookFile: (relativePath) => ipcRenderer.invoke('read-book-file', relativePath)
+  readBookFile: (relativePath) => ipcRenderer.invoke('read-book-file', relativePath),
+  fetchPinterest: (url) => ipcRenderer.invoke('fetch-pinterest', url),
+  fetchPinterestImage: (url) => ipcRenderer.invoke('fetch-pinterest-image', url)
 });

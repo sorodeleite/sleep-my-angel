@@ -1,5 +1,10 @@
 {
   "appId": "com.u3unicornios.sleepmyangel",
   "appName": "sleep my angel",
-  "webDir": "www"
+  "webDir": "www",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
 }

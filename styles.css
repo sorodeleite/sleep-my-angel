@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --bg-app: #f4f4f5;
   --bg-surface: #ffffff;
   --bg-subtle: #ececed;
@@ -905,24 +905,6 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
-.script-meta {
-  font-size: 10px;
-  color: var(--text-light);
-  white-space: nowrap;
-}
-
-.script-textarea {
-  width: 100%;
-  height: 380px;
-  border: none;
-  outline: none;
-  resize: vertical;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--text-main);
-  background: transparent;
-}
 
 .bottom-player {
   position: fixed;
@@ -1456,16 +1438,6 @@ body {
   
   .player-right {
     display: none;
-  }
-
-  .notion-header-card {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .notion-actions {
-    width: 100%;
-    flex-wrap: wrap;
   }
 
   .library-context {
@@ -3027,945 +2999,6 @@ body {
 
 
 
-.notion-shell {
-  display: grid;
-  grid-template-columns: 232px minmax(0, 1fr);
-  width: 100%;
-  max-width: 1120px;
-  height: clamp(520px, calc(100vh - 250px), 820px);
-  margin: 0 auto;
-  overflow: hidden;
-  border: 1px solid #e6e6e3;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 14px 40px rgba(30, 30, 30, 0.06);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  color: #37352f;
-  user-select: text;
-  -webkit-user-select: text;
-}
-
-.notion-sidebar {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 10px 8px;
-  border-right: 1px solid #ebebe8;
-  background: #f7f7f5;
-}
-
-.notion-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 8px 14px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.notion-mark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  background: #37352f;
-  color: #ffffff;
-  font-size: 12px;
-}
-
-.notion-side-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px 6px;
-  color: #9b9a97;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.notion-side-head .action-btn {
-  width: 22px;
-  height: 22px;
-  font-size: 13px;
-}
-
-.doc-list {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 2px 2px 10px;
-  overflow-y: auto;
-}
-
-.doc-item {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  column-gap: 7px;
-  align-items: center;
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-
-.doc-item:hover {
-  background: #efefed;
-}
-
-.doc-item.active {
-  background: #e8e8e6;
-}
-
-.doc-item-icon {
-  grid-row: 1 / span 2;
-  font-size: 13px;
-  line-height: 1;
-}
-
-.doc-item strong {
-  grid-column: 2;
-  overflow: hidden;
-  color: #37352f;
-  font-size: 12.5px;
-  font-weight: 500;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.doc-item-sub {
-  grid-column: 2;
-  overflow: hidden;
-  color: #9b9a97;
-  font-size: 9.5px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.doc-empty {
-  padding: 12px 10px;
-  color: #9b9a97;
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.notion-side-foot {
-  padding: 10px 8px 4px;
-  border-top: 1px solid #e6e6e3;
-}
-
-.notion-import-row {
-  display: flex;
-  gap: 6px;
-}
-
-.notion-import {
-  flex: 1;
-  min-width: 0;
-  padding: 7px 8px;
-  border: 1px solid #dededb;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #37352f;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.notion-import:hover {
-  background: #f1f1ef;
-}
-
-.notion-side-foot p {
-  margin-top: 8px;
-  color: #9b9a97;
-  font-size: 9px;
-  line-height: 1.5;
-}
-
-.notion-side-foot strong {
-  color: #6f6e6b;
-  font-weight: 600;
-}
-
-.notion-main {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  background: #ffffff;
-}
-
-.notion-main.is-dropping::after {
-  content: 'solta aqui os arquivos do notion ou do google drive';
-  position: absolute;
-  inset: 12px;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  border: 2px dashed #c9c9c5;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.94);
-  color: #6f6e6b;
-  font-size: 13px;
-  text-align: center;
-  pointer-events: none;
-}
-
-.notion-paste-modal {
-  max-width: 620px;
-}
-
-.notion-paste-hint {
-  margin: -6px 0 14px;
-  font-size: 11px;
-  line-height: 1.6;
-  color: #787774;
-}
-
-.notion-paste-tools {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: -4px;
-}
-
-.notion-paste-tools span {
-  font-size: 9.5px;
-  color: var(--text-light);
-}
-
-.notion-topbar {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 44px;
-  padding: 0 16px;
-  border-bottom: 1px solid #efefed;
-}
-
-.notion-crumbs {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  color: #9b9a97;
-  font-size: 11.5px;
-}
-
-.notion-crumbs span {
-  max-width: 160px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.notion-crumbs span:last-child {
-  color: #37352f;
-  font-weight: 500;
-}
-
-.crumb-sep {
-  color: #d3d3d0;
-}
-
-.notion-topbar-actions {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 8px;
-}
-
-.notion-tool {
-  padding: 5px 10px;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  background: transparent;
-  color: #37352f;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.notion-tool:hover {
-  background: #f1f1ef;
-}
-
-.notion-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.tab-content-area.notion-active {
-  overflow: hidden;
-}
-
-#tab-notion.active {
-  height: 100%;
-}
-
-#tab-notion.active .notion-shell {
-  height: 100%;
-  max-height: none;
-}
-
-.notion-page {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 58px 56px 90px;
-}
-
-.notion-page-icon {
-  margin-bottom: 12px;
-  font-size: 46px;
-  line-height: 1;
-  user-select: none;
-}
-
-.doc-title-input {
-  width: 100%;
-  padding: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: #37352f;
-  font-family: inherit;
-  font-size: 38px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  resize: none;
-  overflow: hidden;
-  min-height: 1.2em;
-}
-
-.doc-title-input::placeholder {
-  color: #c7c7c4;
-}
-
-.notion-blocks {
-  margin-top: 26px;
-  color: #37352f;
-  font-size: 16px;
-  line-height: 1.65;
-}
-
-.notion-html-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 14px;
-  padding: 3px 9px;
-  border: 1px solid #e9e7e2;
-  border-radius: 999px;
-  background: #faf9f6;
-  color: #9b9a97;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9.5px;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-}
-
-.notion-html-badge::before {
-  content: '✦';
-  color: #b34a66;
-  font-size: 8px;
-}
-
-.notion-html-host {
-  display: block;
-  width: 100%;
-  min-height: 120px;
-}
-
-.notion-html-host iframe,
-.notion-html-host video {
-  max-width: 100%;
-}
-
-.notion-p {
-  margin: 6px 0;
-}
-
-.notion-h1 {
-  margin: 28px 0 6px;
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-}
-
-.notion-h2 {
-  margin: 24px 0 6px;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.notion-h3 {
-  margin: 20px 0 4px;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.notion-h4 {
-  margin: 16px 0 4px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.notion-list {
-  margin: 4px 0;
-  padding-left: 26px;
-}
-
-.notion-list li {
-  margin: 3px 0;
-  line-height: 1.6;
-}
-
-.notion-todo {
-  list-style: none;
-  margin-left: -24px;
-}
-
-.notion-todo label {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.notion-todo input {
-  margin-top: 5px;
-  accent-color: #2f6fed;
-}
-
-.notion-todo.is-done label {
-  color: #9b9a97;
-  text-decoration: line-through;
-}
-
-.notion-quote {
-  margin: 12px 0;
-  padding: 2px 0 2px 14px;
-  border-left: 3px solid #37352f;
-  font-size: 16px;
-}
-
-.notion-code {
-  margin: 12px 0;
-  padding: 14px 16px;
-  overflow-x: auto;
-  border: 1px solid #e9e7e2;
-  border-radius: 6px;
-  background: #f7f6f3;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12.5px;
-  line-height: 1.6;
-  white-space: pre;
-}
-
-.notion-blocks code {
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: #f1f1ef;
-  color: #eb5757;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.86em;
-}
-
-.notion-code code {
-  padding: 0;
-  background: transparent;
-  color: inherit;
-  font-size: inherit;
-}
-
-.notion-divider {
-  margin: 22px 0;
-  border: none;
-  border-top: 1px solid #e9e7e2;
-}
-
-.notion-image {
-  margin: 16px 0;
-}
-
-.notion-image img {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  border-radius: 4px;
-  background: #f7f6f3;
-  cursor: zoom-in;
-}
-
-.notion-image figcaption {
-  margin-top: 6px;
-  color: #9b9a97;
-  font-size: 12px;
-}
-
-.notion-image-missing {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 18px;
-  border: 1px dashed #dededb;
-  border-radius: 6px;
-  color: #9b9a97;
-  font-size: 12px;
-}
-
-.notion-image-missing small {
-  flex-basis: 100%;
-  color: #b3b1ac;
-  font-size: 10.5px;
-  line-height: 1.5;
-}
-
-.notion-image-missing span:first-child {
-  font-size: 18px;
-}
-
-.notion-table {
-  width: 100%;
-  margin: 12px 0;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.notion-table th,
-.notion-table td {
-  padding: 7px 10px;
-  border: 1px solid #e9e7e2;
-  text-align: left;
-  vertical-align: top;
-}
-
-.notion-table th {
-  background: #f7f6f3;
-  font-weight: 600;
-}
-
-.notion-blocks a {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: #c7c7c4;
-}
-
-.notion-blocks a:hover {
-  background: #f1f1ef;
-}
-
-.notion-callout {
-  display: flex;
-  gap: 12px;
-  margin: 12px 0;
-  padding: 14px 16px;
-  border-radius: 6px;
-  background: #f7f6f3;
-}
-
-.notion-callout-icon {
-  font-size: 18px;
-  line-height: 1.3;
-}
-
-.notion-callout p {
-  margin: 0;
-}
-
-.notion-details-body {
-  padding: 8px 0 0 20px;
-}
-
-.notion-blocks details summary {
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.notion-page-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 48px;
-  padding-top: 16px;
-  border-top: 1px solid #efefed;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.notion-page:hover .notion-page-actions,
-.notion-page-actions:focus-within {
-  opacity: 1;
-}
-
-.notion-page-button {
-  padding: 5px 10px;
-  border: 1px solid #e6e6e3;
-  border-radius: 5px;
-  background: #ffffff;
-  color: #6f6e6b;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.notion-page-button:hover {
-  background: #f7f7f5;
-}
-
-.notion-page-delete {
-  padding: 5px 8px;
-  border: none;
-  background: transparent;
-  color: #b34a66;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.notion-page-delete:hover {
-  text-decoration: underline;
-}
-
-#tab-notion .script-textarea {
-  width: 100%;
-  height: auto;
-  min-height: 420px;
-  margin-top: 22px;
-  padding: 0;
-  border: none;
-  outline: none;
-  resize: vertical;
-  background: transparent;
-  color: #37352f;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13.5px;
-  line-height: 1.75;
-}
-
-.notion-lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 3000;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  background: rgba(15, 15, 15, 0.82);
-  cursor: zoom-out;
-}
-
-.notion-lightbox.open {
-  display: flex;
-}
-
-.notion-lightbox img {
-  max-width: 100%;
-  max-height: 100%;
-  border-radius: 6px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-}
-
-@media (max-width: 768px) {
-  .books-hero {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .books-hero-actions {
-    width: 100%;
-  }
-
-  .books-shelf {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px 14px;
-  }
-
-  .book-cover-btn {
-    opacity: 1;
-  }
-
-  .thread-importer-row {
-    flex-direction: column;
-  }
-
-  .reader-heading strong,
-  .reader-heading span {
-    max-width: 38vw;
-  }
-
-  .reader-tools .reader-icon-btn:nth-child(2) {
-    display: none;
-  }
-
-  .reader-view-text {
-    padding: 24px 22px 70px;
-  }
-
-  .reader-turn {
-    width: 34px;
-    height: 54px;
-    font-size: 26px;
-  }
-
-  .reader-turn-left {
-    left: 2px;
-  }
-
-  .reader-turn-right {
-    right: 2px;
-  }
-
-  .modal-buttons {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 520px) {
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-
-  .books-shelf {
-    gap: 16px 12px;
-  }
-
-  .book-title {
-    font-size: 13px;
-  }
-
-  .reader-tools .reader-icon-btn:nth-child(1) {
-    display: none;
-  }
-
-  .reader-heading strong,
-  .reader-heading span {
-    max-width: 30vw;
-  }
-
-  .reader-stage .reader-turn {
-    width: 28px;
-    height: 46px;
-    font-size: 22px;
-    opacity: 0.36;
-  }
-}
-
-@media (pointer: coarse) {
-  .card-edit,
-  .book-cover-btn {
-    opacity: 1;
-  }
-
-  .notion-page-actions {
-    opacity: 1;
-  }
-}
-
-@media (max-width: 860px) {
-  .notion-shell {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-    height: clamp(520px, calc(100vh - 210px), 820px);
-  }
-
-  .tab-content-area.notion-active {
-    overflow-y: auto;
-  }
-
-  #tab-notion.active {
-    height: auto;
-  }
-
-  #tab-notion.active .notion-shell {
-    height: clamp(520px, calc(100vh - 230px), 820px);
-  }
-
-  .notion-sidebar {
-    max-height: 170px;
-    border-right: none;
-    border-bottom: 1px solid #ebebe8;
-  }
-
-  .doc-list {
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
-  .doc-item {
-    flex: 0 0 150px;
-    width: 150px;
-  }
-
-  .notion-side-foot {
-    display: none;
-  }
-
-  .notion-page {
-    padding: 34px 24px 60px;
-  }
-
-  .doc-title-input {
-    font-size: 30px;
-  }
-}
-
-@media (max-width: 520px) {
-  .notion-sidebar {
-    max-height: 148px;
-  }
-
-  .notion-page {
-    padding: 26px 18px 50px;
-  }
-
-  .notion-topbar {
-    padding: 0 10px;
-  }
-
-  .notion-crumbs span:first-child {
-    display: none;
-  }
-
-  .notion-topbar .script-meta {
-    display: none;
-  }
-
-  .notion-page-icon {
-    font-size: 36px;
-  }
-
-  .doc-title-input {
-    font-size: 26px;
-  }
-
-  .notion-blocks {
-    font-size: 15px;
-  }
-}
-
-/* ── importar do notion (com imagens) ─────────────────────────── */
-
-.notion-tool-primary {
-  border-color: #37352f;
-  background: #37352f;
-  color: #ffffff;
-}
-
-.notion-tool-primary:hover {
-  background: #4a4842;
-}
-
-.notion-import-big {
-  width: 100%;
-  padding: 9px 8px;
-  font-weight: 600;
-}
-
-.is-desktop-only {
-  display: inline-flex;
-}
-
-body.platform-android .is-desktop-only {
-  display: none;
-}
-
-.import-modal {
-  max-width: 560px;
-}
-
-.import-lead {
-  margin: -4px 0 14px;
-  color: #6f6e6b;
-  font-size: 12px;
-  line-height: 1.65;
-}
-
-.import-drop {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  width: 100%;
-  padding: 20px 16px;
-  border: 1.5px dashed #d5d4cf;
-  border-radius: 10px;
-  background: #fafafa;
-  color: #6f6e6b;
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.import-drop:hover,
-.import-drop.is-dropping {
-  border-color: #37352f;
-  background: #f4f3ef;
-}
-
-.import-drop strong {
-  color: #37352f;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.import-drop span {
-  font-size: 11px;
-}
-
-.import-drop small {
-  margin-top: 4px;
-  color: #a3a19c;
-  font-size: 10px;
-}
-
-.import-drop-icon {
-  margin-bottom: 2px;
-  font-size: 24px;
-  line-height: 1;
-}
-
-.import-choices {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.import-choices .btn-primary,
-.import-choices .btn-secondary {
-  flex: 1 1 46%;
-  justify-content: center;
-}
-
-.import-hint {
-  margin: 12px 0 0;
-  color: #9b9a97;
-  font-size: 10.5px;
-  line-height: 1.6;
-}
-
-.import-hint strong {
-  color: #6f6e6b;
-}
-
 /* ── atualizar app ─────────────────────────────────────────────── */
 
 .update-chip {
@@ -4115,27 +3148,1283 @@ body.platform-android .is-desktop-only {
   display: inline-flex;
 }
 
-@media (max-width: 520px) {
-  .notion-topbar-actions {
-    gap: 4px;
+
+
+/* ── moodboard (pinterest vibes) ───────────────────────────────── */
+
+.mood-root {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  overflow-anchor: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mood-shell {
+  width: 100%;
+}
+
+.mood-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.mood-heading {
+  min-width: 0;
+}
+
+.mood-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.1;
+  color: #241f1d;
+}
+
+.mood-spark {
+  display: inline-flex;
+  color: #cd8e9e;
+  font-size: 14px;
+  transform: translateY(-1px);
+}
+
+.mood-sub {
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: #9a918b;
+  line-height: 1.5;
+}
+
+.mood-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mood-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 235px;
+  padding: 9px 14px;
+  border: 1px solid #e8e1dc;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(70, 50, 42, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mood-search:focus-within {
+  border-color: #d8c6c0;
+  box-shadow: 0 3px 14px rgba(70, 50, 42, 0.08);
+}
+
+.mood-search svg {
+  color: #aaa09a;
+  flex: 0 0 auto;
+}
+
+.mood-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #2a2422;
+  font-family: inherit;
+  font-size: 11.5px;
+}
+
+.mood-search input::placeholder {
+  color: #b0a7a1;
+}
+
+.mood-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 16px;
+  border: 1px solid #e8e1dc;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #2c2623;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(70, 50, 42, 0.03);
+  transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.mood-btn:hover {
+  background: #faf5f2;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(70, 50, 42, 0.07);
+}
+
+.mood-btn-dark {
+  border-color: #27272a;
+  background: #27272a;
+  color: #ffffff;
+}
+
+.mood-btn-dark:hover {
+  background: #3a3639;
+}
+
+.mood-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #e8e1dc;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #3a332f;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.mood-icon-btn:hover {
+  background: #faf5f2;
+  transform: translateY(-1px);
+}
+
+.mood-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mood-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.mood-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.mood-chip {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: #ecebe9;
+  color: #615b56;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.mood-chip:hover {
+  background: #e3e0dc;
+}
+
+.mood-chip.active {
+  background: #27272a;
+  color: #ffffff;
+}
+
+.mood-count {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  color: #a39a93;
+  font-weight: 500;
+}
+
+.mood-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px 20px;
+  align-items: start;
+}
+
+.mood-board-card,
+.mood-folder-card {
+  position: relative;
+  min-width: 0;
+  border-radius: 17px;
+  outline: none;
+  cursor: pointer;
+  transition: transform 0.18s ease;
+}
+
+.mood-board-card:hover,
+.mood-folder-card:hover {
+  transform: translateY(-3px);
+}
+
+.mood-board-card:focus-visible,
+.mood-folder-card:focus-visible,
+.mood-pin:focus-visible {
+  outline: 2px solid #c995a3;
+  outline-offset: 3px;
+}
+
+.mood-collage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 3px;
+  width: 100%;
+  aspect-ratio: 1.06;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #f1ece8;
+  box-shadow: 0 3px 14px rgba(65, 45, 38, 0.06);
+}
+
+.mood-collage-1 {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.mood-collage-2 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+}
+
+.mood-collage .mood-cover:first-child {
+  grid-row: span 2;
+}
+
+.mood-collage-1 .mood-cover:first-child,
+.mood-collage-2 .mood-cover:first-child {
+  grid-row: auto;
+}
+
+.mood-cover {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #f3efec;
+}
+
+.mood-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.4s ease;
+}
+
+.mood-cover img.is-loaded {
+  opacity: 1;
+}
+
+.mood-board-card:hover .mood-cover img,
+.mood-folder-card:hover .mood-cover img {
+  transform: scale(1.03);
+}
+
+.mood-collage.is-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #f8ebe9, #f1eee9);
+  color: #c9aaa3;
+  font-size: 28px;
+}
+
+.mood-folder-card .mood-collage {
+  aspect-ratio: 1.2;
+}
+
+.mood-card-info {
+  padding: 10px 3px 0;
+}
+
+.mood-card-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: #2a2421;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.mood-card-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mood-card-meta {
+  margin-top: 3px;
+  overflow: hidden;
+  color: #9d948d;
+  font-size: 10.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mood-lock {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: #b18178;
+}
+
+.mood-private-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #fbe6eb;
+  color: #a95770;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mood-card-more {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #3a332f;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
+  backdrop-filter: blur(6px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.mood-board-card:hover .mood-card-more,
+.mood-folder-card:hover .mood-card-more,
+.mood-board-card:focus-within .mood-card-more,
+.mood-folder-card:focus-within .mood-card-more {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.mood-board-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.mood-back {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.mood-board-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.mood-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+  font-size: 10.5px;
+  color: #a39c96;
+}
+
+.mood-crumb {
+  max-width: 170px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #a39c96;
+  font-family: inherit;
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+}
+
+.mood-crumb:hover {
+  color: #4a423e;
+  text-decoration-color: #cbbfb9;
+}
+
+.mood-crumb.is-current {
+  color: #5c524d;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mood-crumb-sep {
+  color: #d2c9c3;
+}
+
+.mood-board-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: #241f1d;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.mood-board-meta {
+  margin-top: 5px;
+  color: #9b938d;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.mood-board-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.mood-section {
+  margin-bottom: 30px;
+}
+
+.mood-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mood-section-head h2 {
+  color: #756c66;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mood-section-head span {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #f1ece8;
+  color: #a99f98;
+  font-size: 9.5px;
+  font-weight: 600;
+}
+
+.mood-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 20px 16px;
+}
+
+.mood-pin-grid {
+  column-count: 4;
+  column-gap: 14px;
+}
+
+.mood-pin {
+  position: relative;
+  display: block;
+  break-inside: avoid;
+  overflow: hidden;
+  margin: 0 0 14px;
+  border-radius: 16px;
+  background: #f4efeb;
+  cursor: zoom-in;
+  box-shadow: 0 2px 10px rgba(60, 45, 40, 0.045);
+  transition: box-shadow 0.18s ease;
+}
+
+.mood-pin:hover {
+  box-shadow: 0 8px 24px rgba(60, 45, 40, 0.12);
+}
+
+.mood-pin img {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 70px;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mood-pin img.is-loaded {
+  opacity: 1;
+}
+
+.mood-pin.is-missing::before {
+  content: '☾';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbb5ae;
+  font-size: 24px;
+}
+
+.mood-pin-veil {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 30px 10px 9px;
+  background: linear-gradient(to top, rgba(24, 18, 16, 0.58), rgba(24, 18, 16, 0));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.mood-pin:hover .mood-pin-veil {
+  opacity: 1;
+}
+
+.mood-pin-name {
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+}
+
+.mood-pin-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2a2522;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mood-empty {
+  padding: 44px 24px;
+  border: 1.5px dashed #e5d9d3;
+  border-radius: 20px;
+  background: linear-gradient(150deg, #fffdfc, #fcf7f4);
+  color: #8e827b;
+  text-align: center;
+}
+
+.mood-empty-shelf {
+  grid-column: 1 / -1;
+}
+
+.mood-empty-icon {
+  display: block;
+  margin-bottom: 9px;
+  color: #c9a6a0;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.mood-empty strong {
+  display: block;
+  color: #4b413c;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mood-empty p {
+  max-width: 350px;
+  margin: 6px auto 0;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.mood-empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.mood-inline-empty {
+  padding: 20px;
+  border-radius: 14px;
+  background: #fbf7f4;
+  color: #a1968f;
+  font-size: 11px;
+  text-align: center;
+}
+
+.mood-drop-hint {
+  margin-top: 24px;
+  color: #b8ada6;
+  font-size: 10px;
+  text-align: center;
+}
+
+.mood-root.is-dropping .mood-shell {
+  border-radius: 26px;
+  outline: 2px dashed #d9a9b5;
+  outline-offset: 10px;
+}
+
+/* menu */
+
+.mood-menu {
+  position: fixed;
+  z-index: 2600;
+  min-width: 184px;
+  padding: 5px;
+  border: 1px solid #ece5e0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 14px 38px rgba(60, 40, 35, 0.16);
+  animation: moodPop 0.14s ease-out;
+}
+
+@keyframes moodPop {
+  from { opacity: 0; transform: translateY(-3px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mood-menu-item {
+  display: block;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #3b332f;
+  font-family: inherit;
+  font-size: 11.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mood-menu-item:hover {
+  background: #f7f1ed;
+}
+
+.mood-menu-item.is-danger {
+  color: #b04a5d;
+}
+
+.mood-menu-item.is-danger:hover {
+  background: #fceef1;
+}
+
+/* lightbox */
+
+.mood-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 28px;
+  background: rgba(28, 22, 20, 0.84);
+  backdrop-filter: blur(10px);
+  animation: moodFade 0.18s ease-out;
+}
+
+@keyframes moodFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mood-lightbox-figure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: min(900px, 92vw);
+  max-height: 78vh;
+  margin: 0;
+}
+
+.mood-lightbox-figure img {
+  max-width: 100%;
+  max-height: 78vh;
+  border-radius: 18px;
+  background: #1c1816;
+  object-fit: contain;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+}
+
+.mood-lightbox-close {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mood-lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.mood-lightbox-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  max-width: min(900px, 92vw);
+  color: #ffffff;
+}
+
+.mood-lightbox-title {
+  overflow: hidden;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
+.mood-lightbox-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.mood-lightbox-btn,
+.mood-lightbox-link {
+  padding: 7px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 10.5px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mood-lightbox-btn:hover,
+.mood-lightbox-link:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.mood-lightbox-btn.is-danger {
+  color: #ffc8d2;
+}
+
+/* busy */
+
+.mood-busy {
+  position: fixed;
+  left: 50%;
+  bottom: 104px;
+  z-index: 2800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #27272a;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 500;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24);
+  transform: translateX(-50%);
+}
+
+.mood-spinner {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: moodSpin 0.7s linear infinite;
+}
+
+@keyframes moodSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* import + name modals */
+
+.mood-import-modal {
+  position: relative;
+  max-width: 560px;
+}
+
+.mood-modal-close {
+  position: absolute;
+  top: 13px;
+  right: 15px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #f5f1ee;
+  color: #7d736d;
+  font-family: inherit;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mood-modal-close:hover {
+  background: #ece5e0;
+}
+
+.mood-modal-sub {
+  margin: -8px 0 16px;
+  color: #8a817b;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.mood-import-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #f4f0ed;
+}
+
+.mood-import-tabs button {
+  flex: 1;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #857b75;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mood-import-tabs button.active {
+  background: #ffffff;
+  color: #2b2522;
+  box-shadow: 0 2px 8px rgba(60, 40, 35, 0.08);
+}
+
+.mood-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #9a8f88;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mood-url-row {
+  display: flex;
+  gap: 7px;
+}
+
+.mood-url-row .form-input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: 999px;
+  font-size: 11.5px;
+}
+
+.mood-url-row .btn-primary {
+  padding: 8px 18px;
+  white-space: nowrap;
+}
+
+.mood-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 11px;
+  color: #6f655f;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+
+.mood-check input {
+  width: 13px;
+  height: 13px;
+  accent-color: #27272a;
+}
+
+.mood-import-hint {
+  margin: 12px 0 0;
+  color: #a49a94;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.mood-import-target {
+  margin: 15px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #faf6f3;
+  color: #8d827b;
+  font-size: 10px;
+}
+
+.mood-import-privacy {
+  margin: 6px 0 0;
+  color: #b3a8a1;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.mood-drop-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 24px 16px;
+  border: 1.5px dashed #ddcfc8;
+  border-radius: 14px;
+  background: #fdfaf8;
+  color: #857a73;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.mood-drop-card:hover {
+  border-color: #cda6ae;
+  background: #fcf4f2;
+}
+
+.mood-drop-card strong {
+  color: #433a35;
+  font-size: 12.5px;
+}
+
+.mood-drop-card small {
+  color: #a89d96;
+  font-size: 9.5px;
+}
+
+.mood-drop-icon {
+  color: #c39aa5;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.mood-import-status {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #faf6f3;
+}
+
+.mood-import-status-text {
+  margin: 0;
+  color: #7e736c;
+  font-size: 10px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.mood-import-bar {
+  height: 4px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #efe5df;
+}
+
+.mood-import-bar span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d7a3af, #b7748a);
+  transition: width 0.3s ease;
+}
+
+.mood-import-status.is-busy .mood-import-bar span {
+  width: 35% !important;
+  animation: moodSlide 1.1s ease-in-out infinite;
+}
+
+@keyframes moodSlide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(320%); }
+}
+
+.mood-import-status.is-error {
+  background: #fdf0f2;
+}
+
+.mood-import-status.is-error .mood-import-status-text {
+  color: #a5475b;
+}
+
+.mood-import-status.is-error .mood-import-bar {
+  display: none;
+}
+
+.mood-import-status.is-success {
+  background: #f2f7ef;
+}
+
+.mood-import-status.is-success .mood-import-status-text {
+  color: #4f6f45;
+}
+
+#modal-mood-name {
+  z-index: 2400;
+}
+
+.mood-name-modal {
+  max-width: 400px;
+}
+
+.mood-name-modal .mood-modal-sub {
+  margin-bottom: 12px;
+}
+
+.mood-move-modal {
+  max-width: 420px;
+}
+
+.mood-move-modal .mood-label {
+  margin-top: 4px;
+}
+
+.mood-move-modal select {
+  padding: 9px 12px;
+  font-size: 12px;
+  background: #ffffff;
+}
+
+@media (hover: none) {
+  .mood-card-more,
+  .mood-pin-veil {
+    opacity: 1;
+    transform: none;
   }
 
-  .notion-tool {
-    padding: 5px 7px;
-    font-size: 10.5px;
-  }
-
-  #btn-paste-doc {
-    display: none;
-  }
-
-  .import-choices .btn-primary,
-  .import-choices .btn-secondary {
-    flex-basis: 100%;
-  }
-
-  .import-drop {
-    padding: 16px 12px;
+  .mood-pin-veil {
+    background: linear-gradient(to top, rgba(24, 18, 16, 0.46), rgba(24, 18, 16, 0));
   }
 }
 
+@media (max-width: 1000px) {
+  .mood-pin-grid {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 768px) {
+  .mood-head {
+    align-items: flex-start;
+  }
+
+  .mood-title {
+    font-size: 24px;
+  }
+
+  .mood-head-actions {
+    width: 100%;
+  }
+
+  .mood-head-actions .mood-btn {
+    flex: 1;
+  }
+
+  .mood-search {
+    flex: 1 1 100%;
+    order: 3;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mood-shelf {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+
+  .mood-folder-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+
+  .mood-pin-grid {
+    column-count: 2;
+    column-gap: 10px;
+  }
+
+  .mood-pin {
+    margin-bottom: 10px;
+    border-radius: 13px;
+  }
+
+  .mood-board-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
+  }
+
+  .mood-back {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .mood-board-heading {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-top: 4px;
+  }
+
+  .mood-board-actions {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .mood-board-title {
+    font-size: 21px;
+  }
+
+  .mood-board-actions .mood-btn {
+    padding: 7px 11px;
+    font-size: 10.5px;
+  }
+
+  .mood-empty {
+    padding: 34px 18px;
+  }
+
+  .mood-busy {
+    bottom: 152px;
+  }
+
+  .mood-lightbox {
+    padding: 14px;
+  }
+
+  .mood-lightbox-figure,
+  .mood-lightbox-figure img {
+    max-height: 74vh;
+  }
+
+  .mood-lightbox-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .mood-lightbox-close {
+    top: 12px;
+    right: 14px;
+  }
+
+  .mood-import-modal {
+    width: 94%;
+    padding: 20px;
+  }
+
+  .mood-url-row {
+    flex-wrap: wrap;
+  }
+
+  .mood-url-row .btn-primary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .mood-shelf {
+    gap: 14px 10px;
+  }
+
+  .mood-card-title {
+    font-size: 12px;
+  }
+
+  .mood-card-meta {
+    font-size: 9.5px;
+  }
+
+  .mood-card-info {
+    padding-top: 8px;
+  }
+
+  .mood-count {
+    display: none;
+  }
+
+  .mood-board-actions .mood-btn {
+    padding: 7px 10px;
+  }
+
+  .mood-lightbox-actions {
+    flex-wrap: wrap;
+  }
+}

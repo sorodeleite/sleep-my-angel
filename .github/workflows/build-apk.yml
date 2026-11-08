@@ -100,10 +100,10 @@ jobs:
           body: |
             atualização do sleep my angel v${{ steps.version.outputs.version }}
 
-            - importação do notion agora fica **igual ao notion**: html com cores, colunas, callouts e imagens
-            - subpáginas entram **dentro da mesma nota**, sem virar um monte de abas
-            - export em pdf também entra como páginas iguais ao original
-            - markdown continua funcionando, com as imagens e as subpáginas juntas
+            - novo **moodboard** estilo pinterest, no lugar do notion
+            - importa uma pasta pública do pinterest, uma pasta do computador ou várias imagens
+            - subpastas dentro de subpastas, com capa de colagem e pins em masonry
+            - pasta oculta com filtro separado, e dá pra mover pins entre subpastas
             - botão "atualizar app" instalando por cima, sem desinstalar
           files: sleep-my-angel.apk
         env:

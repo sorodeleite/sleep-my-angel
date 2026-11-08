@@ -1,10 +1,14 @@
 (function () {
   const SMA = window.SMA;
   const DB_NAME = 'sleep-my-angel';
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   const STORE_AUDIO = 'imported-audio';
   const STORE_BOOKS = 'imported-books';
   const STORE_DOCS = 'offline-docs';
+  const STORE_MOOD_BOARDS = 'mood-boards';
+  const STORE_MOOD_FOLDERS = 'mood-folders';
+  const STORE_MOOD_PINS = 'mood-pins';
+  const STORE_MOOD_IMAGES = 'mood-images';
   const objectUrls = new Map();
   let databasePromise = null;
 
@@ -23,6 +27,18 @@
           }
           if (!database.objectStoreNames.contains(STORE_DOCS)) {
             database.createObjectStore(STORE_DOCS, { keyPath: 'id' });
+          }
+          if (!database.objectStoreNames.contains(STORE_MOOD_BOARDS)) {
+            database.createObjectStore(STORE_MOOD_BOARDS, { keyPath: 'id' });
+          }
+          if (!database.objectStoreNames.contains(STORE_MOOD_FOLDERS)) {
+            database.createObjectStore(STORE_MOOD_FOLDERS, { keyPath: 'id' });
+          }
+          if (!database.objectStoreNames.contains(STORE_MOOD_PINS)) {
+            database.createObjectStore(STORE_MOOD_PINS, { keyPath: 'id' });
+          }
+          if (!database.objectStoreNames.contains(STORE_MOOD_IMAGES)) {
+            database.createObjectStore(STORE_MOOD_IMAGES, { keyPath: 'id' });
           }
         };
         request.onsuccess = function () {
@@ -210,6 +226,122 @@
       return transact(STORE_DOCS, 'readwrite', function (store) {
         store.delete(id);
         return true;
+      });
+    }
+  };
+
+  function getAllFrom(storeName) {
+    return transact(storeName, 'readonly', function (store) {
+      return requestResult(store.getAll());
+    }).then(function (records) {
+      return records || [];
+    });
+  }
+
+  SMA.moodStore = {
+    boards: function () {
+      return getAllFrom(STORE_MOOD_BOARDS);
+    },
+
+    folders: function () {
+      return getAllFrom(STORE_MOOD_FOLDERS);
+    },
+
+    pins: function () {
+      return getAllFrom(STORE_MOOD_PINS);
+    },
+
+    saveBoard: function (board) {
+      return transact(STORE_MOOD_BOARDS, 'readwrite', function (store) {
+        store.put(board);
+        return board.id;
+      });
+    },
+
+    removeBoard: function (id) {
+      return transact(STORE_MOOD_BOARDS, 'readwrite', function (store) {
+        store.delete(id);
+        return true;
+      });
+    },
+
+    saveFolder: function (folder) {
+      return transact(STORE_MOOD_FOLDERS, 'readwrite', function (store) {
+        store.put(folder);
+        return folder.id;
+      });
+    },
+
+    removeFolder: function (id) {
+      return transact(STORE_MOOD_FOLDERS, 'readwrite', function (store) {
+        store.delete(id);
+        return true;
+      });
+    },
+
+    savePin: function (pin) {
+      return transact(STORE_MOOD_PINS, 'readwrite', function (store) {
+        store.put(pin);
+        return pin.id;
+      });
+    },
+
+    removePin: function (id) {
+      releaseUrl('mood:' + id);
+      return transact(STORE_MOOD_PINS, 'readwrite', function (store) {
+        store.delete(id);
+        return true;
+      });
+    },
+
+    putImage: function (pinId, blob) {
+      return transact(STORE_MOOD_IMAGES, 'readwrite', function (store) {
+        store.put({ id: pinId, blob: blob, added: Date.now() });
+        return true;
+      });
+    },
+
+    removeImage: function (pinId) {
+      releaseUrl('mood:' + pinId);
+      return transact(STORE_MOOD_IMAGES, 'readwrite', function (store) {
+        store.delete(pinId);
+        return true;
+      });
+    },
+
+    getImage: function (pinId) {
+      return transact(STORE_MOOD_IMAGES, 'readonly', function (store) {
+        return requestResult(store.get(pinId));
+      });
+    },
+
+    pinUrl: function (pin) {
+      if (!pin) return Promise.resolve('');
+      if (!pin.hasImage) return Promise.resolve(pin.remoteUrl || '');
+      const cacheKey = 'mood:' + pin.id;
+      if (objectUrls.has(cacheKey)) return Promise.resolve(objectUrls.get(cacheKey));
+      return SMA.moodStore.getImage(pin.id).then(function (record) {
+        if (!record || !record.blob) return pin.remoteUrl || '';
+        return blobUrl(cacheKey, record.blob);
+      });
+    },
+
+    removeMany: function (boardId) {
+      return Promise.all([
+        SMA.moodStore.pins().then(function (pins) {
+          return Promise.all(pins.filter(function (pin) { return pin.boardId === boardId; }).map(function (pin) {
+            return SMA.moodStore.removeImage(pin.id).then(function () {
+              return SMA.moodStore.removePin(pin.id);
+            });
+          }));
+        }),
+        SMA.moodStore.folders().then(function (folders) {
+          return Promise.all(folders.filter(function (folder) { return folder.boardId === boardId; }).map(function (folder) {
+            return SMA.moodStore.removeFolder(folder.id);
+          }));
+        })
+      ]).then(function () {
+        return SMA.moodStore.removeBoard(boardId);
       });
     }
   };

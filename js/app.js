@@ -37,7 +37,7 @@
 
   const lazyTabs = {
     'tab-books': function () { return SMA.Books.init(); },
-    'tab-notion': function () { return SMA.ScriptNotes.init(); }
+    'tab-moodboard': function () { return SMA.Moodboard.init(); }
   };
   const lazyStarted = Object.create(null);
 
@@ -69,10 +69,7 @@
           pane.classList.toggle('active', pane.id === button.dataset.tab);
         });
         const area = SMA.select('.tab-content-area');
-        if (area) {
-          area.classList.toggle('notion-active', button.dataset.tab === 'tab-notion');
-          if (window.innerWidth < 769) area.scrollTop = 0;
-        }
+        if (area && window.innerWidth < 769) area.scrollTop = 0;
         ensureTab(button.dataset.tab);
       });
     });

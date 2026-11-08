@@ -1,8 +1,9 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Menu, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 const { splitTrackName } = require('./js/track-name');
+const { setupPinterest } = require('./pinterest-main');
 
 const AUDIO_PATTERN = /\.(m4a|mp3|wav|ogg|flac|opus|aac)$/i;
 const CATEGORIES = ['meditacao', 'ondas'];
@@ -197,3 +198,5 @@ ipcMain.handle('read-book-file', (event, relativePath) => {
     return null;
   }
 });
+
+setupPinterest({ ipcMain, net });
