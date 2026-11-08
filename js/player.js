@@ -96,9 +96,7 @@
         navigator.mediaSession.setActionHandler('previoustrack', () => this.prev());
         navigator.mediaSession.setActionHandler('nexttrack', () => this.next());
         navigator.mediaSession.setActionHandler('stop', () => this.pause());
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
     }
 
     updateMediaMetadata() {
@@ -121,9 +119,7 @@
           album: 'sleep my angel',
           artwork: artwork
         });
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
     }
 
     updateMediaState() {
@@ -141,9 +137,7 @@
           playbackRate: this.audio.playbackRate || 1,
           position: Math.min(this.audio.currentTime, duration)
         });
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
     }
 
     syncNative() {

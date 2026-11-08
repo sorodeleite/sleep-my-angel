@@ -489,9 +489,7 @@
           title = metadata.title || '';
           author = metadata.creator || metadata.author || '';
         }
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
       const url = await temp.coverUrl();
       if (!url) return { cover: '', title: title, author: author };
       const response = await fetch(url);
@@ -502,7 +500,7 @@
     } catch (error) {
       return { cover: '', title: '', author: '' };
     } finally {
-      try { if (temp) temp.destroy(); } catch (error) { void error; }
+      try { if (temp) temp.destroy(); } catch (error) {}
     }
   }
 
@@ -515,9 +513,7 @@
       try {
         const metadata = await pdf.getMetadata();
         title = (metadata.info && metadata.info.Title) || '';
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
       const page = await pdf.getPage(1);
       const viewport = page.getViewport({ scale: 1 });
       const targetWidth = 640;
@@ -602,9 +598,7 @@
           }));
           imported += 1;
         }
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
     }
     if (imported > 0) {
       persistImported();
@@ -717,9 +711,7 @@
     if (reader && reader.rendition) {
       try {
         reader.rendition.themes.select(chosen);
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
     }
   }
 
@@ -775,9 +767,7 @@
     try {
       const selection = window.getSelection();
       if (selection && String(selection.toString()).trim()) return true;
-    } catch (error) {
-      void error;
-    }
+    } catch (error) {}
     try {
       if (!reader || !reader.rendition) return false;
       const contents = reader.rendition.getContents();
@@ -809,9 +799,7 @@
       try {
         const location = reader.rendition.currentLocation();
         if (location && location.start && location.start.cfi) cfi = location.start.cfi;
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
       return { percent: percent, cfi: cfi };
     }
     if (reader.type === 'text') {
@@ -988,22 +976,16 @@
     try {
       const selection = window.getSelection();
       if (selection) selection.removeAllRanges();
-    } catch (error) {
-      void error;
-    }
+    } catch (error) {}
     if (!reader || !reader.rendition) return;
     try {
       (reader.rendition.getContents() || []).forEach(function (contents) {
         try {
           const selection = contents.window.getSelection();
           if (selection) selection.removeAllRanges();
-        } catch (error) {
-          void error;
-        }
+        } catch (error) {}
       });
-    } catch (error) {
-      void error;
-    }
+    } catch (error) {}
   }
 
   function applyHighlight(color) {
@@ -1045,9 +1027,7 @@
         'fill-opacity': '0.55',
         'mix-blend-mode': 'multiply'
       });
-    } catch (error) {
-      void error;
-    }
+    } catch (error) {}
   }
 
   function paintHighlights() {
@@ -1145,9 +1125,7 @@
     if (item.cfi && reader.rendition) {
       try {
         reader.rendition.annotations.remove(item.cfi, 'highlight');
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
     }
     unwrapTextMarks(id);
     highlights[reader.id] = list.filter(function (entry) { return entry.id !== id; });
@@ -1278,7 +1256,7 @@
     const size = readerFontSize();
     if (el.progressLabel) el.progressLabel.dataset.font = String(size);
     if (reader && reader.rendition) {
-      try { reader.rendition.themes.fontSize(size + 'px'); } catch (error) { void error; }
+      try { reader.rendition.themes.fontSize(size + 'px'); } catch (error) {}
     }
     if (reader && reader.type === 'text') {
       el.view.style.fontSize = size + 'px';
@@ -1334,9 +1312,9 @@
       document.body.classList.remove('reader-open');
       return;
     }
-    try { if (reader.rendition) reader.rendition.destroy(); } catch (error) { void error; }
-    try { if (reader.book) reader.book.destroy(); } catch (error) { void error; }
-    try { if (reader.url) URL.revokeObjectURL(reader.url); } catch (error) { void error; }
+    try { if (reader.rendition) reader.rendition.destroy(); } catch (error) {}
+    try { if (reader.book) reader.book.destroy(); } catch (error) {}
+    try { if (reader.url) URL.revokeObjectURL(reader.url); } catch (error) {}
     reader = null;
     setCleanMode(false, false);
     closeModeMenu();
@@ -1485,18 +1463,14 @@
     setTimeout(function () {
       try {
         reportLocation(rendition.currentLocation());
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
     }, 120);
     loadToc(epubBook, rendition);
     epubBook.locations.generate(1200).then(function () {
       setTimeout(function () {
         try {
           reportLocation(rendition.currentLocation());
-        } catch (error) {
-          void error;
-        }
+        } catch (error) {}
       }, 60);
     }).catch(function () {
       void 0;

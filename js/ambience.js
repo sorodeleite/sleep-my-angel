@@ -126,9 +126,7 @@
         voice.gain.cancelScheduledValues(now);
         voice.gain.setTargetAtTime(0, now, 0.08);
         source.stop(now + 0.5);
-      } catch (error) {
-        void error;
-      }
+      } catch (error) {}
     }
 
     setVolume(volume) {
