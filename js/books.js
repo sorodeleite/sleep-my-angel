@@ -1476,11 +1476,6 @@
       };
       showHighlightBar();
     });
-    try {
-      await epubBook.locations.generate(1200);
-    } catch (error) {
-      void error;
-    }
     if (saved.cfi) {
       await rendition.display(saved.cfi);
     } else {
@@ -1495,8 +1490,18 @@
       }
     }, 120);
     loadToc(epubBook, rendition);
+    epubBook.locations.generate(1200).then(function () {
+      setTimeout(function () {
+        try {
+          reportLocation(rendition.currentLocation());
+        } catch (error) {
+          void error;
+        }
+      }, 60);
+    }).catch(function () {
+      void 0;
+    });
   }
-
   async function openPdfBook(book, arrayBuffer, saved) {
     if (!window.pdfjsLib) {
       SMA.toast('o leitor de pdf não carregou');

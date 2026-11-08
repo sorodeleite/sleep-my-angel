@@ -167,8 +167,30 @@ function main() {
 
     const coverName = slug + '.jpg';
     const coverPath = path.join(coversDir, coverName);
-    const hasCover = extractCover(metaCommand, source, coverPath)
-      || extractCover(metaCommand, file, coverPath);
+    const temporaryCover = path.join(coversDir, '.cover-' + process.pid + '.jpg');
+    try { fs.rmSync(temporaryCover, { force: true }); } catch (error) { }
+    const extracted = extractCover(metaCommand, source, temporaryCover)
+      || extractCover(metaCommand, file, temporaryCover);
+    let hasCover = false;
+    if (extracted) {
+      const existing = fs.existsSync(coverPath) ? fs.readFileSync(coverPath) : null;
+      const incoming = fs.readFileSync(temporaryCover);
+      const coverIsCustom = existing
+        && !existing.equals(incoming)
+        && fs.statSync(coverPath).mtimeMs > fs.statSync(source).mtimeMs;
+      if (coverIsCustom) {
+        // capa trocada à mão depois do livro: mantém a capa nova
+        hasCover = true;
+        fs.rmSync(temporaryCover, { force: true });
+      } else {
+        fs.copyFileSync(temporaryCover, coverPath);
+        fs.rmSync(temporaryCover, { force: true });
+        hasCover = true;
+      }
+    } else {
+      hasCover = fs.existsSync(coverPath) && fs.statSync(coverPath).size > 0;
+      fs.rmSync(temporaryCover, { force: true });
+    }
     if (!hasCover) {
       try { fs.rmSync(coverPath, { force: true }); } catch (error) { }
     }
