@@ -108,9 +108,7 @@ jobs:
           body: |
             atualização do sleep my angel v${{ steps.version.outputs.version }}
 
-            - as **meditações** agora vão dentro do app e tocam offline, sem o aviso de "som gerado parecido"
-            - as faixas de **ondas e frequências** já entram como som contínuo gerado, sem tentar baixar um arquivo que não existe
-            - o apk ficou maior (as meditações ocupam espaço), então o download da atualização demora um pouco mais
+            - código do app mais limpo e organizado, sem mudar o jeito de usar
             - se o download da atualização falhar, baixe o `sleep-my-angel.apk` aqui na release e instale por cima
           files: sleep-my-angel.apk
         env:
