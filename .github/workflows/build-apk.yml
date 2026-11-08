@@ -105,6 +105,8 @@ jobs:
             - aceita link **pin.it** da pasta copiado no celular
             - subpastas dentro de subpastas, com capa de colagem e pins em masonry
             - pasta oculta com filtro separado, e dá pra mover pins entre subpastas
+            - importa **todos os pins** da pasta, com as seções do pinterest virando subpastas
+            - modo organizar com arrastar/setinhas pra reordenar, e renomear pins
             - botão "atualizar app" instalando por cima, sem desinstalar
           files: sleep-my-angel.apk
         env:

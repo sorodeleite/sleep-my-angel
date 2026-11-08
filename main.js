@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, Menu, net } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Menu, net, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
@@ -199,4 +199,4 @@ ipcMain.handle('read-book-file', (event, relativePath) => {
   }
 });
 
-setupPinterest({ ipcMain, net });
+setupPinterest({ ipcMain, net, session });

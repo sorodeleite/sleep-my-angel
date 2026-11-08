@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('api', {
   readBooksManifest: () => ipcRenderer.invoke('read-books-manifest'),
   readBookFile: (relativePath) => ipcRenderer.invoke('read-book-file', relativePath),
   fetchPinterest: (url) => ipcRenderer.invoke('fetch-pinterest', url),
-  fetchPinterestImage: (url) => ipcRenderer.invoke('fetch-pinterest-image', url)
+  fetchPinterestImage: (url) => ipcRenderer.invoke('fetch-pinterest-image', url),
+  fetchPinterestResource: (payload) => ipcRenderer.invoke('fetch-pinterest-resource', payload)
 });

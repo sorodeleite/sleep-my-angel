@@ -3655,6 +3655,152 @@ body {
   font-weight: 600;
 }
 
+.mood-section-action {
+  margin-left: auto;
+  padding: 4px 11px;
+  border: 1px solid #e4dcd7;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6e645e;
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mood-section-action:hover {
+  background: #faf5f2;
+  color: #3b332f;
+}
+
+.mood-organize-hint {
+  margin: -4px 0 12px;
+  color: #a49a94;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.mood-organize-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  gap: 10px;
+}
+
+.mood-organize-tile {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f4efeb;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.mood-organize-tile:active {
+  cursor: grabbing;
+}
+
+.mood-organize-tile.is-dragging {
+  opacity: 0.38;
+}
+
+.mood-organize-tile.is-drop-target {
+  outline: 3px solid #c995a3;
+  outline-offset: -3px;
+  transform: scale(1.02);
+}
+
+.mood-organize-tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mood-organize-tile img.is-loaded {
+  opacity: 1;
+}
+
+.mood-tile-index {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(24, 20, 18, 0.55);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+}
+
+.mood-tile-tools {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.mood-organize-tile:hover .mood-tile-tools,
+.mood-organize-tile:focus-within .mood-tile-tools {
+  opacity: 1;
+}
+
+.mood-tile-tools button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 23px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #2a2522;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.mood-tile-tools button:hover {
+  background: #ffffff;
+}
+
+.mood-tile-name {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  padding: 22px 8px 7px;
+  background: linear-gradient(to top, rgba(24, 18, 16, 0.6), rgba(24, 18, 16, 0));
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (hover: none) {
+  .mood-tile-tools {
+    opacity: 1;
+  }
+}
+
 .mood-folder-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));

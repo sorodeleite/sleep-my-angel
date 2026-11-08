@@ -21,7 +21,7 @@ async function fetchWithTimeout(net, target, options) {
   }
 }
 
-function setupPinterest({ ipcMain, net }) {
+function setupPinterest({ ipcMain, net, session }) {
   ipcMain.handle('fetch-pinterest', async (event, target) => {
     if (!allowedRemote(target, PINTEREST_HOST)) {
       return { ok: false, error: 'só consigo abrir links do pinterest.' };
@@ -68,6 +68,57 @@ function setupPinterest({ ipcMain, net }) {
       return { ok: true, dataUrl: 'data:' + type + ';base64,' + buffer.toString('base64') };
     } catch (error) {
       return { ok: false };
+    }
+  });
+
+  ipcMain.handle('fetch-pinterest-resource', async (event, payload) => {
+    const url = String((payload && payload.url) || '');
+    const sourcePath = String((payload && payload.sourcePath) || '');
+    const handler = String((payload && payload.handler) || '');
+    if (!allowedRemote(url, PINTEREST_HOST)
+      || !/^https:\/\/www\.pinterest\.com\/resource\/(BoardFeedResource|BoardSectionPinsResource|BoardSectionsResource)\/get\//i.test(url)) {
+      return { ok: false, error: 'endereço de recurso do pinterest inválido.' };
+    }
+    if (!/^\/[A-Za-z0-9_%./-]*$/.test(sourcePath) || !/^www\/[A-Za-z0-9_./\[\]-]+$/.test(handler)) {
+      return { ok: false, error: 'caminho da pasta inválido.' };
+    }
+
+    let csrf = 'undefined';
+    if (session) {
+      try {
+        const cookies = await session.cookies.get({ name: 'csrftoken' });
+        if (cookies && cookies[0] && cookies[0].value) csrf = cookies[0].value;
+      } catch (error) {
+        csrf = 'undefined';
+      }
+    }
+
+    try {
+      const response = await fetchWithTimeout(net, url, {
+        redirect: 'follow',
+        headers: {
+          'user-agent': BROWSER_UA,
+          accept: 'application/json, text/javascript, */*, q=0.01',
+          'accept-language': 'pt-BR,pt;q=0.9,en;q=0.7',
+          'x-requested-with': 'XMLHttpRequest',
+          'x-pinterest-appstate': 'active',
+          'x-pinterest-pws-handler': handler,
+          'x-pinterest-source-url': sourcePath,
+          'x-csrftoken': csrf,
+          referer: 'https://www.pinterest.com' + sourcePath,
+          origin: 'https://www.pinterest.com'
+        }
+      });
+      if (!response.ok) {
+        return { ok: false, error: 'o pinterest respondeu ' + response.status + ' ao pedir os pins.' };
+      }
+      const text = await response.text();
+      if (!text || text.length > 8 * 1024 * 1024) {
+        return { ok: false, error: 'a lista de pins do pinterest veio vazia ou grande demais.' };
+      }
+      return { ok: true, text: text };
+    } catch (error) {
+      return { ok: false, error: 'não consegui pedir a lista completa de pins ao pinterest.' };
     }
   });
 }
