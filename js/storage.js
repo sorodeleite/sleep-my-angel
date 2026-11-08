@@ -9,6 +9,15 @@
   const STORE_MOOD_FOLDERS = 'mood-folders';
   const STORE_MOOD_PINS = 'mood-pins';
   const STORE_MOOD_IMAGES = 'mood-images';
+  const ALL_STORES = [
+    STORE_AUDIO,
+    STORE_BOOKS,
+    STORE_DOCS,
+    STORE_MOOD_BOARDS,
+    STORE_MOOD_FOLDERS,
+    STORE_MOOD_PINS,
+    STORE_MOOD_IMAGES
+  ];
   const objectUrls = new Map();
   let databasePromise = null;
 
@@ -19,27 +28,11 @@
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         request.onupgradeneeded = function () {
           const database = request.result;
-          if (!database.objectStoreNames.contains(STORE_AUDIO)) {
-            database.createObjectStore(STORE_AUDIO, { keyPath: 'id' });
-          }
-          if (!database.objectStoreNames.contains(STORE_BOOKS)) {
-            database.createObjectStore(STORE_BOOKS, { keyPath: 'id' });
-          }
-          if (!database.objectStoreNames.contains(STORE_DOCS)) {
-            database.createObjectStore(STORE_DOCS, { keyPath: 'id' });
-          }
-          if (!database.objectStoreNames.contains(STORE_MOOD_BOARDS)) {
-            database.createObjectStore(STORE_MOOD_BOARDS, { keyPath: 'id' });
-          }
-          if (!database.objectStoreNames.contains(STORE_MOOD_FOLDERS)) {
-            database.createObjectStore(STORE_MOOD_FOLDERS, { keyPath: 'id' });
-          }
-          if (!database.objectStoreNames.contains(STORE_MOOD_PINS)) {
-            database.createObjectStore(STORE_MOOD_PINS, { keyPath: 'id' });
-          }
-          if (!database.objectStoreNames.contains(STORE_MOOD_IMAGES)) {
-            database.createObjectStore(STORE_MOOD_IMAGES, { keyPath: 'id' });
-          }
+          ALL_STORES.forEach(function (name) {
+            if (!database.objectStoreNames.contains(name)) {
+              database.createObjectStore(name, { keyPath: 'id' });
+            }
+          });
         };
         request.onsuccess = function () {
           resolve(request.result);

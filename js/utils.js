@@ -51,41 +51,53 @@
       .replace(/'/g, '&#039;');
   };
 
-  SMA.readJSON = function (key, fallback) {
+  function readStored(key, fallback, parse) {
     try {
       const raw = localStorage.getItem(key);
-      return raw === null ? fallback : JSON.parse(raw);
+      if (raw === null) return fallback;
+      return parse ? JSON.parse(raw) : raw;
     } catch (error) {
       return fallback;
     }
-  };
+  }
 
-  SMA.writeJSON = function (key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
-
-  SMA.readText = function (key, fallback) {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw === null ? fallback : raw;
-    } catch (error) {
-      return fallback;
-    }
-  };
-
-  SMA.writeText = function (key, value) {
+  function writeStored(key, value) {
     try {
       localStorage.setItem(key, value);
       return true;
     } catch (error) {
       return false;
     }
+  }
+
+  SMA.readJSON = function (key, fallback) {
+    return readStored(key, fallback, true);
   };
+
+  SMA.writeJSON = function (key, value) {
+    try {
+      return writeStored(key, JSON.stringify(value));
+    } catch (error) {
+      return false;
+    }
+  };
+
+  SMA.readText = function (key, fallback) {
+    return readStored(key, fallback, false);
+  };
+
+  SMA.writeText = function (key, value) {
+    return writeStored(key, value);
+  };
+
+  function drawScaled(source, naturalWidth, naturalHeight, limit) {
+    const scale = Math.min(1, limit / Math.max(naturalWidth, naturalHeight));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(naturalHeight * scale));
+    canvas.getContext('2d').drawImage(source, 0, 0, canvas.width, canvas.height);
+    return canvas;
+  }
 
   SMA.todayLabel = function () {
     const formatted = new Intl.DateTimeFormat('pt-BR', {
@@ -141,15 +153,7 @@
       const url = URL.createObjectURL(file);
       const image = new Image();
       image.onload = function () {
-        const limit = maxSize || 640;
-        const scale = Math.min(1, limit / Math.max(image.width, image.height));
-        const width = Math.max(1, Math.round(image.width * scale));
-        const height = Math.max(1, Math.round(image.height * scale));
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const context = canvas.getContext('2d');
-        context.drawImage(image, 0, 0, width, height);
+        const canvas = drawScaled(image, image.width, image.height, maxSize || 640);
         URL.revokeObjectURL(url);
         try {
           resolve(canvas.toDataURL('image/jpeg', quality || 0.84));
@@ -207,9 +211,7 @@
     let path = String(value || '');
     try {
       path = decodeURIComponent(path);
-    } catch (error) {
-      path = path;
-    }
+    } catch (error) {}
     return path.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\/+/, '').replace(/\s+/g, ' ');
   };
 
@@ -283,18 +285,10 @@
   };
 
   SMA.imageToDataUrl = async function (blob, limit) {
-    const max = limit || 1400;
     try {
       if (blob.size < 260 * 1024) return await SMA.blobToDataUrl(blob);
       const bitmap = await createImageBitmap(blob);
-      const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
-      const width = Math.max(1, Math.round(bitmap.width * scale));
-      const height = Math.max(1, Math.round(bitmap.height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const context = canvas.getContext('2d');
-      context.drawImage(bitmap, 0, 0, width, height);
+      const canvas = drawScaled(bitmap, bitmap.width, bitmap.height, limit || 1400);
       if (typeof bitmap.close === 'function') bitmap.close();
       const type = /png|gif|webp/i.test(blob.type) && SMA.canvasHasAlpha(canvas) ? 'image/png' : 'image/jpeg';
       return canvas.toDataURL(type, 0.84);
