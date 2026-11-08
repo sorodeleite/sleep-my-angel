@@ -24,6 +24,10 @@
     error: ''
   };
 
+  function errorText(error) {
+    return String((error && (error.message || error.error || error)) || '');
+  }
+
   function plugin() {
     if (SMA.platform() !== 'android') return null;
     try {
@@ -139,8 +143,7 @@
         state.downloadedVersion = info.downloadedVersion || state.downloadedVersion;
         state.canInstall = info.canInstall !== false;
       }
-    } catch (error) {
-    }
+    } catch (error) {}
     paintVersions();
   }
 
@@ -178,7 +181,7 @@
       }
     } catch (error) {
       const code = error && error.code;
-      const message = String((error && (error.message || error.error || error)) || '');
+      const message = errorText(error);
       if (code === 'PRIVATE_REPO' || message.indexOf('404') !== -1 || message.indexOf('privado') !== -1) {
         state.error = 'o repositório do app está privado, então o app não consegue checar sozinho. toque em "ver no github" pra abrir a página de releases, baixar o sleep-my-angel.apk e instalar por cima — suas notas, playlists e áudios continuam guardados.';
       } else {
@@ -207,7 +210,7 @@
       setStatus('download concluído. toque em instalar agora. o android pode pedir pra liberar a instalação.', 'ready');
     } catch (error) {
       state.progress = 0;
-      state.error = 'o download falhou: ' + (error && (error.message || error.error || error));
+      state.error = 'o download falhou: ' + errorText(error);
       paint();
     } finally {
       state.downloading = false;
@@ -221,8 +224,7 @@
     try {
       const info = await native.info();
       state.canInstall = info.canInstall !== false;
-    } catch (error) {
-    }
+    } catch (error) {}
     if (!state.canInstall) {
       state.installing = false;
       setStatus('falta liberar a instalação: toque em permitir, ative "instalar apps desconhecidos" pro sleep my angel e volte pra tocar em instalar de novo.', 'error');
@@ -243,7 +245,7 @@
       }
       setStatus('instalador aberto. confirma a atualização e pronto, seus dados continuam aqui.', 'ready');
     } catch (error) {
-      const message = String((error && (error.message || error.error || error)) || '');
+      const message = errorText(error);
       state.error = message.indexOf('not downloaded') !== -1 || message.indexOf('baixado') !== -1
         ? 'a atualização ainda não foi baixada. toque em baixar de novo.'
         : 'não consegui abrir o instalador: ' + message + ' ‧ se o android reclamar de assinatura, desinstale essa versão uma vez e instale a nova.';
@@ -259,8 +261,7 @@
       try {
         await native.openUrl({ url: url });
         return;
-      } catch (error) {
-      }
+      } catch (error) {}
     }
     window.open(url, '_blank', 'noopener');
   }
