@@ -682,7 +682,50 @@
         <button class="reader-icon-btn" id="reader-edit-btn" type="button" title="mudar nome e autor">nome</button>
         <button class="reader-icon-btn" id="reader-font-smaller" type="button" title="diminuir letra">A−</button>
         <button class="reader-icon-btn" id="reader-font-bigger" type="button" title="aumentar letra">A＋</button>
-        <button class="reader-icon-btn" id="reader-theme-btn" type="button" title="mudar tema">◐</button>
+        <button class="reader-icon-btn reader-mode-trigger" id="reader-theme-btn" type="button" title="modo de leitura" aria-haspopup="true" aria-expanded="false" aria-label="mudar modo de leitura">
+          <svg class="reader-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <mask id="reader-book-spines-mask">
+              <rect x="0" y="0" width="24" height="24" fill="#fff"/>
+              <rect x="9.2" y="12.5" width="1.9" height="1.1" rx="0.55" fill="#000"/>
+              <rect x="9.2" y="17" width="1.9" height="1.1" rx="0.55" fill="#000"/>
+            </mask>
+            <g mask="url(#reader-book-spines-mask)" fill="currentColor">
+              <rect x="1.6" y="8" width="4.2" height="14" rx="1.5"/>
+              <rect x="7.6" y="10.6" width="4.2" height="11.4" rx="1.5"/>
+              <rect x="13.6" y="5.6" width="4.2" height="16.4" rx="1.5" transform="rotate(4 15.7 13.8)"/>
+              <rect x="19" y="8.6" width="4.2" height="13.4" rx="1.5" transform="rotate(8 21.1 15.3)"/>
+            </g>
+          </svg>
+        </button>
+        <button class="reader-icon-btn" id="reader-clean-btn" type="button" title="tela limpa ‧ só virar a página" aria-label="tela limpa" aria-pressed="false">
+          <svg class="reader-glyph reader-stroke-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 9V4.8A.8.8 0 0 1 4.8 4H9M20 9V4.8a.8.8 0 0 0-.8-.8H15M4 15v4.2a.8.8 0 0 0 .8.8H9M20 15v4.2a.8.8 0 0 1-.8.8H15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="reader-icon-btn" id="reader-mark-btn" type="button" title="marcar esta página" aria-label="marcar página" aria-pressed="false">
+          <svg class="reader-glyph reader-bookmark-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="reader-icon-btn" id="reader-marks-btn" type="button" title="páginas marcadas" aria-label="páginas marcadas">
+          <svg class="reader-glyph reader-stroke-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="reader-mode-menu" id="reader-mode-menu" role="menu" aria-label="modo de leitura" hidden>
+        <button type="button" class="reader-mode-item" data-theme="sepia" role="menuitem">
+          <span class="reader-mode-dot reader-mode-dot-sepia"></span>
+          <span>de leitura</span>
+        </button>
+        <button type="button" class="reader-mode-item" data-theme="light" role="menuitem">
+          <span class="reader-mode-dot reader-mode-dot-light"></span>
+          <span>claro</span>
+        </button>
+        <button type="button" class="reader-mode-item" data-theme="dark" role="menuitem">
+          <span class="reader-mode-dot reader-mode-dot-dark"></span>
+          <span>escuro</span>
+        </button>
       </div>
     </header>
 
@@ -691,8 +734,13 @@
       <div id="reader-view" class="reader-view"></div>
       <button class="reader-turn reader-turn-right" id="reader-next" type="button" aria-label="próxima página">›</button>
       <aside class="reader-toc" id="reader-toc" hidden>
-        <h4>índice</h4>
+        <div class="reader-toc-head" id="reader-toc-head">
+          <h4 id="reader-toc-title">índice</h4>
+          <button type="button" class="reader-toc-close" id="reader-toc-close" aria-label="fechar painel">×</button>
+        </div>
         <div id="reader-toc-list"></div>
+        <h4 class="reader-marks-title" id="reader-marks-title">páginas marcadas</h4>
+        <div id="reader-marks-list" class="reader-marks-list"></div>
       </aside>
     </main>
 
@@ -700,6 +748,14 @@
       <input type="range" id="reader-progress" min="0" max="100" step="0.1" value="0" aria-label="progresso de leitura">
       <span id="reader-page-label">0%</span>
     </footer>
+
+    <div class="reader-highlight-bar" id="reader-highlight-bar" role="toolbar" aria-label="marcar texto" hidden>
+      <span class="reader-highlight-title">marcar</span>
+      <div class="reader-hearts" id="reader-color-list"></div>
+      <button type="button" class="reader-heart-add" id="reader-color-add" title="criar mais uma cor" aria-label="criar mais uma cor">＋</button>
+      <button type="button" class="reader-highlight-close" id="reader-highlight-close" aria-label="fechar barra de marcar texto">×</button>
+    </div>
+    <input type="color" id="reader-color-input" hidden>
   </div>
 
   <input type="file" id="book-cover-input" accept="image/*" hidden>

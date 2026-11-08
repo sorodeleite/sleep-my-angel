@@ -6,13 +6,26 @@
   const PROGRESS_KEY = 'sma_book_progress';
   const FONT_KEY = 'sma_reader_font';
   const THEME_KEY = 'sma_reader_theme';
+  const BOOKMARKS_KEY = 'sma_book_bookmarks';
+  const HIGHLIGHTS_KEY = 'sma_book_highlights';
+  const HIGHLIGHT_COLORS_KEY = 'sma_reader_highlight_colors';
   const READER_THEMES = ['sepia', 'light', 'dark'];
+  const DEFAULT_HIGHLIGHT_COLORS = ['#E4D3D9', '#CBD9E0', '#E9DFC3', '#D6E6D0', '#E4D6EB'];
+  const HIGHLIGHT_CLASS = 'sma-highlight';
 
   let books = [];
   let importedMeta = [];
   let coverOverrides = {};
   let metaOverrides = {};
   let progress = {};
+  let bookmarks = {};
+  let highlights = {};
+  let highlightColors = DEFAULT_HIGHLIGHT_COLORS.slice();
+  let pendingSelection = null;
+  let readerClean = false;
+  let lastSwipeAt = 0;
+  let ignoreClickUntil = 0;
+  let lastHighlightClick = 0;
   let root = null;
   let reader = null;
   let coverTargetId = null;
@@ -49,6 +62,72 @@
     if (!metaOverrides || typeof metaOverrides !== 'object' || Array.isArray(metaOverrides)) metaOverrides = {};
     progress = SMA.readJSON(PROGRESS_KEY, {});
     if (!progress || typeof progress !== 'object' || Array.isArray(progress)) progress = {};
+    bookmarks = readBookMap(BOOKMARKS_KEY);
+    highlights = readBookMap(HIGHLIGHTS_KEY);
+    loadHighlightColors();
+  }
+
+  function readBookMap(key) {
+    const stored = SMA.readJSON(key, {});
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return {};
+    const clean = {};
+    Object.keys(stored).forEach(function (bookId) {
+      if (Array.isArray(stored[bookId])) clean[bookId] = stored[bookId].filter(function (item) {
+        return item && typeof item === 'object';
+      });
+    });
+    return clean;
+  }
+
+  function isHexColor(value) {
+    return /^#[0-9a-f]{6}$/i.test(String(value || ''));
+  }
+
+  function loadHighlightColors() {
+    const saved = SMA.readJSON(HIGHLIGHT_COLORS_KEY, []);
+    highlightColors = DEFAULT_HIGHLIGHT_COLORS.slice();
+    (Array.isArray(saved) ? saved : []).forEach(function (color) {
+      if (isHexColor(color) && !highlightColors.some(function (item) {
+        return item.toLowerCase() === String(color).toLowerCase();
+      })) {
+        highlightColors.push(color);
+      }
+    });
+  }
+
+  function persistExtraColors() {
+    const extras = highlightColors.filter(function (color) {
+      return DEFAULT_HIGHLIGHT_COLORS.indexOf(color) === -1;
+    });
+    SMA.writeJSON(HIGHLIGHT_COLORS_KEY, extras);
+  }
+
+  function addHighlightColor(color) {
+    if (!isHexColor(color)) return;
+    const exists = highlightColors.some(function (item) {
+      return item.toLowerCase() === String(color).toLowerCase();
+    });
+    if (!exists) {
+      highlightColors.push(color);
+      persistExtraColors();
+    }
+    renderHighlightColors();
+  }
+
+  function persistBookmarks() {
+    if (!SMA.writeJSON(BOOKMARKS_KEY, bookmarks)) {
+      SMA.toast('não consegui guardar as páginas marcadas');
+    }
+  }
+
+  function persistHighlights() {
+    if (!SMA.writeJSON(HIGHLIGHTS_KEY, highlights)) {
+      SMA.toast('não consegui guardar as marcações de texto');
+    }
+  }
+
+  function makeId(prefix) {
+    return prefix + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
   }
 
   function persistImported() {
@@ -166,6 +245,16 @@
     info.appendChild(title);
     info.appendChild(author);
 
+    const marks = bookmarks[book.id] || [];
+    if (marks.length) {
+      const marked = document.createElement('span');
+      marked.className = 'book-bookmark';
+      marked.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z"/></svg><span></span>';
+      const label = marked.querySelector('span');
+      if (label) label.textContent = marks.length + (marks.length === 1 ? ' página marcada' : ' páginas marcadas');
+      info.appendChild(marked);
+    }
+
     const entry = progress[book.id];
     const percent = entry && Number.isFinite(Number(entry.percent)) ? Number(entry.percent) : 0;
     if (percent > 0) {
@@ -176,7 +265,7 @@
       track.appendChild(fill);
       const label = document.createElement('span');
       label.className = 'book-progress-label';
-      label.textContent = Math.round(percent) + '% lido';
+      label.textContent = 'parou em ' + Math.round(percent) + '%';
       info.appendChild(track);
       info.appendChild(label);
     }
@@ -540,6 +629,10 @@
     persistBookMeta();
     delete progress[book.id];
     persistProgress();
+    delete bookmarks[book.id];
+    persistBookmarks();
+    delete highlights[book.id];
+    persistHighlights();
     books = books.filter(function (item) { return item.id !== book.id; });
     render();
     SMA.toast('livro removido');
@@ -617,6 +710,10 @@
     el.overlay.classList.remove('reader-theme-sepia', 'reader-theme-light', 'reader-theme-dark');
     el.overlay.classList.add('reader-theme-' + chosen);
     SMA.writeJSON(THEME_KEY, chosen);
+    paintThemeMenu(chosen);
+    if (el.themeButton) {
+      el.themeButton.title = 'modo de leitura ‧ ' + themeLabel(chosen);
+    }
     if (reader && reader.rendition) {
       try {
         reader.rendition.themes.select(chosen);
@@ -624,6 +721,552 @@
         void error;
       }
     }
+  }
+
+  function themeLabel(theme) {
+    if (theme === 'light') return 'claro';
+    if (theme === 'dark') return 'escuro';
+    return 'de leitura';
+  }
+
+  function paintThemeMenu(current) {
+    if (!el.modeMenu) return;
+    SMA.selectAll('.reader-mode-item', el.modeMenu).forEach(function (button) {
+      const active = button.dataset.theme === current;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-checked', String(active));
+    });
+  }
+
+  function toggleModeMenu(force) {
+    if (!el.modeMenu || !el.themeButton) return;
+    const open = typeof force === 'boolean' ? force : el.modeMenu.hidden;
+    el.modeMenu.hidden = !open;
+    el.themeButton.setAttribute('aria-expanded', String(open));
+  }
+
+  function closeModeMenu() {
+    toggleModeMenu(false);
+  }
+
+  function setCleanMode(on, announce) {
+    readerClean = Boolean(on);
+    if (el.overlay) el.overlay.classList.toggle('reader-clean', readerClean);
+    if (el.cleanButton) {
+      el.cleanButton.classList.toggle('active', readerClean);
+      el.cleanButton.setAttribute('aria-pressed', String(readerClean));
+    }
+    if (readerClean) {
+      closeModeMenu();
+      if (el.toc) el.toc.hidden = true;
+      if (announce !== false) {
+        SMA.toast('tela limpa ‧ toque nas laterais pra virar, no meio pra sair');
+      }
+    }
+  }
+
+  function turnByRatio(ratio) {
+    if (ratio < 0.36) prevPage();
+    else if (ratio > 0.64) nextPage();
+    else setCleanMode(false);
+  }
+
+  function textSelectionExists() {
+    try {
+      const selection = window.getSelection();
+      if (selection && String(selection.toString()).trim()) return true;
+    } catch (error) {
+      void error;
+    }
+    try {
+      if (!reader || !reader.rendition) return false;
+      const contents = reader.rendition.getContents();
+      return (contents || []).some(function (item) {
+        const selection = item.window && item.window.getSelection();
+        return Boolean(selection && String(selection.toString()).trim());
+      });
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function currentPercent() {
+    if (el.progress && Number.isFinite(Number(el.progress.value))) {
+      return SMA.clamp(Number(el.progress.value), 0, 100);
+    }
+    if (reader && reader.type === 'pdf' && reader.pages) return (reader.page / reader.pages) * 100;
+    return 0;
+  }
+
+  function currentLocation() {
+    if (!reader) return null;
+    const percent = currentPercent();
+    if (reader.type === 'pdf') {
+      return { percent: percent, page: reader.page, pages: reader.pages };
+    }
+    if (reader.type === 'epub' && reader.rendition) {
+      let cfi = '';
+      try {
+        const location = reader.rendition.currentLocation();
+        if (location && location.start && location.start.cfi) cfi = location.start.cfi;
+      } catch (error) {
+        void error;
+      }
+      return { percent: percent, cfi: cfi };
+    }
+    if (reader.type === 'text') {
+      return { percent: percent, scroll: Math.round(el.view.scrollTop || 0) };
+    }
+    return { percent: percent };
+  }
+
+  function bookmarkMatches(item, location) {
+    if (!item || !location) return false;
+    if (reader && reader.type === 'pdf') return Number(item.page) === Number(location.page);
+    if (reader && reader.type === 'text') {
+      return Math.abs(Number(item.scroll) - Number(location.scroll)) < 48;
+    }
+    if (item.cfi && location.cfi) return item.cfi === location.cfi;
+    return Math.abs(Number(item.percent) - Number(location.percent)) < 1;
+  }
+
+  function currentBookmarkIndex() {
+    if (!reader) return -1;
+    const list = bookmarks[reader.id] || [];
+    const location = currentLocation();
+    for (let index = 0; index < list.length; index += 1) {
+      if (bookmarkMatches(list[index], location)) return index;
+    }
+    return -1;
+  }
+
+  function paintMarkButton() {
+    if (!el.markButton || !el.overlay || el.overlay.hidden) return;
+    const active = currentBookmarkIndex() >= 0;
+    el.markButton.classList.toggle('active', active);
+    el.markButton.setAttribute('aria-pressed', String(active));
+    el.markButton.title = active ? 'desmarcar esta página' : 'marcar esta página';
+  }
+
+  function toggleBookmark() {
+    if (!reader) return;
+    const list = bookmarks[reader.id] || [];
+    const index = currentBookmarkIndex();
+    if (index >= 0) {
+      list.splice(index, 1);
+      SMA.toast('página desmarcada');
+    } else {
+      const location = currentLocation();
+      if (!location) return;
+      list.push(Object.assign({ id: makeId('mark'), created: Date.now() }, location));
+      SMA.toast('página marcada ‧°');
+    }
+    bookmarks[reader.id] = list;
+    persistBookmarks();
+    paintMarkButton();
+    renderBookmarks();
+  }
+
+  function bookmarkLabel(item) {
+    if (!item) return '';
+    if (item.page) return 'página ' + item.page + (item.pages ? ' de ' + item.pages : '');
+    const percent = Math.round(Number(item.percent) || 0);
+    if (percent <= 0) return 'começo do livro';
+    if (percent >= 100) return 'fim do livro';
+    return percent + '% do livro';
+  }
+
+  function renderBookmarks() {
+    if (!el.marksList) return;
+    el.marksList.textContent = '';
+    const list = reader ? (bookmarks[reader.id] || []).slice() : [];
+    list.sort(function (a, b) {
+      return (Number(a.percent) || 0) - (Number(b.percent) || 0);
+    });
+    if (el.marksTitle) {
+      el.marksTitle.textContent = 'páginas marcadas' + (list.length ? ' ‧ ' + list.length : '');
+    }
+    if (!list.length) {
+      const empty = document.createElement('p');
+      empty.className = 'reader-marks-empty';
+      empty.textContent = 'nenhuma página marcada ainda. toque na fitinha pra guardar onde você parou.';
+      el.marksList.appendChild(empty);
+      return;
+    }
+    list.forEach(function (item) {
+      const row = document.createElement('div');
+      row.className = 'reader-mark-row';
+      const jump = document.createElement('button');
+      jump.type = 'button';
+      jump.className = 'reader-mark-jump';
+      jump.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z"/></svg><span></span>';
+      const label = jump.querySelector('span');
+      if (label) label.textContent = bookmarkLabel(item);
+      jump.addEventListener('click', function () {
+        jumpToBookmark(item);
+      });
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'reader-mark-remove';
+      remove.textContent = '×';
+      remove.title = 'apagar marcação';
+      remove.setAttribute('aria-label', 'apagar marcação');
+      remove.addEventListener('click', function (event) {
+        event.stopPropagation();
+        removeBookmark(item.id);
+      });
+      row.appendChild(jump);
+      row.appendChild(remove);
+      el.marksList.appendChild(row);
+    });
+  }
+
+  function jumpToBookmark(item) {
+    if (!reader || !item) return;
+    if (reader.type === 'pdf' && item.page) {
+      reader.page = SMA.clamp(Number(item.page) || 1, 1, reader.pages || 1);
+      const canvas = el.view.querySelector('canvas.pdf-page');
+      if (canvas) renderPdfPage(canvas);
+    } else if (reader.type === 'epub' && item.cfi && reader.rendition) {
+      reader.rendition.display(item.cfi);
+    } else if (reader.type === 'text' && Number.isFinite(Number(item.scroll))) {
+      el.view.scrollTop = Number(item.scroll);
+      const max = el.view.scrollHeight - el.view.clientHeight;
+      updateReaderProgress(max > 0 ? (el.view.scrollTop / max) * 100 : 100);
+      saveProgress({ id: reader.id }, currentPercent());
+    } else if (Number.isFinite(Number(item.percent))) {
+      seekReader(Number(item.percent));
+    }
+    if (el.toc) el.toc.hidden = true;
+    paintMarkButton();
+  }
+
+  function removeBookmark(id) {
+    if (!reader) return;
+    bookmarks[reader.id] = (bookmarks[reader.id] || []).filter(function (item) {
+      return item.id !== id;
+    });
+    persistBookmarks();
+    paintMarkButton();
+    renderBookmarks();
+    SMA.toast('marcação apagada');
+  }
+
+  function renderHighlightColors() {
+    if (!el.colorList) return;
+    el.colorList.textContent = '';
+    highlightColors.forEach(function (color) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'reader-heart';
+      button.style.color = color;
+      button.title = 'marcar com ' + color;
+      button.setAttribute('aria-label', 'marcar texto com a cor ' + color);
+      button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="reader-heart-shape" d="M12 21s-6.9-4.4-9.4-8.2C.7 10.3 1.4 6.4 4.3 4.7c2.3-1.4 5-.6 6.5 1.4L12 7.8l1.2-1.7c1.5-2 4.2-2.8 6.5-1.4 2.9 1.7 3.6 5.6 1.7 8.1C18.9 16.6 12 21 12 21z"/></svg>';
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        applyHighlight(color);
+      });
+      el.colorList.appendChild(button);
+    });
+  }
+
+  function showHighlightBar() {
+    if (!pendingSelection) return;
+    renderHighlightColors();
+    if (el.highlightBar) el.highlightBar.hidden = false;
+  }
+
+  function hideHighlightBar() {
+    pendingSelection = null;
+    if (el.highlightBar) el.highlightBar.hidden = true;
+    clearSelections();
+  }
+
+  function clearSelections() {
+    try {
+      const selection = window.getSelection();
+      if (selection) selection.removeAllRanges();
+    } catch (error) {
+      void error;
+    }
+    if (!reader || !reader.rendition) return;
+    try {
+      (reader.rendition.getContents() || []).forEach(function (contents) {
+        try {
+          const selection = contents.window.getSelection();
+          if (selection) selection.removeAllRanges();
+        } catch (error) {
+          void error;
+        }
+      });
+    } catch (error) {
+      void error;
+    }
+  }
+
+  function applyHighlight(color) {
+    if (!pendingSelection || !reader || !isHexColor(color)) return;
+    if (pendingSelection.bookId !== reader.id) {
+      hideHighlightBar();
+      return;
+    }
+    if (pendingSelection.kind === 'epub' && pendingSelection.cfi) {
+      addEpubHighlight(pendingSelection.cfi, color, pendingSelection.text || '');
+    } else if (pendingSelection.kind === 'text') {
+      addTextHighlight(pendingSelection.ranges || [], color, pendingSelection.text || '');
+    }
+    hideHighlightBar();
+    SMA.toast('texto marcado ‧°');
+  }
+
+  function addEpubHighlight(cfi, color, text) {
+    const item = {
+      id: makeId('hl'),
+      cfi: cfi,
+      color: color,
+      text: String(text || '').slice(0, 280),
+      created: Date.now()
+    };
+    highlights[reader.id] = highlights[reader.id] || [];
+    highlights[reader.id].push(item);
+    persistHighlights();
+    paintEpubHighlight(item);
+  }
+
+  function paintEpubHighlight(item) {
+    if (!reader || !reader.rendition) return;
+    try {
+      reader.rendition.annotations.highlight(item.cfi, { id: item.id }, function () {
+        handleHighlightClick(item.id);
+      }, HIGHLIGHT_CLASS, {
+        fill: item.color,
+        'fill-opacity': '0.55',
+        'mix-blend-mode': 'multiply'
+      });
+    } catch (error) {
+      void error;
+    }
+  }
+
+  function paintHighlights() {
+    if (!reader || reader.type !== 'epub' || !reader.rendition) return;
+    (highlights[reader.id] || []).forEach(paintEpubHighlight);
+  }
+
+  function handleHighlightClick(id) {
+    if (Date.now() - lastHighlightClick < 450) return;
+    lastHighlightClick = Date.now();
+    removeHighlight(id);
+  }
+
+  function addTextHighlight(ranges, color, text) {
+    if (!ranges.length) return;
+    const item = {
+      id: makeId('hl'),
+      ranges: ranges,
+      color: color,
+      text: String(text || '').slice(0, 280),
+      created: Date.now()
+    };
+    highlights[reader.id] = highlights[reader.id] || [];
+    highlights[reader.id].push(item);
+    persistHighlights();
+    ranges.forEach(function (range) {
+      const paragraphs = SMA.selectAll('p', el.view);
+      const paragraph = paragraphs[range.p];
+      if (paragraph) wrapTextRange(paragraph, range.start, range.end, color, item.id);
+    });
+  }
+
+  function resolveTextOffset(rootNode, offset) {
+    let remaining = offset;
+    const walker = document.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT);
+    let node = walker.nextNode();
+    while (node) {
+      if (remaining <= node.data.length) return { node: node, offset: remaining };
+      remaining -= node.data.length;
+      node = walker.nextNode();
+    }
+    return null;
+  }
+
+  function wrapTextRange(paragraph, start, end, color, id) {
+    if (end <= start) return;
+    const startPos = resolveTextOffset(paragraph, start);
+    const endPos = resolveTextOffset(paragraph, end);
+    if (!startPos || !endPos) return;
+    const range = document.createRange();
+    try {
+      range.setStart(startPos.node, startPos.offset);
+      range.setEnd(endPos.node, endPos.offset);
+    } catch (error) {
+      return;
+    }
+    const mark = document.createElement('mark');
+    mark.className = 'reader-text-mark';
+    mark.style.backgroundColor = color;
+    mark.dataset.highlightId = id;
+    mark.title = 'toque pra desmarcar';
+    mark.addEventListener('click', function (event) {
+      event.stopPropagation();
+      handleHighlightClick(id);
+    });
+    try {
+      range.surroundContents(mark);
+    } catch (error) {
+      try {
+        const fragment = range.extractContents();
+        mark.appendChild(fragment);
+        range.insertNode(mark);
+      } catch (failure) {
+        void failure;
+      }
+    }
+  }
+
+  function unwrapTextMarks(id) {
+    SMA.selectAll('mark[data-highlight-id="' + id + '"]', el.view).forEach(function (mark) {
+      const parent = mark.parentNode;
+      if (!parent) return;
+      while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+      parent.removeChild(mark);
+      parent.normalize();
+    });
+  }
+
+  function removeHighlight(id) {
+    if (!reader) return;
+    const list = highlights[reader.id] || [];
+    const item = list.find(function (entry) { return entry.id === id; });
+    if (!item) return;
+    if (!window.confirm('apagar essa marcação de texto?')) return;
+    if (item.cfi && reader.rendition) {
+      try {
+        reader.rendition.annotations.remove(item.cfi, 'highlight');
+      } catch (error) {
+        void error;
+      }
+    }
+    unwrapTextMarks(id);
+    highlights[reader.id] = list.filter(function (entry) { return entry.id !== id; });
+    persistHighlights();
+    SMA.toast('marcação apagada');
+  }
+
+  function textSelectionRanges() {
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount || selection.isCollapsed) return null;
+    const range = selection.getRangeAt(0);
+    if (!el.view.contains(range.commonAncestorContainer)) return null;
+    const text = String(range.toString()).trim();
+    if (!text) return null;
+    const paragraphs = SMA.selectAll('p', el.view);
+    const startIndex = paragraphs.findIndex(function (paragraph) {
+      return paragraph.contains(range.startContainer);
+    });
+    const endIndex = paragraphs.findIndex(function (paragraph) {
+      return paragraph.contains(range.endContainer);
+    });
+    if (startIndex === -1 || endIndex === -1) return null;
+    const ranges = [];
+    for (let index = startIndex; index <= endIndex; index += 1) {
+      const paragraph = paragraphs[index];
+      let start = 0;
+      let end = paragraph.textContent.length;
+      if (index === startIndex) {
+        start = offsetInside(paragraph, range.startContainer, range.startOffset);
+      }
+      if (index === endIndex) {
+        end = offsetInside(paragraph, range.endContainer, range.endOffset);
+      }
+      if (end > start) ranges.push({ p: index, start: start, end: end });
+    }
+    if (!ranges.length) return null;
+    return { ranges: ranges, text: text };
+  }
+
+  function offsetInside(rootNode, container, offset) {
+    try {
+      const range = document.createRange();
+      range.setStart(rootNode, 0);
+      range.setEnd(container, offset);
+      return range.toString().length;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  function captureTextSelection() {
+    if (!reader || reader.type !== 'text') return;
+    const result = textSelectionRanges();
+    if (!result) return;
+    pendingSelection = {
+      kind: 'text',
+      bookId: reader.id,
+      ranges: result.ranges,
+      text: result.text
+    };
+    showHighlightBar();
+  }
+
+  function applyTextHighlights() {
+    if (!reader || reader.type !== 'text') return;
+    const paragraphs = SMA.selectAll('p', el.view);
+    (highlights[reader.id] || []).forEach(function (item) {
+      (item.ranges || []).forEach(function (range) {
+        const paragraph = paragraphs[range.p];
+        if (paragraph) wrapTextRange(paragraph, range.start, range.end, item.color, item.id);
+      });
+    });
+  }
+
+  function bindEpubInteractions(contents) {
+    const doc = contents && contents.document;
+    if (!doc || doc.__smaReaderBound) return;
+    doc.__smaReaderBound = true;
+    let touchStart = null;
+
+    const selectionText = function () {
+      try {
+        return String(contents.window.getSelection().toString() || '').trim();
+      } catch (error) {
+        return '';
+      }
+    };
+
+    doc.addEventListener('touchstart', function (event) {
+      const touch = event.changedTouches && event.changedTouches[0];
+      if (!touch) return;
+      touchStart = { x: touch.clientX, y: touch.clientY };
+    }, { passive: true });
+
+    doc.addEventListener('touchend', function (event) {
+      if (!touchStart) return;
+      const touch = event.changedTouches && event.changedTouches[0];
+      const start = touchStart;
+      touchStart = null;
+      if (!touch || selectionText()) return;
+      const dx = touch.clientX - start.x;
+      const dy = touch.clientY - start.y;
+      if (Math.abs(dx) < 54 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+      ignoreClickUntil = Date.now() + 400;
+      lastSwipeAt = Date.now();
+      if (dx < 0) nextPage();
+      else prevPage();
+    }, { passive: true });
+
+    doc.addEventListener('click', function (event) {
+      if (!readerClean) return;
+      if (Date.now() < ignoreClickUntil || Date.now() - lastSwipeAt < 400) return;
+      if (selectionText()) return;
+      if (event.target.closest('a, button, input, textarea, select, label')) return;
+      const width = contents.window.innerWidth || doc.documentElement.clientWidth || 1;
+      turnByRatio(event.clientX / width);
+      event.preventDefault();
+      event.stopPropagation();
+    });
   }
 
   function readerFontSize() {
@@ -646,6 +1289,7 @@
     const value = SMA.clamp(Number(percent) || 0, 0, 100);
     if (el.progress) el.progress.value = String(value);
     if (el.progressLabel) el.progressLabel.textContent = label || Math.round(value) + '%';
+    paintMarkButton();
   }
 
   function saveProgress(book, value, extra) {
@@ -666,11 +1310,22 @@
     el.view.className = 'reader-view reader-view-' + book.format;
     el.toc.hidden = true;
     el.tocList.textContent = '';
-    if (el.tocButton) el.tocButton.hidden = false;
+    if (el.marksList) el.marksList.textContent = '';
+    setTocVisibility(false);
+    setCleanMode(false, false);
+    closeModeMenu();
+    hideHighlightBar();
     if (el.progress) el.progress.disabled = false;
     updateReaderProgress(0, '0%');
     setReaderTheme(SMA.readJSON(THEME_KEY, 'sepia'));
     applyReaderFontSize();
+    renderBookmarks();
+  }
+
+  function setTocVisibility(hasItems) {
+    if (el.tocTitle) el.tocTitle.hidden = !hasItems;
+    if (el.tocList) el.tocList.hidden = !hasItems;
+    if (el.tocButton) el.tocButton.hidden = !hasItems;
   }
 
   function closeReader() {
@@ -683,6 +1338,9 @@
     try { if (reader.book) reader.book.destroy(); } catch (error) { void error; }
     try { if (reader.url) URL.revokeObjectURL(reader.url); } catch (error) { void error; }
     reader = null;
+    setCleanMode(false, false);
+    closeModeMenu();
+    hideHighlightBar();
     el.overlay.hidden = true;
     el.view.textContent = '';
     el.view.onscroll = null;
@@ -695,6 +1353,8 @@
     showReaderShell(book);
     const saved = progress[book.id] || {};
     reader = { id: book.id, type: book.format, book: null, rendition: null, url: '', pdf: null, page: saved.page || 1, pages: 0 };
+    renderBookmarks();
+    paintMarkButton();
     try {
       if (book.format === 'thread') {
         openTextBook(book, saved);
@@ -719,7 +1379,7 @@
 
   function openTextBook(book, saved) {
     reader.type = 'text';
-    if (el.tocButton) el.tocButton.hidden = true;
+    setTocVisibility(false);
     if (el.progress) el.progress.disabled = true;
     el.view.className = 'reader-view reader-view-text';
     const text = book.format === 'thread' ? book.text : (book.text || '');
@@ -735,6 +1395,7 @@
       paragraph.textContent = block.trim();
       if (paragraph.textContent) el.view.appendChild(paragraph);
     });
+    applyTextHighlights();
     el.view.scrollTop = 0;
     el.view.onscroll = function () {
       const max = el.view.scrollHeight - el.view.clientHeight;
@@ -768,20 +1429,23 @@
     });
     reader.rendition = rendition;
     rendition.themes.register('sepia', {
-      body: { background: '#f3ecdd', color: '#3b342c', 'font-family': 'Georgia, "Times New Roman", serif', 'line-height': '1.75' },
+      body: { background: '#f3ecdd', color: '#3b342c', 'font-family': 'Georgia, "Times New Roman", serif', 'line-height': '1.75', 'user-select': 'text', '-webkit-user-select': 'text' },
       'p, li': { 'line-height': '1.75' },
       a: { color: '#8a5c45' }
     });
     rendition.themes.register('light', {
-      body: { background: '#ffffff', color: '#1d1d20', 'font-family': 'Georgia, "Times New Roman", serif', 'line-height': '1.75' },
+      body: { background: '#ffffff', color: '#111111', 'font-family': 'Georgia, "Times New Roman", serif', 'line-height': '1.75', 'user-select': 'text', '-webkit-user-select': 'text' },
       a: { color: '#345c8c' }
     });
     rendition.themes.register('dark', {
-      body: { background: '#242327', color: '#e9e5dc', 'font-family': 'Georgia, "Times New Roman", serif', 'line-height': '1.75' },
+      body: { background: '#242327', color: '#e9e5dc', 'font-family': 'Georgia, "Times New Roman", serif', 'line-height': '1.75', 'user-select': 'text', '-webkit-user-select': 'text' },
       a: { color: '#b9cbe8' }
     });
     setReaderTheme(SMA.readJSON(THEME_KEY, 'sepia'));
     applyReaderFontSize();
+    rendition.hooks.content.register(function (contents) {
+      bindEpubInteractions(contents);
+    });
     const reportLocation = function (location) {
       if (!location || !location.start) return;
       let percent = 0;
@@ -795,6 +1459,23 @@
       if (location.start.cfi) saveProgress(book, percent, { cfi: location.start.cfi });
     };
     rendition.on('relocated', reportLocation);
+    rendition.on('selected', function (cfiRange, contents) {
+      if (!reader || !cfiRange) return;
+      let text = '';
+      try {
+        text = String(contents.window.getSelection().toString() || '').trim();
+      } catch (error) {
+        text = '';
+      }
+      if (!text) return;
+      pendingSelection = {
+        kind: 'epub',
+        bookId: reader.id,
+        cfi: cfiRange,
+        text: text
+      };
+      showHighlightBar();
+    });
     try {
       await epubBook.locations.generate(1200);
     } catch (error) {
@@ -805,6 +1486,7 @@
     } else {
       await rendition.display();
     }
+    paintHighlights();
     setTimeout(function () {
       try {
         reportLocation(rendition.currentLocation());
@@ -822,7 +1504,7 @@
       return;
     }
     reader.type = 'pdf';
-    if (el.tocButton) el.tocButton.hidden = true;
+    setTocVisibility(false);
     window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
     const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     reader.pdf = pdf;
@@ -866,10 +1548,10 @@
 
   function loadToc(epubBook, rendition) {
     if (!epubBook.loaded || !epubBook.loaded.navigation) {
-      el.tocButton.hidden = true;
+      setTocVisibility(false);
       return;
     }
-    el.tocButton.hidden = false;
+    setTocVisibility(false);
     epubBook.loaded.navigation.then(function (navigation) {
       const items = (navigation && navigation.toc) || [];
       el.tocList.textContent = '';
@@ -889,21 +1571,29 @@
         });
       };
       walk(items, 0);
-      if (!items.length) el.tocButton.hidden = true;
+      setTocVisibility(items.length > 0);
     }).catch(function () {
-      el.tocButton.hidden = true;
+      setTocVisibility(false);
     });
   }
 
   function prevPage() {
     if (!reader) return;
     if (reader.type === 'pdf') { pdfNext(-1); return; }
+    if (reader.type === 'text') {
+      el.view.scrollBy({ top: -el.view.clientHeight * 0.82, behavior: 'smooth' });
+      return;
+    }
     if (reader.rendition) reader.rendition.prev();
   }
 
   function nextPage() {
     if (!reader) return;
     if (reader.type === 'pdf') { pdfNext(1); return; }
+    if (reader.type === 'text') {
+      el.view.scrollBy({ top: el.view.clientHeight * 0.82, behavior: 'smooth' });
+      return;
+    }
     if (reader.rendition) reader.rendition.next();
   }
 
@@ -935,30 +1625,118 @@
       SMA.writeJSON(FONT_KEY, SMA.clamp(readerFontSize() + 1, 14, 30));
       applyReaderFontSize();
     });
-    el.themeButton.addEventListener('click', function () {
-      const current = SMA.readJSON(THEME_KEY, 'sepia');
-      const next = READER_THEMES[(READER_THEMES.indexOf(current) + 1) % READER_THEMES.length];
-      setReaderTheme(next);
+    el.themeButton.addEventListener('click', function (event) {
+      event.stopPropagation();
+      toggleModeMenu();
     });
-    el.tocButton.addEventListener('click', function () {
-      el.toc.hidden = !el.toc.hidden;
-    });
+    if (el.modeMenu) {
+      SMA.selectAll('.reader-mode-item', el.modeMenu).forEach(function (button) {
+        button.addEventListener('click', function () {
+          setReaderTheme(button.dataset.theme || 'sepia');
+          closeModeMenu();
+        });
+      });
+    }
+    if (el.cleanButton) {
+      el.cleanButton.addEventListener('click', function () {
+        setCleanMode(!readerClean);
+      });
+    }
+    if (el.markButton) {
+      el.markButton.addEventListener('click', toggleBookmark);
+    }
+    if (el.marksButton) {
+      el.marksButton.addEventListener('click', function () {
+        renderBookmarks();
+        el.toc.hidden = !el.toc.hidden;
+      });
+    }
+    if (el.tocButton) {
+      el.tocButton.addEventListener('click', function () {
+        renderBookmarks();
+        el.toc.hidden = !el.toc.hidden;
+      });
+    }
+    if (el.tocClose) {
+      el.tocClose.addEventListener('click', function () {
+        el.toc.hidden = true;
+      });
+    }
     el.coverButton.addEventListener('click', function () {
       if (reader) chooseCover(reader.id);
     });
     el.progress.addEventListener('input', function () {
       seekReader(Number(el.progress.value));
+      paintMarkButton();
     });
     el.coverInput.addEventListener('change', function (event) {
       const file = event.target.files && event.target.files[0];
       event.target.value = '';
       applyCover(file);
     });
+
+    if (el.highlightClose) {
+      el.highlightClose.addEventListener('click', hideHighlightBar);
+    }
+    if (el.colorAdd) {
+      el.colorAdd.addEventListener('click', function () {
+        el.colorInput?.click();
+      });
+    }
+    if (el.colorInput) {
+      el.colorInput.addEventListener('change', function () {
+        const color = String(el.colorInput.value || '').toLowerCase();
+        el.colorInput.value = color;
+        if (!isHexColor(color)) return;
+        addHighlightColor(color);
+        if (pendingSelection) applyHighlight(color);
+      });
+    }
+
+    document.addEventListener('pointerdown', function (event) {
+      if (el.modeMenu && !el.modeMenu.hidden) {
+        if (!el.modeMenu.contains(event.target) && !(el.themeButton && el.themeButton.contains(event.target))) {
+          closeModeMenu();
+        }
+      }
+      if (el.highlightBar && !el.highlightBar.hidden) {
+        if (!el.highlightBar.contains(event.target) && event.target !== el.colorInput) {
+          hideHighlightBar();
+        }
+      }
+    });
+
+    function scheduleTextSelection() {
+      if (!reader || reader.type !== 'text' || el.overlay.hidden) return;
+      setTimeout(function () {
+        captureTextSelection();
+      }, 40);
+    }
+    document.addEventListener('mouseup', function (event) {
+      if (event.target && event.target.closest && event.target.closest('.reader-text-mark, .reader-highlight-bar')) return;
+      scheduleTextSelection();
+    });
+    document.addEventListener('touchend', function (event) {
+      if (event.target && event.target.closest && event.target.closest('.reader-text-mark, .reader-highlight-bar')) return;
+      scheduleTextSelection();
+    });
+    document.addEventListener('keyup', function (event) {
+      if (event.shiftKey || event.key === 'Shift') scheduleTextSelection();
+    });
+
     document.addEventListener('keydown', function (event) {
       if (el.overlay.hidden) return;
       if (event.key === 'Escape') {
         event.preventDefault();
-        closeReader();
+        if (el.modeMenu && !el.modeMenu.hidden) {
+          closeModeMenu();
+        } else if (el.highlightBar && !el.highlightBar.hidden) {
+          hideHighlightBar();
+        } else if (readerClean) {
+          setCleanMode(false, false);
+        } else {
+          closeReader();
+        }
       }
       if (event.key === 'ArrowRight') {
         event.preventDefault();
@@ -975,17 +1753,32 @@
 
     let swipeStart = null;
     el.stage.addEventListener('pointerdown', function (event) {
-      if (event.pointerType === 'mouse') return;
-      if (event.target.closest('button, input, a')) return;
-      swipeStart = event.clientX;
+      if (event.target.closest('button, input, a, .reader-toc, .reader-mode-menu, .reader-highlight-bar')) return;
+      swipeStart = { x: event.clientX, y: event.clientY };
     });
-    el.stage.addEventListener('pointerup', function (event) {
-      if (swipeStart == null) return;
-      const distance = event.clientX - swipeStart;
+    document.addEventListener('pointerup', function (event) {
+      if (!swipeStart) return;
+      const start = swipeStart;
       swipeStart = null;
-      if (Math.abs(distance) < 54) return;
-      if (distance < 0) nextPage();
+      if (event.target.closest && event.target.closest('.reader-toc, .reader-mode-menu, .reader-highlight-bar')) return;
+      const dx = event.clientX - start.x;
+      const dy = event.clientY - start.y;
+      if (Math.abs(dx) < 54 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+      if (textSelectionExists()) return;
+      ignoreClickUntil = Date.now() + 350;
+      lastSwipeAt = Date.now();
+      if (dx < 0) nextPage();
       else prevPage();
+    });
+
+    el.stage.addEventListener('click', function (event) {
+      if (!readerClean) return;
+      if (Date.now() < ignoreClickUntil) return;
+      if (event.target.closest('button, input, a, .reader-toc, .reader-mode-menu, .reader-highlight-bar')) return;
+      if (textSelectionExists()) return;
+      const rect = el.stage.getBoundingClientRect();
+      if (!rect.width) return;
+      turnByRatio((event.clientX - rect.left) / rect.width);
     });
   }
 
@@ -999,15 +1792,29 @@
     el.fontSmaller = SMA.select('#reader-font-smaller');
     el.fontBigger = SMA.select('#reader-font-bigger');
     el.themeButton = SMA.select('#reader-theme-btn');
+    el.modeMenu = SMA.select('#reader-mode-menu');
+    el.cleanButton = SMA.select('#reader-clean-btn');
+    el.markButton = SMA.select('#reader-mark-btn');
+    el.marksButton = SMA.select('#reader-marks-btn');
     el.tocButton = SMA.select('#reader-toc-btn');
     el.toc = SMA.select('#reader-toc');
+    el.tocHead = SMA.select('#reader-toc-head');
+    el.tocTitle = SMA.select('#reader-toc-title');
+    el.tocClose = SMA.select('#reader-toc-close');
     el.tocList = SMA.select('#reader-toc-list');
+    el.marksTitle = SMA.select('#reader-marks-title');
+    el.marksList = SMA.select('#reader-marks-list');
     el.coverButton = SMA.select('#reader-cover-btn');
     el.coverInput = SMA.select('#book-cover-input');
     el.view = SMA.select('#reader-view');
     el.stage = SMA.select('.reader-stage');
     el.progress = SMA.select('#reader-progress');
     el.progressLabel = SMA.select('#reader-page-label');
+    el.highlightBar = SMA.select('#reader-highlight-bar');
+    el.colorList = SMA.select('#reader-color-list');
+    el.colorAdd = SMA.select('#reader-color-add');
+    el.colorInput = SMA.select('#reader-color-input');
+    el.highlightClose = SMA.select('#reader-highlight-close');
     el.readerTitle = SMA.select('#reader-title');
     el.readerAuthor = SMA.select('#reader-author');
     el.readerEditButton = SMA.select('#reader-edit-btn');
@@ -1017,6 +1824,8 @@
 
     if (!el.overlay || !el.view) return;
     readStorage();
+    renderHighlightColors();
+    setTocVisibility(false);
     const builtin = await loadBuiltin();
     books = builtin.concat(importedMeta.filter(function (book) {
       return !builtin.some(function (item) { return item.id === book.id; });
