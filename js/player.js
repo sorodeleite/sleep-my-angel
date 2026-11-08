@@ -211,7 +211,8 @@
       this.stopSynthTicker();
       this.ambience.stop();
       const failed = Boolean(track.failedUrl && track.failedUrl === track.fileUrl);
-      this.isSynth = !track.fileUrl || failed;
+      // faixas synth não têm arquivo de propósito (ondas geradas na hora)
+      this.isSynth = Boolean(track.synth) || !track.fileUrl || failed;
       this.index = index;
       this.emit('player:track', { track: track, index: index });
       this.updateMediaMetadata();

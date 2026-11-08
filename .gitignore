@@ -8,6 +8,9 @@ site/
 *.ogg
 *.flac
 *.opus
+# as meditações leves que vão dentro do app (audios/ continua só na sua máquina)
+!media/meditacao/
+!media/meditacao/*.m4a
 .DS_Store
 Thumbs.db
 script_offline.json

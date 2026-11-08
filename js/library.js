@@ -239,6 +239,8 @@
         fileUrl: resolvedFileUrl,
         originalFileUrl: track.originalFileUrl || resolvedFileUrl,
         type: track.type || 'pink',
+        synth: Boolean(track.synth),
+        originalSynth: Boolean(track.synth),
         cover: cover,
         originalCover: track.originalCover || cover,
         usingDefaultCover: track.usingDefaultCover != null
@@ -280,6 +282,7 @@
             track.fileUrl = SMA.audioStore.url(override.fileId, record.blob);
             track.fileName = record.name || track.fileName;
             track.replaced = true;
+            track.synth = false;
             track.failedUrl = '';
           }
         }
@@ -845,6 +848,7 @@
           track.fileUrl = SMA.audioStore.url(this.pendingAudioId, record.blob);
           track.fileName = record.name || this.pendingAudioName;
           track.replaced = true;
+          track.synth = false;
           track.failedUrl = '';
           override.fileId = this.pendingAudioId;
           override.cover = track.cover;
@@ -892,6 +896,7 @@
       track.usingDefaultCover = Boolean(CATEGORY_COVERS[track.category]);
       track.fileUrl = track.originalFileUrl;
       track.replaced = false;
+      track.synth = Boolean(track.originalSynth);
       track.failedUrl = '';
       this.closeTrackEditor();
       this.render();
@@ -931,6 +936,7 @@
           existing.fileUrl = SMA.audioStore.url(id, file);
           existing.fileName = file.name;
           existing.replaced = true;
+          existing.synth = false;
           existing.failedUrl = '';
           this.overrides[existing.id] = Object.assign({}, this.overrides[existing.id], {
             fileId: id

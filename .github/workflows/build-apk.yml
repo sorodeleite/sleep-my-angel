@@ -9,6 +9,7 @@ on:
       - 'styles.css'
       - 'js/**'
       - 'assets/**'
+      - 'media/**'
       - 'main.js'
       - 'preload.js'
       - 'manifest.webmanifest'
@@ -31,7 +32,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -65,6 +66,13 @@ jobs:
 
       - name: Build web assets
         run: node scripts/build.js
+
+      - name: Check meditations bundled
+        run: |
+          count=$(find www/audios/meditacao -name '*.m4a' | wc -l)
+          echo "meditações no apk: $count"
+          test "$count" -ge 19
+          test -s www/assets/audio-manifest.json
 
       - name: Sync Capacitor
         run: npx cap sync android
@@ -100,14 +108,10 @@ jobs:
           body: |
             atualização do sleep my angel v${{ steps.version.outputs.version }}
 
-            - novo **moodboard** estilo pinterest, no lugar do notion
-            - importa uma pasta pública do pinterest, uma pasta do computador ou várias imagens
-            - aceita link **pin.it** da pasta copiado no celular
-            - subpastas dentro de subpastas, com capa de colagem e pins em masonry
-            - pasta oculta com filtro separado, e dá pra mover pins entre subpastas
-            - importa **todos os pins** da pasta, com as seções do pinterest virando subpastas
-            - modo organizar com arrastar/setinhas pra reordenar, e renomear pins
-            - botão "atualizar app" instalando por cima, sem desinstalar
+            - as **meditações** agora vão dentro do app e tocam offline, sem o aviso de "som gerado parecido"
+            - as faixas de **ondas e frequências** já entram como som contínuo gerado, sem tentar baixar um arquivo que não existe
+            - o apk ficou maior (as meditações ocupam espaço), então o download da atualização demora um pouco mais
+            - se o download da atualização falhar, baixe o `sleep-my-angel.apk` aqui na release e instale por cima
           files: sleep-my-angel.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

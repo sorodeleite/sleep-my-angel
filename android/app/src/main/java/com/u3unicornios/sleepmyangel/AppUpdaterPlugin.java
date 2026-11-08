@@ -34,7 +34,7 @@ public class AppUpdaterPlugin extends Plugin {
     private static final String UPDATE_DIR = "updates";
     private static final String APK_NAME = "sleep-my-angel.apk";
     private static final String VERSION_NAME = "downloaded-version.txt";
-    private static final long MAX_APK_BYTES = 220L * 1024L * 1024L;
+    private static final long MAX_APK_BYTES = 300L * 1024L * 1024L;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 

@@ -25,7 +25,7 @@ a ideia é simples: juntar tudo que me acalma num lugar só — chuva e frequên
 ### o que tem aqui
 
 - **library** no estilo spotify, em tons de cinza e pastel, com busca, filtros e playlists. já vem com a **corvo seco**, que junta todas as meditações.
-- **meditações com nome e autor** — os arquivos seguem `nome_pessoa`, e o cartão mostra a meditação primeiro e a pessoa embaixo.
+- **meditações com nome e autor** — os arquivos seguem `nome_pessoa`, e o cartão mostra a meditação primeiro e a pessoa embaixo. elas vão **dentro do apk** (versão leve em `media/`), então tocam offline no celular.
 - **notion script** — importa a página do notion com **imagens, cores, colunas, callouts e subpáginas** dentro da mesma nota, do jeitinho que eu vejo lá. também aceita `.docx`, `.pdf`, texto colado e print.
 - **estante** estilo kindle pra `.epub`, `.pdf` e `.txt`, com índice, progresso salvo, tema sépia/claro/escuro e troca de capa, nome e autor.
 - **cookbook** com receitinhas da noite em cartões, ingredientes e passos que dá pra ir marcando.
@@ -78,6 +78,8 @@ cd android
 
 no windows pode ser `gradlew.bat assembleRelease`. o apk assinado fica em `android/app/build/outputs/apk/release/app-release.apk`.
 
+o `npm run cap:sync` roda o build do `www` e **copia as meditações de `media/meditacao/` para dentro do app**. é por isso que o apk tem uns 150 MB: sem elas, o celular não tem como tocar os arquivos. os originais em `audios/meditacao/` (qualidade cheia) continuam só na sua máquina e são usados pelo desktop e pelo site local.
+
 a chave fica em `android/keystore/` e é a mesma em todos os builds — é isso que faz a atualização instalar por cima sem perder os dados. o workflow de **Build Android APK** publica a release sozinho a cada push na `main`, usando a versão do `package.json` como tag.
 
 <br />
@@ -112,6 +114,7 @@ ele usa o **Calibre** pra converter `.azw3`, `.mobi` e `.prc`, tirar a capa e at
 
 ```
 audios/            minhas faixas locais (não vão pro git)
+media/meditacao/   meditações leves que vão dentro do apk
 assets/            ícone, fotos, livros e imagens do readme
 js/                módulos do app
 js/notion.js       importação fiel do notion (html, markdown, subpáginas, imagens e pdf)

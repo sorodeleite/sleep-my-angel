@@ -4,6 +4,7 @@ const { generate: generateAudioManifest } = require('./audio-manifest');
 
 const root = path.resolve(__dirname, '..');
 const targets = process.argv.includes('--site-only') ? ['site'] : ['www', 'site'];
+const appAudio = path.join(root, 'media', 'meditacao');
 const files = [
   'index.html',
   'styles.css',
@@ -31,6 +32,27 @@ function copyDirectory(name, destination) {
   });
 }
 
+// o webview do android não tem acesso à pasta audios/: as meditações precisam
+// ir dentro do www para tocar offline. usamos a versão leve de media/.
+function copyAppAudio(destination) {
+  if (!fs.existsSync(appAudio)) {
+    throw new Error('media/meditacao ausente: o app sairia sem as meditações');
+  }
+  const files = fs.readdirSync(appAudio).filter(function (name) {
+    return /\.(m4a|mp3|wav|ogg|flac|opus|aac)$/i.test(name);
+  });
+  if (files.length === 0) {
+    throw new Error('media/meditacao está vazia: o app sairia sem as meditações');
+  }
+  const target = path.join(destination, 'audios', 'meditacao');
+  fs.mkdirSync(target, { recursive: true });
+  fs.cpSync(appAudio, target, { recursive: true });
+  const total = files.reduce(function (sum, name) {
+    return sum + fs.statSync(path.join(appAudio, name)).size;
+  }, 0);
+  console.log('meditações no app: ' + files.length + ' faixas, ' + Math.round(total / 1024 / 1024) + ' MB');
+}
+
 generateAudioManifest({ quiet: true });
 
 for (const target of targets) {
@@ -45,6 +67,10 @@ for (const target of targets) {
   directories.forEach(function (name) {
     copyDirectory(name, destination);
   });
+
+  if (target === 'www') {
+    copyAppAudio(destination);
+  }
 
   console.log('build ' + target + ' pronto');
 }
