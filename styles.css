@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --bg-app: #f4f4f5;
   --bg-surface: #ffffff;
   --bg-subtle: #ececed;
@@ -4119,6 +4119,11 @@ body {
   color: #a49a94;
   font-size: 10px;
   line-height: 1.65;
+}
+
+.mood-import-hint strong {
+  color: #7f736d;
+  font-weight: 600;
 }
 
 .mood-import-target {

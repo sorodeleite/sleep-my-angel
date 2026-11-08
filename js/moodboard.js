@@ -888,6 +888,9 @@
   function normalizePinterestUrl(value) {
     let raw = String(value || '').trim();
     if (!raw) throw new Error('cola o link da sua pasta do pinterest primeiro.');
+    const embedded = raw.match(/https?:\/\/[^\s<>"']+/i);
+    if (embedded) raw = embedded[0];
+    raw = raw.replace(/[)\].,;!?]+$/, '');
     if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
     let url;
     try {
@@ -895,20 +898,40 @@
     } catch (error) {
       throw new Error('esse link não parece um endereço do pinterest.');
     }
-    if (!/(^|\.)pinterest\.com$/i.test(url.hostname) && !/(^|\.)pin\.it$/i.test(url.hostname)) {
-      throw new Error('por enquanto eu só abro links do pinterest.');
+    const host = url.hostname.toLowerCase();
+
+    if (/(^|\.)pin\.it$/.test(host)) {
+      const code = url.pathname.split('/').filter(Boolean)[0];
+      if (!code) throw new Error('esse link pin.it veio sem código. copia de novo lá no pinterest.');
+      return {
+        url: 'https://pin.it/' + code,
+        key: 'short:' + code.toLowerCase(),
+        short: true
+      };
     }
-    if (/(^|\.)pin\.it$/i.test(url.hostname)) {
-      throw new Error('links pin.it são curtos demais. abre a pasta no pinterest e copia o link completo.');
+
+    if (host === 'api.pinterest.com' && url.pathname.indexOf('/url_shortener/') === 0) {
+      const match = url.pathname.match(/^\/url_shortener\/([^/]+)\/redirect\/?$/);
+      if (!match) throw new Error('esse link curto do pinterest veio incompleto. copia de novo.');
+      return {
+        url: 'https://api.pinterest.com/url_shortener/' + match[1] + '/redirect/',
+        key: 'short:' + match[1].toLowerCase(),
+        short: true
+      };
+    }
+
+    if (!/(^|\.)pinterest\.com$/i.test(host)) {
+      throw new Error('por enquanto eu só abro links do pinterest.');
     }
     const parts = url.pathname.split('/').filter(Boolean);
     if (parts.length < 2 || /^pin$/i.test(parts[0]) || /^(ideas|search|today)$/i.test(parts[0])) {
-      throw new Error('esse link é de um pin. pra importar a pasta inteira, copia o link que aparece com o nome dela.');
+      throw new Error('esse link é de um pin. pra importar a pasta inteira, abre a pasta e copia o link que aparece com o nome dela.');
     }
     const boardSlug = parts[1].replace(/\.rss$/i, '');
     return {
       url: 'https://www.pinterest.com/' + parts[0] + '/' + boardSlug + '/',
-      key: 'pinterest:' + parts[0].toLowerCase() + '/' + boardSlug.toLowerCase()
+      key: 'pinterest:' + parts[0].toLowerCase() + '/' + boardSlug.toLowerCase(),
+      short: false
     };
   }
 
@@ -1005,6 +1028,18 @@
     return value ? value.charAt(0).toUpperCase() + value.slice(1) : 'pasta do pinterest';
   }
 
+  function boardPathFromUrl(value) {
+    let raw = String(value || '');
+    try {
+      if (/^https?:/i.test(raw)) raw = new URL(raw).pathname;
+    } catch (error) {
+      return '';
+    }
+    raw = raw.split('?')[0].replace(/\/+$/, '');
+    if (!/^\/[^/]+\/[^/]+$/.test(raw)) return '';
+    return raw + '/';
+  }
+
   function mapPinterestPin(pin) {
     if (!pin || !pin.id) return null;
     const images = pin.images || {};
@@ -1025,6 +1060,7 @@
     const props = scriptJson(html, '__PWS_INITIAL_PROPS__');
     let board = null;
     let pins = [];
+    let boardPath = '';
     if (props && props.initialReduxState) {
       const data = props.initialReduxState;
       const boards = data.boards ? Object.keys(data.boards).map(function (key) { return data.boards[key]; }) : [];
@@ -1048,11 +1084,15 @@
             if (mapped) pins.push(mapped);
           });
         }
+        boardPath = boardPathFromUrl(board.url);
       }
     }
 
     const title = cleanTitle((board && board.name) || metaContent(html, 'og:title') || '');
     const description = cleanTitle((board && board.description) || metaContent(html, 'og:description') || '');
+    const fallbackTitle = boardPath
+      ? titleFromSlug(boardPath.split('/').filter(Boolean).pop())
+      : (normalized.short ? 'pasta do pinterest' : titleFromSlug(normalized.key.split('/').pop()));
     const unique = [];
     const seen = new Set();
     pins.forEach(function (pin) {
@@ -1061,9 +1101,10 @@
       unique.push(pin);
     });
     return {
-      title: title || titleFromSlug(normalized.key.split('/').pop()),
+      title: title || fallbackTitle,
       description: description,
-      pins: unique
+      pins: unique,
+      boardPath: boardPath
     };
   }
 
@@ -1074,6 +1115,11 @@
     }
     const channel = doc.querySelector('channel');
     const title = channel ? cleanTitle(channel.querySelector('title') ? channel.querySelector('title').textContent : '') : '';
+    const channelLink = channel && channel.querySelector('link') ? channel.querySelector('link').textContent.trim() : '';
+    const boardPath = boardPathFromUrl(channelLink);
+    const fallbackTitle = boardPath
+      ? titleFromSlug(boardPath.split('/').filter(Boolean).pop())
+      : (normalized.short ? 'pasta do pinterest' : titleFromSlug(normalized.key.split('/').pop()));
     const pins = [];
     const seen = new Set();
     SMA.selectAll('item', doc).forEach(function (item) {
@@ -1093,15 +1139,16 @@
         key: key,
         title: itemTitle,
         imageUrl: image,
-        sourceUrl: link,
+        sourceUrl: httpUrl(link) || '',
         width: 0,
         height: 0
       });
     });
     return {
-      title: title || titleFromSlug(normalized.key.split('/').pop()),
+      title: title || fallbackTitle,
       description: '',
-      pins: pins
+      pins: pins,
+      boardPath: boardPath
     };
   }
 
@@ -1213,7 +1260,7 @@
         parsed = null;
       }
 
-      if (!parsed || !parsed.pins.length) {
+      if (!normalized.short && (!parsed || !parsed.pins.length)) {
         setStatus('procurando os pins pelo feed da pasta…', '', null);
         try {
           const rss = await fetchPinterestText(normalized.url.replace(/\/$/, '') + '.rss');
@@ -1224,19 +1271,27 @@
       }
 
       if (!parsed || !parsed.pins.length) {
+        if (normalized.short) {
+          throw new Error('não achei uma pasta nesse link curto. no celular, abre a pasta no pinterest (não um pin) → ⋯ → compartilhar → copiar link, e cola aqui. o pin.it da pasta funciona.');
+        }
         throw new Error('não achei pins nessa pasta. confere se ela é pública e se o link é o da pasta, não o do perfil.');
       }
 
+      const boardPath = parsed.boardPath || (!normalized.short ? normalized.key.replace(/^pinterest:/, '') : '');
+      const sourceKey = boardPath
+        ? 'pinterest:' + boardPath.replace(/^\/+|\/+$/g, '').toLowerCase()
+        : normalized.key;
+
       const privateBox = document.getElementById('mood-import-private');
       const makePrivate = Boolean(privateBox && privateBox.checked);
-      let board = state.boards.find(function (item) { return item.sourceKey === normalized.key; }) || null;
+      let board = state.boards.find(function (item) { return item.sourceKey === sourceKey; }) || null;
       if (!board) {
         board = {
           id: uid('board'),
           title: parsed.title || 'pasta do pinterest',
           private: makePrivate,
           source: 'pinterest',
-          sourceKey: normalized.key,
+          sourceKey: sourceKey,
           createdAt: now(),
           updatedAt: now()
         };

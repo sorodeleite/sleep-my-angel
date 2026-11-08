@@ -102,6 +102,7 @@ jobs:
 
             - novo **moodboard** estilo pinterest, no lugar do notion
             - importa uma pasta pública do pinterest, uma pasta do computador ou várias imagens
+            - aceita link **pin.it** da pasta copiado no celular
             - subpastas dentro de subpastas, com capa de colagem e pins em masonry
             - pasta oculta com filtro separado, e dá pra mover pins entre subpastas
             - botão "atualizar app" instalando por cima, sem desinstalar
