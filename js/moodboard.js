@@ -1261,9 +1261,10 @@
       const options = Object.assign({}, baseOptions);
       if (bookmark) options.bookmarks = [bookmark];
       const data = encodeURIComponent(JSON.stringify({ options: options, context: {} }));
+      const safeSourcePath = new URL('https://www.pinterest.com' + sourcePath).pathname;
       const url = 'https://www.pinterest.com/resource/' + resource + '/get/?source_url='
-        + encodeURIComponent(sourcePath) + '&data=' + data;
-      const text = await fetchPinterestResource(url, sourcePath, handler);
+        + encodeURIComponent(safeSourcePath) + '&data=' + data;
+      const text = await fetchPinterestResource(url, safeSourcePath, handler);
       if (!text) throw new Error('o pinterest não devolveu uma página de pins.');
       let json;
       try {
