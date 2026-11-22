@@ -1228,7 +1228,7 @@
       const url = 'https://www.pinterest.com/resource/' + resource + '/get/?source_url='
         + encodeURIComponent(sourcePath) + '&data=' + data;
       const text = await fetchPinterestResource(url, sourcePath, handler);
-      if (!text) break;
+      if (!text) throw new Error('o pinterest não devolveu uma página de pins.');
       let json;
       try {
         json = JSON.parse(text);
@@ -1246,7 +1246,8 @@
         pins.push(pin);
       });
       const next = Array.isArray(response.bookmark) ? response.bookmark[0] : response.bookmark;
-      if (!next || next === '-end-' || !items.length || seenBookmarks.has(String(next))) break;
+      if (!next || next === '-end-' || !items.length) break;
+      if (seenBookmarks.has(String(next))) throw new Error('o pinterest repetiu a página durante a importação. tenta novamente.');
       seenBookmarks.add(String(next));
       bookmark = next;
       await new Promise(function (resolve) { setTimeout(resolve, 180); });
@@ -1551,7 +1552,10 @@
       if (parsed && parsed.boardId) {
         setStatus('puxando todos os pins da pasta…', '', null);
         const allPins = await collectAllBoardPins(parsed, normalized);
-        if (allPins && allPins.length) parsed.pins = allPins;
+        if (!allPins || !allPins.length) {
+          throw new Error('não consegui confirmar todos os pins dessa pasta. a importação foi interrompida para não salvar só uma parte.');
+        }
+        parsed.pins = allPins;
       }
 
       if (!parsed || !parsed.pins.length) {
