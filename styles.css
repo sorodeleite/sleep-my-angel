@@ -156,6 +156,7 @@ body {
 }
 
 .profile-card {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -4979,14 +4980,11 @@ body {
 
 .profile-info h2,
 .profile-info p,
-.profile-info .update-chip {
-  flex-basis: 100%;
-}
 
 .reminders-settings-btn {
   position: absolute;
   right: 18px;
-  top: 18px;
+  top: 14px;
   width: 34px;
   height: 34px;
   display: grid;
@@ -5253,9 +5251,9 @@ body {
   
   .reminders-settings-btn {
     position: absolute;
-    top: 18px;
-    right: 18px;
-    transform: translateY(-50%);
+    top: 14px;
+    right: 14px;
+    transform: none;
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -5267,6 +5265,7 @@ body {
 .retro-window-frame { position: relative; }
 .profile-info { position: static; }
 .reminders-settings-btn svg { width: 19px; height: 19px; }
+.bottom-player.is-empty { display: none !important; }
 .bottom-player.is-empty .player-left { visibility: hidden; }
 .bottom-player.is-empty .player-center,
 .bottom-player.is-empty .player-right { display: none; }
@@ -5369,3 +5368,14 @@ body {
   color: var(--text-light);
   font-size: 10px;
 }
+
+.mood-board-cover {
+  position: relative;
+  width: 100%;
+  height: clamp(150px, 34vw, 290px);
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #e9e6e2, #f6e9ed);
+}
+.mood-board-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.mood-board-cover span { position: absolute; left: 14px; bottom: 12px; padding: 5px 9px; border-radius: 999px; background: rgba(255,255,255,.76); color: #5f5754; font-size: 10px; }
