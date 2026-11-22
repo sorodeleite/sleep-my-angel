@@ -16,6 +16,8 @@ oi! esse é o **sleep my angel**, um app que eu fiz pra mim e que acabou virando
 
 a ideia é simples: juntar tudo que me acalma num lugar só — chuva e frequências geradas na hora, minhas meditações, o meu script da lei da suposição, livros e receitinhas da noite — sem anúncio, sem feed, sem barulho. ele roda no **celular (Android)**, no **computador (Electron)** e também no **navegador**.
 
+leia a [**Política de Privacidade**](https://github.com/sorodeleite/sleep-my-angel/blob/main/PRIVACY.md) para entender como o aplicativo trata os conteúdos e dados locais.
+
 <br />
 
 <div align="center">
