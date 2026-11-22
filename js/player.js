@@ -104,9 +104,7 @@
       const track = this.current();
       if (!track) return;
       const cover = track.cover || '';
-      const canUseArtwork = /^https?:$/.test(location.protocol)
-        || cover.indexOf('data:') === 0
-        || cover.indexOf('blob:') === 0;
+      const canUseArtwork = Boolean(cover);
       const artwork = canUseArtwork && cover
         ? [{ src: cover, sizes: '512x512' }]
         : [];
