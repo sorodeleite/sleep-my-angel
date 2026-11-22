@@ -301,9 +301,11 @@
   }
 
   function iconPinsFor(entity, directPins) {
+    const boardId = entity.boardId || entity.id;
+    const folderId = entity.boardId ? (entity.parentId || null) : null;
     const chosen = Array.isArray(entity.iconPinIds)
       ? entity.iconPinIds.map(pinById).filter(function (pin) {
-        return pin && pin.boardId === entity.boardId && (pin.folderId || null) === (entity.parentId || null);
+        return pin && pin.boardId === boardId && (pin.folderId || null) === folderId;
       })
       : [];
     return (chosen.length ? chosen : directPins).slice(0, 3);
@@ -1749,12 +1751,16 @@
       const file = input.files && input.files[0];
       input.value = '';
       if (!file || !imageFilesFrom([file]).length) return;
+      const previousIcon = Array.isArray(board.iconPinIds) && board.iconPinIds.length
+        ? board.iconPinIds.slice()
+        : pinsDirect(board.id, null).slice(0, 3).map(function (pin) { return pin.id; });
       const id = await saveLocalPin(board.id, null, file, 'header:' + uid('image'), SMA.fileNameTitle(file.name), now());
       if (!id) {
         SMA.toast('não consegui guardar essa imagem');
         return;
       }
       board.coverPinId = id;
+      board.iconPinIds = previousIcon;
       board.updatedAt = now();
       await SMA.moodStore.saveBoard(board);
       await refresh();
