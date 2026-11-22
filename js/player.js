@@ -4,6 +4,7 @@
   class Player {
     constructor() {
       this.audio = document.getElementById('audio-player');
+      this.audio.preload = 'auto';
       this.ambience = new SMA.Ambience();
       this.queue = [];
       this.index = -1;
