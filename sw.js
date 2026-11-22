@@ -1,4 +1,4 @@
-const CACHE = 'sleep-my-angel-v12';
+const CACHE = 'sleep-my-angel-v13';
 const SHELL = [
   './',
   './index.html',
