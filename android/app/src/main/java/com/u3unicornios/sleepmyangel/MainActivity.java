@@ -21,20 +21,23 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().addJavascriptInterface(new PlaybackBridge(), "SleepPlayback");
+            getBridge().getWebView().addJavascriptInterface(new RemindersBridge(), "SleepReminders");
         }
+        ReminderScheduler.restore(this);
         requestNotificationPermission();
     }
 
     private void requestNotificationPermission() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-            return;
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) return;
+        ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.POST_NOTIFICATIONS }, NOTIFICATION_PERMISSION);
+    }
+
+    private class RemindersBridge {
+        @JavascriptInterface
+        public void save(String reminders) {
+            ReminderScheduler.save(MainActivity.this, reminders);
         }
-        ActivityCompat.requestPermissions(
-            this,
-            new String[] { Manifest.permission.POST_NOTIFICATIONS },
-            NOTIFICATION_PERMISSION
-        );
     }
 
     private class PlaybackBridge {
