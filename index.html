@@ -266,6 +266,16 @@
               <button class="preset-btn" data-minutes="120" type="button">2 horas</button>
             </div>
 
+            <div class="timer-custom">
+              <span class="timer-custom-title">ou escolha seu próprio tempo</span>
+              <div class="timer-custom-fields">
+                <label>horas <input id="timer-custom-hours" type="number" min="0" max="12" value="0" inputmode="numeric"></label>
+                <label>minutos <input id="timer-custom-minutes" type="number" min="0" max="59" value="45" inputmode="numeric"></label>
+                <button id="btn-custom-timer" type="button">usar tempo</button>
+              </div>
+              <span id="timer-custom-status" class="timer-custom-status" aria-live="polite"></span>
+            </div>
+
             <div class="timer-rain">
               <div class="timer-rain-head">
                 <span class="timer-rain-title">som de chuva</span>
@@ -276,6 +286,7 @@
                 <button class="rain-btn" data-rain="soft" type="button">chuva suave</button>
                 <button class="rain-btn" data-rain="window" type="button">na janela</button>
                 <button class="rain-btn" data-rain="storm" type="button">chuva forte</button>
+                <button class="rain-btn" data-rain="thunder" type="button">chuva com raios</button>
               </div>
             </div>
 
