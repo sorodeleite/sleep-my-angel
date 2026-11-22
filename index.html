@@ -55,10 +55,6 @@
               <h2>sleep my angel</h2>
               <p>dolly girl ‧ law of assumption</p>
               <button class="reminders-settings-btn" id="btn-reminders-settings" type="button" aria-label="configurar lembretes" title="lembretes"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.7 1.7-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.4v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1L8 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.7v-2.4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9L8 8.6l1.7-1.7.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2h2.4v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.7 1.7-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"></path></svg></button>
-              <button class="update-chip" id="btn-update-app" type="button" hidden>
-                <span class="update-chip-dot" aria-hidden="true"></span>
-                <span id="update-chip-label">atualizar app</span>
-              </button>
             </div>
           </div>
 
@@ -772,7 +768,7 @@
 
   <input type="file" id="book-cover-input" accept="image/*" hidden>
 
-  <audio id="audio-player" preload="metadata"></audio>
+  <audio id="audio-player" preload="auto" playsinline></audio>
 
   <script src="js/vendor/jszip.min.js"></script>
   <script src="js/vendor/epub.min.js"></script>
