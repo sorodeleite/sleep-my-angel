@@ -224,7 +224,19 @@
   function load() {
     const saved = SMA.readJSON(STORAGE_KEY, null);
     if (Array.isArray(saved)) {
-      return saved.map(normalize);
+      return saved.map(function (item) {
+        const recipe = normalize(item);
+        if (recipe.id === 'bolinho-air-fryer' && /^bolinho de chocolate na air fryer$/i.test(recipe.title)) {
+          const current = DEFAULTS.find(function (entry) { return entry.id === 'bolinho-air-fryer'; });
+          if (current) {
+            recipe.title = current.title;
+            recipe.intro = current.intro;
+            recipe.caption = current.caption;
+            recipe.image = current.image;
+          }
+        }
+        return recipe;
+      });
     }
 
     const custom = [];
