@@ -2,7 +2,6 @@
   const SMA = window.SMA;
   if (!SMA) return;
 
-  const MAX_IMPORT_FILES = 240;
   const MAX_PIN_SIZE = 1600;
 
   let root = null;
@@ -302,7 +301,7 @@
   }
 
   function boardCardHtml(board) {
-    const pins = pinsUnder(board.id, null);
+    const pins = pinsDirect(board.id, null);
     const folders = boardFolders(board.id).length;
     return ''
       + '<article class="mood-board-card' + (board.private ? ' is-private' : '') + '" data-mood-act="open-board" data-id="' + esc(board.id) + '" role="button" tabindex="0">'
@@ -1202,27 +1201,23 @@
   async function fetchPinterestFeed(resource, sourcePath, handler, baseOptions, boardId) {
     const pins = [];
     let bookmark = '';
-    for (let page = 0; page < 30; page += 1) {
+    const seenBookmarks = new Set();
+    while (true) {
       const options = Object.assign({}, baseOptions);
       if (bookmark) options.bookmarks = [bookmark];
       const data = encodeURIComponent(JSON.stringify({ options: options, context: {} }));
       const url = 'https://www.pinterest.com/resource/' + resource + '/get/?source_url='
         + encodeURIComponent(sourcePath) + '&data=' + data;
-      let text = '';
-      try {
-        text = await fetchPinterestResource(url, sourcePath, handler);
-      } catch (error) {
-        break;
-      }
+      const text = await fetchPinterestResource(url, sourcePath, handler);
       if (!text) break;
-      let json = null;
+      let json;
       try {
         json = JSON.parse(text);
       } catch (error) {
-        break;
+        throw new Error('o pinterest devolveu uma página de pins inválida.');
       }
       const response = json && json.resource_response;
-      if (!response) break;
+      if (!response) throw new Error('o pinterest não devolveu os dados dessa página.');
       const items = Array.isArray(response.data) ? response.data : [];
       items.forEach(function (item) {
         if (!item || (item.type && item.type !== 'pin')) return;
@@ -1232,7 +1227,8 @@
         pins.push(pin);
       });
       const next = Array.isArray(response.bookmark) ? response.bookmark[0] : response.bookmark;
-      if (!next || next === '-end-' || !items.length) break;
+      if (!next || next === '-end-' || !items.length || seenBookmarks.has(String(next))) break;
+      seenBookmarks.add(String(next));
       bookmark = next;
       await new Promise(function (resolve) { setTimeout(resolve, 180); });
     }
@@ -1278,27 +1274,10 @@
       page_size: 50,
       redux_normalize_feed: true
     };
-    const target = parsed.pinCount || 0;
-
     try {
       const mainPins = await fetchPinterestFeed('BoardFeedResource', boardPath, 'www/[username]/[slug].js', baseOptions, parsed.boardId);
-      if (mainPins.length) {
-        worked = true;
-        add(mainPins, null);
-      }
-
-      for (let extra = 0; extra < 3; extra += 1) {
-        if (target && collected.size >= target) break;
-        await new Promise(function (resolve) { setTimeout(resolve, 350); });
-        const morePins = await fetchPinterestFeed('BoardFeedResource', boardPath, 'www/[username]/[slug].js', Object.assign({}, baseOptions, {
-          page_size: extra === 1 ? 25 : 50,
-          filter_section_pins: extra === 1 ? false : true
-        }), parsed.boardId);
-        if (morePins.length) {
-          worked = true;
-          add(morePins, null);
-        }
-      }
+      worked = true;
+      add(mainPins, null);
 
       for (const section of parsed.sections) {
         if (!section.id || !section.slug) continue;
@@ -1309,13 +1288,14 @@
           { section_id: section.id, page_size: 50 },
           parsed.boardId
         );
-        if (sectionPins.length) {
-          worked = true;
-          add(sectionPins, section);
-        }
+        add(sectionPins, section);
       }
     } catch (error) {
       if (!worked) return null;
+      throw error;
+    }
+
+    if (!worked) return null;
     }
 
     if (!worked) return null;
@@ -1671,7 +1651,7 @@
       .filter(function (file) {
         return file && (file.type.indexOf('image/') === 0 || /\.(jpe?g|png|webp|gif|avif|bmp)$/i.test(file.name));
       })
-      .slice(0, MAX_IMPORT_FILES);
+      ;
   }
 
   function imageKey(file) {
