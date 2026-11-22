@@ -1315,9 +1315,6 @@
     }
 
     if (!worked) return null;
-    }
-
-    if (!worked) return null;
     parsed.pins.forEach(function (pin) {
       if (!collected.has(pin.key)) {
         collected.set(pin.key, Object.assign({}, pin, { sectionId: '', sectionTitle: '' }));
