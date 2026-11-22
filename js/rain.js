@@ -70,7 +70,7 @@
     buildBuffer(settings) {
       const seconds = 12;
       const sampleRate = this.context.sampleRate;
-      const buffer = this.context.createBuffer(2, Math.floor(sampleRate * seconds), sampleRate);
+      const buffer = this.context.createBuffer(1, Math.floor(sampleRate * seconds), sampleRate);
       fillRain(buffer, settings, this.context);
       return buffer;
     }
