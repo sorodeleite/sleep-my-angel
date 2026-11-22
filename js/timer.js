@@ -5,7 +5,8 @@
     off: 'sem chuva',
     soft: 'chuva suave',
     window: 'chuva na janela',
-    storm: 'chuva forte'
+    storm: 'chuva forte',
+    thunder: 'chuva com raios'
   };
 
   class SleepTimer {
@@ -28,20 +29,31 @@
     init() {
       const saved = Number(SMA.readJSON('sma_timer_minutes', 30));
       if ([15, 30, 45, 60, 90, 120].indexOf(saved) !== -1) this.minutes = saved;
+      const savedCustom = Number(SMA.readJSON('sma_timer_custom_minutes', 0));
+      if (savedCustom >= 1 && savedCustom <= 720) this.minutes = savedCustom;
+      this.remaining = this.minutes * 60;
       const savedRain = SMA.readText('sma_timer_rain', 'off');
       if (RAIN_LABELS[savedRain]) this.rainPreset = savedRain;
       this.remaining = this.minutes * 60;
+      this.customHours = SMA.select('#timer-custom-hours');
+      this.customMinutes = SMA.select('#timer-custom-minutes');
+      this.customButton = SMA.select('#btn-custom-timer');
+      if (this.customHours) this.customHours.value = String(Math.floor(this.minutes / 60));
+      if (this.customMinutes) this.customMinutes.value = String(this.minutes % 60);
       SMA.selectAll('.preset-btn').forEach((button) => {
         button.classList.toggle('active', Number(button.dataset.minutes) === this.minutes);
         button.addEventListener('click', () => {
           this.minutes = Number(button.dataset.minutes) || 30;
           SMA.writeJSON('sma_timer_minutes', this.minutes);
+          SMA.writeJSON('sma_timer_custom_minutes', 0);
+          SMA.select('#timer-custom-status')?.replaceChildren();
           SMA.selectAll('.preset-btn').forEach((item) => {
             item.classList.toggle('active', item === button);
           });
           this.reset();
         });
       });
+      this.customButton?.addEventListener('click', () => this.applyCustomTime());
       SMA.selectAll('.rain-btn').forEach((button) => {
         button.classList.toggle('active', button.dataset.rain === this.rainPreset);
         button.addEventListener('click', () => {
@@ -65,6 +77,23 @@
       this.rainLabel.textContent = this.rainPreset === 'off'
         ? 'escolha uma chuva pra tocar em loop'
         : label + ' em loop até o fim do timer';
+    }
+
+    applyCustomTime() {
+      const hours = Math.max(0, Math.min(12, Number(this.customHours?.value) || 0));
+      const minutes = Math.max(0, Math.min(59, Number(this.customMinutes?.value) || 0));
+      const total = hours * 60 + minutes;
+      const status = SMA.select('#timer-custom-status');
+      if (total < 1 || total > 720) {
+        if (status) status.textContent = 'escolha um tempo entre 1 minuto e 12 horas';
+        return;
+      }
+      this.minutes = total;
+      SMA.writeJSON('sma_timer_minutes', total);
+      SMA.writeJSON('sma_timer_custom_minutes', total);
+      SMA.selectAll('.preset-btn').forEach((button) => button.classList.remove('active'));
+      if (status) status.textContent = 'tempo personalizado salvo';
+      this.reset();
     }
 
     toggle() {
