@@ -300,9 +300,41 @@
     return boards.map(boardCardHtml).join('');
   }
 
+  function iconPinsFor(entity, directPins) {
+    const chosen = Array.isArray(entity.iconPinIds)
+      ? entity.iconPinIds.map(pinById).filter(function (pin) {
+        return pin && pin.boardId === entity.boardId && (pin.folderId || null) === (entity.parentId || null);
+      })
+      : [];
+    return (chosen.length ? chosen : directPins).slice(0, 3);
+  }
+
+  async function setIconSlot(pin, slot) {
+    const board = boardById(pin.boardId);
+    const folder = pin.folderId ? folderById(pin.folderId) : null;
+    const entity = folder || board;
+    if (!entity) return;
+    const direct = pinsDirect(pin.boardId, pin.folderId);
+    let ids = Array.isArray(entity.iconPinIds) && entity.iconPinIds.length
+      ? entity.iconPinIds.slice(0, 3)
+      : direct.slice(0, 3).map(function (item) { return item.id; });
+    while (ids.length < 3) ids.push(null);
+    const previous = ids.indexOf(pin.id);
+    const displaced = ids[slot];
+    ids[slot] = pin.id;
+    if (previous !== -1 && previous !== slot) ids[previous] = displaced || null;
+    entity.iconPinIds = ids.filter(Boolean).slice(0, 3);
+    entity.updatedAt = now();
+    if (folder) await SMA.moodStore.saveFolder(entity);
+    else await SMA.moodStore.saveBoard(entity);
+    await refresh();
+    render();
+    SMA.toast('ícone atualizado ✧');
+  }
+
   function boardCardHtml(board) {
     const pins = pinsUnder(board.id, null);
-    const iconPins = pinsDirect(board.id, null);
+    const iconPins = iconPinsFor(board, pinsDirect(board.id, null));
     const folders = boardFolders(board.id).length;
     return ''
       + '<article class="mood-board-card' + (board.private ? ' is-private' : '') + '" data-mood-act="open-board" data-id="' + esc(board.id) + '" role="button" tabindex="0">'
@@ -326,7 +358,7 @@
     const title = folder ? folder.title : board.title;
     const directPins = pinsDirect(board.id, null);
     const coverPin = !folder && board.coverPinId ? pinById(board.coverPinId) : null;
-    const cover = !folder ? (coverPin || directPins[0] || null) : null;
+    const cover = !folder && coverPin && coverPin.boardId === board.id ? coverPin : null;
     const kicker = board.source === 'pinterest' ? 'pasta do pinterest' : board.source === 'local' ? 'pasta importada' : 'sua pasta';
 
     const crumbs = []
@@ -344,7 +376,7 @@
 
     const folderCards = children.map(function (item) {
       const childPins = pinsUnder(board.id, item.id);
-      const iconPins = pinsDirect(board.id, item.id);
+      const iconPins = iconPinsFor(item, pinsDirect(board.id, item.id));
       const subfolders = childFolders(board.id, item.id).length;
       return ''
         + '<article class="mood-folder-card" data-mood-act="open-folder" data-id="' + esc(item.id) + '" role="button" tabindex="0">'
@@ -388,6 +420,7 @@
       + '    </div>'
       + '    <div class="mood-board-actions">'
       + '      <button class="mood-btn" type="button" data-mood-act="add-images">＋ imagens</button>'
+      + '      <button class="mood-btn" type="button" data-mood-act="header-gallery">cabeçalho</button>'
       + '      <button class="mood-btn" type="button" data-mood-act="new-folder">＋ subpasta</button>'
       + '      <button class="mood-icon-btn" type="button" data-mood-act="board-menu" data-id="' + esc(board.id) + '" aria-label="opções da pasta">⋯</button>'
       + '    </div>'
@@ -834,7 +867,7 @@
       { label: 'abrir pasta', run: function () { openBoard(board.id); } },
       { label: 'renomear', run: function () { renameBoard(board); } },
       { label: 'organizar pins', run: function () { openBoard(board.id); state.organize = true; render(); } },
-      { label: board.coverPinId ? 'usar primeira foto no cabeçalho' : 'cabeçalho usa a primeira foto', run: function () { board.coverPinId = null; board.updatedAt = now(); SMA.moodStore.saveBoard(board).then(function () { refresh().then(render); }); } },
+      { label: 'usar primeiras fotos no ícone', run: function () { board.iconPinIds = []; board.updatedAt = now(); SMA.moodStore.saveBoard(board).then(function () { refresh().then(render); }); } },
       { label: 'importar pasta…', run: function () { openImportModal('folder'); } },
       { label: board.private ? 'mostrar pasta' : 'ocultar pasta', run: function () { togglePrivate(board); } },
       { label: 'apagar pasta', danger: true, run: function () { deleteBoard(board); } }
@@ -854,18 +887,18 @@
       { label: 'ver grande', run: function () { openLightbox(pin); } },
       { label: 'renomear pin', run: function () { renamePin(pin); } },
       { label: 'mover pra…', run: function () { movePin(pin); } },
-      { label: 'usar como cabeçalho da pasta', run: function () {
+      { label: 'usar como cabeçalho', run: function () {
         const board = boardById(pin.boardId);
-        if (!board || pin.folderId) {
-          SMA.toast('escolha uma foto que esteja direto na pasta principal');
-          return;
-        }
+        if (!board) return;
         board.coverPinId = pin.id;
         board.updatedAt = now();
         SMA.moodStore.saveBoard(board).then(function () {
           refresh().then(function () { render(); SMA.toast('cabeçalho atualizado ✧'); });
         });
       } },
+      { label: 'usar como 1ª foto do ícone', run: function () { setIconSlot(pin, 0); } },
+      { label: 'usar como 2ª foto do ícone', run: function () { setIconSlot(pin, 1); } },
+      { label: 'usar como 3ª foto do ícone', run: function () { setIconSlot(pin, 2); } },
       pin.sourceUrl ? { label: 'abrir no pinterest', run: function () { window.open(pin.sourceUrl, '_blank', 'noopener'); } } : null,
       { label: 'apagar pin', danger: true, run: function () { deletePin(pin); } }
     ].filter(Boolean));
@@ -1699,7 +1732,36 @@
     };
     await SMA.moodStore.savePin(pin);
     await SMA.moodStore.putImage(pin.id, compressed.blob);
-    return true;
+    return pin.id;
+  }
+
+  function chooseHeaderFromGallery(board) {
+    let input = document.getElementById('mood-header-image-input');
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'file';
+      input.id = 'mood-header-image-input';
+      input.accept = 'image/*';
+      input.hidden = true;
+      document.body.appendChild(input);
+    }
+    input.onchange = async function () {
+      const file = input.files && input.files[0];
+      input.value = '';
+      if (!file || !imageFilesFrom([file]).length) return;
+      const id = await saveLocalPin(board.id, null, file, 'header:' + uid('image'), SMA.fileNameTitle(file.name), now());
+      if (!id) {
+        SMA.toast('não consegui guardar essa imagem');
+        return;
+      }
+      board.coverPinId = id;
+      board.updatedAt = now();
+      await SMA.moodStore.saveBoard(board);
+      await refresh();
+      render();
+      SMA.toast('cabeçalho atualizado ✧');
+    };
+    input.click();
   }
 
   async function importLooseImages(files) {
@@ -1971,6 +2033,11 @@
       const board = boardById(state.boardId);
       if (!board) { openImportModal(); return; }
       document.getElementById('mood-images-input').click();
+      return;
+    }
+    if (action === 'header-gallery') {
+      const board = boardById(state.boardId);
+      if (board) chooseHeaderFromGallery(board);
       return;
     }
     if (action === 'board-menu') {
