@@ -326,6 +326,7 @@
   SMA.Updater = {
     init: init,
     check: check,
-    state: state
+    state: state,
+    open: openModal
   };
 })();
