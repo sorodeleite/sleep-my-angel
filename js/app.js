@@ -169,6 +169,7 @@
   }
 
   function bindPlayer(player, library) {
+    document.querySelector('.bottom-player')?.classList.add('is-empty');
     const playButton = SMA.select('#btn-play');
     const playIcon = SMA.select('#play-icon');
     const progressBar = SMA.select('#progress-bar');
@@ -179,6 +180,7 @@
     const nowTitle = SMA.select('#now-title');
     const nowArtist = SMA.select('#now-artist');
     const nowCover = SMA.select('#now-cover');
+    const bottomPlayer = SMA.select('.bottom-player');
     const shuffleButton = SMA.select('#btn-shuffle');
     const loopButton = SMA.select('#btn-loop');
     const categoryNames = {
@@ -210,6 +212,7 @@
     function handleTrack(detail) {
       const track = detail.track;
       if (!track) return;
+      bottomPlayer?.classList.remove('is-empty');
       if (nowTitle) nowTitle.textContent = track.title;
       if (nowArtist) {
         nowArtist.textContent = track.isPlaylist
@@ -217,9 +220,48 @@
           : (track.artist || 'sleep my angel ‧ ' + (categoryNames[track.category] || track.category));
       }
       if (nowCover && track.cover) nowCover.src = track.cover;
+      updateExpandedPlayer(track);
       document.title = track.title + ' ‧ sleep my angel';
       resetProgress();
       library.markPlaying(null);
+    }
+
+    function updateExpandedPlayer(track) {
+      let panel = document.getElementById('expanded-player');
+      if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'expanded-player';
+        panel.className = 'expanded-player';
+        panel.innerHTML = '<button class="expanded-close" type="button" aria-label="fechar">×</button><div class="expanded-art-wrap"><img class="expanded-art" alt="capa do áudio"></div><div class="expanded-info"><h2></h2><p></p></div><div class="expanded-progress"><span class="expanded-current">0:00</span><div class="expanded-track"><i></i></div><span class="expanded-total">0:00</span></div><div class="expanded-controls"><button data-player="prev" aria-label="anterior">◀◀</button><button data-player="toggle" class="expanded-toggle" aria-label="pausar">Ⅱ</button><button data-player="next" aria-label="próximo">▶▶</button></div></div>';
+        document.body.appendChild(panel);
+        panel.querySelector('.expanded-close').addEventListener('click', () => panel.classList.remove('open'));
+        panel.addEventListener('click', event => {
+          const action = event.target.closest('[data-player]')?.dataset.player;
+          if (action === 'prev') player.prev();
+          if (action === 'next') player.next();
+          if (action === 'toggle') player.toggle();
+        });
+      }
+      panel.querySelector('.expanded-art').src = track.cover || '';
+      panel.querySelector('.expanded-info h2').textContent = track.title || '';
+      panel.querySelector('.expanded-info p').textContent = track.artist || 'sleep my angel';
+      const image = panel.querySelector('.expanded-art');
+      image.onload = function () {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = canvas.height = 1;
+          const context = canvas.getContext('2d');
+          context.drawImage(image, 0, 0, 1, 1);
+          const pixel = context.getImageData(0, 0, 1, 1).data;
+          panel.style.setProperty('--player-tint', 'rgb(' + pixel[0] + ' ' + pixel[1] + ' ' + pixel[2] + ')');
+        } catch (error) { panel.style.setProperty('--player-tint', '#dce8ed'); }
+      };
+      panel.classList.add('has-track');
+      const left = document.querySelector('.player-left');
+      if (left && !left.dataset.expandedBound) {
+        left.dataset.expandedBound = '1';
+        left.addEventListener('click', () => panel.classList.add('open'));
+      }
     }
 
     function handleTime(detail) {
@@ -245,6 +287,8 @@
     document.addEventListener('player:state', function (event) {
       const playing = Boolean(event.detail.playing);
       paintPlayButton(playing);
+      const expandedToggle = document.querySelector('.expanded-toggle');
+      if (expandedToggle) expandedToggle.textContent = playing ? 'Ⅱ' : '▶';
       library.markPlaying(playing ? player.current() : null);
     });
     document.addEventListener('player:time', function (event) {
