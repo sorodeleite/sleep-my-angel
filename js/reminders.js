@@ -70,7 +70,7 @@
     document.getElementById('reminder-cancel').hidden = true;
   }
 
-  function submitForm(event) {
+  async function submitForm(event) {
     event.preventDefault();
     const title = document.getElementById('reminder-title').value.trim();
     const message = document.getElementById('reminder-message').value.trim();
@@ -80,6 +80,7 @@
       SMA.toast('escolha um nome, horário e pelo menos um dia');
       return;
     }
+    if (SMA.platform() !== 'android') await requestWebPermission();
     const reminders = readReminders();
     const item = {
       id: editingId || String(Date.now()) + String(Math.floor(Math.random() * 1000)),
@@ -181,15 +182,18 @@
 
   function init() {
     const profile = document.querySelector('.profile-info');
-    if (!profile || document.getElementById('btn-reminders-settings')) return;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.id = 'btn-reminders-settings';
-    button.className = 'reminders-settings-btn';
-    button.setAttribute('aria-label', 'configurar lembretes');
-    button.title = 'lembretes';
-    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.7 1.7-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.4v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1L8 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.7v-2.4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9L8 8.6l1.7-1.7.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2h2.4v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.7 1.7-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"></path></svg>';
-    profile.appendChild(button);
+    if (!profile) return;
+    let button = document.getElementById('btn-reminders-settings');
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.id = 'btn-reminders-settings';
+      button.className = 'reminders-settings-btn';
+      button.setAttribute('aria-label', 'configurar lembretes');
+      button.title = 'lembretes';
+      button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.7 1.7-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.4v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1L8 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.7v-2.4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9L8 8.6l1.7-1.7.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2h2.4v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.7 1.7-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"></path></svg>';
+      profile.appendChild(button);
+    }
     button.addEventListener('click', openModal);
     ensureModal();
     if (window.SleepReminders && typeof window.SleepReminders.save === 'function') {
@@ -199,5 +203,5 @@
     document.addEventListener('visibilitychange', scheduleWebReminder);
   }
 
-  window.SMAReminders = { init: init };
+  SMA.Reminders = { init: init };
 })();
