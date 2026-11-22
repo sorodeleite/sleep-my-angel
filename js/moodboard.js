@@ -879,6 +879,7 @@
   function folderMenu(anchor, folder) {
     openMenu(anchor, [
       { label: 'abrir subpasta', run: function () { openFolder(folder.id); } },
+      { label: 'usar primeiras fotos no ícone', run: function () { folder.iconPinIds = []; folder.updatedAt = now(); SMA.moodStore.saveFolder(folder).then(function () { refresh().then(render); }); } },
       { label: 'renomear', run: function () { renameFolder(folder); } },
       { label: 'apagar subpasta', danger: true, run: function () { deleteFolder(folder); } }
     ]);
