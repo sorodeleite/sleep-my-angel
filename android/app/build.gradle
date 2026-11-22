@@ -15,8 +15,8 @@ android {
         applicationId "com.u3unicornios.sleepmyangel"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 10905
-        versionName "1.9.5"
+        versionCode 10906
+        versionName "1.9.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
