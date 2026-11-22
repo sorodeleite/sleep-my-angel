@@ -19,7 +19,24 @@ public final class ReminderScheduler {
     private ReminderScheduler() {}
 
     public static void save(Context context, String value) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, value).apply();
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        try {
+            JSONArray previous = new JSONArray(prefs.getString(KEY, "[]"));
+            JSONArray updated = new JSONArray(value);
+            for (int index = 0; index < previous.length(); index++) {
+                JSONObject oldItem = previous.optJSONObject(index);
+                if (oldItem == null) continue;
+                String oldId = oldItem.optString("id");
+                boolean stillExists = false;
+                for (int next = 0; next < updated.length(); next++) {
+                    JSONObject newItem = updated.optJSONObject(next);
+                    if (newItem != null && oldId.equals(newItem.optString("id"))) stillExists = true;
+                }
+                if (!stillExists) cancel(context, oldId);
+            }
+        } catch (Exception ignored) {
+        }
+        prefs.edit().putString(KEY, value).apply();
         scheduleAll(context, value);
     }
 
