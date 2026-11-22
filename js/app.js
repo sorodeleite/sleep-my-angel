@@ -265,6 +265,15 @@
     }
 
     function handleTime(detail) {
+      const expanded = document.getElementById('expanded-player');
+      if (expanded) {
+        const current = expanded.querySelector('.expanded-current');
+        const total = expanded.querySelector('.expanded-total');
+        const fill = expanded.querySelector('.expanded-track i');
+        if (current) current.textContent = SMA.formatTime(detail.currentTime);
+        if (total) total.textContent = detail.synth ? '∞' : SMA.formatTime(Number.isFinite(detail.duration) ? detail.duration : 0);
+        if (fill) fill.style.width = detail.synth ? '100%' : (detail.duration > 0 ? Math.min(100, detail.currentTime / detail.duration * 100) : 0) + '%';
+      }
       if (!progressFill || !currentLabel || !totalLabel) return;
       if (detail.synth) {
         progressBar?.classList.add('is-ambient');
