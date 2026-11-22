@@ -90,11 +90,11 @@
     },
     {
       id: 'bolinho-air-fryer',
-      title: 'bolinho de chocolate na air fryer',
+      title: 'brownie de chocolate na air fryer',
       tag: 'air fryer',
-      intro: 'um bolinho pequeno, de casquinha firme e interior cremoso, pra matar a vontade de doce sem ligar o forno.',
+      intro: 'um brownie pequeno, com casquinha firme e interior cremoso, pra matar a vontade de doce sem ligar o forno.',
       image: 'assets/recips/brownie_na_air_fryer.webp',
-      caption: 'bolinho de chocolate ‧ air fryer',
+      caption: 'brownie de chocolate ‧ air fryer',
       ingredients: [
         'ovo: 1',
         'açúcar: 4 colheres de sopa',
