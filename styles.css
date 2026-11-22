@@ -4973,14 +4973,19 @@ body {
 
 .profile-info {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  column-gap: 9px;
+  flex: 1;
+  min-width: 0;
+  padding-right: 48px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 
 .profile-info h2,
 .profile-info p {
   position: static;
+  flex-basis: 100%;
+  min-width: 0;
 }
 
 .reminders-settings-btn {
