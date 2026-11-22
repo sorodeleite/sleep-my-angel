@@ -323,6 +323,9 @@
     const under = pinsUnder(board.id, state.folderId);
     const chain = folder ? chainTo(folder.id) : [];
     const title = folder ? folder.title : board.title;
+    const directPins = pinsDirect(board.id, null);
+    const coverPin = !folder && board.coverPinId ? pinById(board.coverPinId) : null;
+    const cover = !folder ? (coverPin || directPins[0] || null) : null;
     const kicker = board.source === 'pinterest' ? 'pasta do pinterest' : board.source === 'local' ? 'pasta importada' : 'sua pasta';
 
     const crumbs = []
@@ -371,6 +374,7 @@
 
     return ''
       + '<div class="mood-shell mood-shell-board">'
+      + (!folder && cover ? '  <div class="mood-board-cover"><img data-mood-pin="' + esc(cover.id) + '" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"><span>imagem do cabeçalho</span></div>' : '')
       + '  <div class="mood-board-head">'
       + '    <button class="mood-icon-btn mood-back" type="button" data-mood-act="back" aria-label="voltar">'
       + '      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>'
@@ -828,6 +832,7 @@
       { label: 'abrir pasta', run: function () { openBoard(board.id); } },
       { label: 'renomear', run: function () { renameBoard(board); } },
       { label: 'organizar pins', run: function () { openBoard(board.id); state.organize = true; render(); } },
+      { label: board.coverPinId ? 'usar primeira foto no cabeçalho' : 'cabeçalho usa a primeira foto', run: function () { board.coverPinId = null; board.updatedAt = now(); SMA.moodStore.saveBoard(board).then(function () { refresh().then(render); }); } },
       { label: 'importar pasta…', run: function () { openImportModal('folder'); } },
       { label: board.private ? 'mostrar pasta' : 'ocultar pasta', run: function () { togglePrivate(board); } },
       { label: 'apagar pasta', danger: true, run: function () { deleteBoard(board); } }
@@ -847,6 +852,18 @@
       { label: 'ver grande', run: function () { openLightbox(pin); } },
       { label: 'renomear pin', run: function () { renamePin(pin); } },
       { label: 'mover pra…', run: function () { movePin(pin); } },
+      { label: 'usar como cabeçalho da pasta', run: function () {
+        const board = boardById(pin.boardId);
+        if (!board || pin.folderId) {
+          SMA.toast('escolha uma foto que esteja direto na pasta principal');
+          return;
+        }
+        board.coverPinId = pin.id;
+        board.updatedAt = now();
+        SMA.moodStore.saveBoard(board).then(function () {
+          refresh().then(function () { render(); SMA.toast('cabeçalho atualizado ✧'); });
+        });
+      } },
       pin.sourceUrl ? { label: 'abrir no pinterest', run: function () { window.open(pin.sourceUrl, '_blank', 'noopener'); } } : null,
       { label: 'apagar pin', danger: true, run: function () { deletePin(pin); } }
     ].filter(Boolean));
