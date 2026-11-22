@@ -38,7 +38,7 @@
         if (event.target.id === 'reminders-modal') closeModal();
       });
       document.getElementById('reminders-close').addEventListener('click', closeModal);
-      document.getElementById('reminders-update-link').addEventListener('click', function () { closeModal(); document.getElementById('btn-update-app')?.click(); });
+      document.getElementById('reminders-update-link').addEventListener('click', function () { closeModal(); if (SMA.Updater && typeof SMA.Updater.open === 'function') SMA.Updater.open(); });
       document.getElementById('reminder-cancel').addEventListener('click', resetForm);
       document.getElementById('reminder-form').addEventListener('submit', submitForm);
       document.getElementById('reminders-list').addEventListener('click', handleListClick);
