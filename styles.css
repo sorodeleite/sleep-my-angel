@@ -5250,10 +5250,11 @@ body {
   .titlebar { display: none; }
   .main-layout { padding-top: env(safe-area-inset-top, 0); }
   .profile-info { padding-right: 42px; }
+  
   .reminders-settings-btn {
     position: absolute;
-    top: 50%;
-    right: 0;
+    top: 18px;
+    right: 18px;
     transform: translateY(-50%);
     width: 36px;
     height: 36px;
@@ -5261,9 +5262,10 @@ body {
     border: 1px solid #dedee3;
     background: #fff;
   }
-  .reminders-settings-btn:hover { transform: translateY(-50%); }
+  .reminders-settings-btn:hover { transform: rotate(12deg); }
 }
-.profile-info { position: relative; }
+.retro-window-frame { position: relative; }
+.profile-info { position: static; }
 .reminders-settings-btn svg { width: 19px; height: 19px; }
 .bottom-player.is-empty .player-left { visibility: hidden; }
 .bottom-player.is-empty .player-center,
