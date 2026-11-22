@@ -2,35 +2,38 @@
   const SMA = window.SMA;
 
   const PRESETS = {
-    soft: { lowpass: 1400, highpass: 160, gain: 0.5, sway: 0.1 },
-    window: { lowpass: 2100, highpass: 220, gain: 0.62, sway: 0.16 },
-    storm: { lowpass: 3000, highpass: 90, gain: 0.82, sway: 0.24 }
+    soft: { lowpass: 1050, highpass: 90, gain: 0.42, drops: 12, texture: 0.28 },
+    window: { lowpass: 2600, highpass: 260, gain: 0.48, drops: 54, texture: 0.18 },
+    storm: { lowpass: 4200, highpass: 55, gain: 0.78, drops: 34, texture: 0.58 },
+    thunder: { lowpass: 4200, highpass: 55, gain: 0.76, drops: 34, texture: 0.58, thunder: true }
   };
 
-  function fillRain(buffer, context) {
-    const left = buffer.getChannelData(0);
-    const right = buffer.getChannelData(1);
-    let lowLeft = 0;
-    let lowRight = 0;
-    for (let index = 0; index < left.length; index += 1) {
-      const whiteLeft = Math.random() * 2 - 1;
-      const whiteRight = Math.random() * 2 - 1;
-      lowLeft += 0.03 * (whiteLeft - lowLeft);
-      lowRight += 0.03 * (whiteRight - lowRight);
-      left[index] = whiteLeft * 0.42 + lowLeft * 0.85;
-      right[index] = whiteRight * 0.42 + lowRight * 0.85;
-    }
-    const drops = Math.floor((buffer.length / context.sampleRate) * 28);
-    for (let drop = 0; drop < drops; drop += 1) {
-      const channel = Math.random() > 0.5 ? left : right;
-      const start = Math.floor(Math.random() * channel.length);
-      const frequency = 900 + Math.random() * 2600;
-      const decay = 30 + Math.random() * 70;
-      const amplitude = 0.04 + Math.random() * 0.12;
-      const length = Math.min(channel.length - start, Math.floor(context.sampleRate * 0.08));
-      for (let index = 0; index < length; index += 1) {
-        const time = index / context.sampleRate;
-        channel[start + index] += Math.sin(2 * Math.PI * frequency * time) * Math.exp(-decay * time) * amplitude;
+  function fillRain(buffer, settings, context) {
+    const sampleRate = context.sampleRate;
+    for (let channelIndex = 0; channelIndex < buffer.numberOfChannels; channelIndex += 1) {
+      const channel = buffer.getChannelData(channelIndex);
+      let brown = 0;
+      let pink = 0;
+      for (let index = 0; index < channel.length; index += 1) {
+        const white = Math.random() * 2 - 1;
+        brown = (brown + 0.018 * white) / 1.018;
+        pink = 0.985 * pink + 0.015 * white;
+        channel[index] = white * settings.texture + pink * 0.34 + brown * 3.1;
+      }
+
+      const seconds = buffer.length / sampleRate;
+      const drops = Math.floor(seconds * settings.drops);
+      for (let drop = 0; drop < drops; drop += 1) {
+        const start = Math.floor(Math.random() * (channel.length - 1));
+        const frequency = 650 + Math.random() * (settings.drops > 40 ? 4200 : 2200);
+        const decay = 38 + Math.random() * 90;
+        const amplitude = 0.025 + Math.random() * (settings.drops > 40 ? 0.16 : 0.09);
+        const length = Math.min(channel.length - start, Math.floor(sampleRate * 0.12));
+        for (let index = 0; index < length; index += 1) {
+          const time = index / sampleRate;
+          const envelope = Math.exp(-decay * time);
+          channel[start + index] += Math.sin(2 * Math.PI * frequency * time) * envelope * amplitude;
+        }
       }
     }
   }
@@ -43,6 +46,8 @@
       this.filter = null;
       this.preset = 'soft';
       this.level = 0.7;
+      this.thunderTimer = null;
+      this.thunderSources = new Set();
     }
 
     get active() {
@@ -58,18 +63,15 @@
         this.master.gain.value = 0;
         this.master.connect(this.context.destination);
       }
-      if (this.context.state === 'suspended') {
-        this.context.resume();
-      }
+      if (this.context.state === 'suspended') this.context.resume();
       return this.context;
     }
 
-    buildBuffer() {
-      const seconds = 8;
+    buildBuffer(settings) {
+      const seconds = 12;
       const sampleRate = this.context.sampleRate;
-      const length = Math.floor(sampleRate * seconds);
-      const buffer = this.context.createBuffer(2, length, sampleRate);
-      fillRain(buffer, this.context);
+      const buffer = this.context.createBuffer(2, Math.floor(sampleRate * seconds), sampleRate);
+      fillRain(buffer, settings, this.context);
       return buffer;
     }
 
@@ -80,29 +82,82 @@
       this.preset = PRESETS[preset] ? preset : 'soft';
       this.level = SMA.clamp(typeof level === 'number' ? level : this.level, 0, 1);
       this.stop(0.3);
+
       const source = context.createBufferSource();
-      const filter = context.createBiquadFilter();
+      const lowpass = context.createBiquadFilter();
       const highpass = context.createBiquadFilter();
-      source.buffer = this.buildBuffer();
+      const texture = context.createGain();
+      source.buffer = this.buildBuffer(settings);
       source.loop = true;
-      filter.type = 'lowpass';
-      filter.frequency.value = settings.lowpass;
-      filter.Q.value = 0.6;
+      lowpass.type = 'lowpass';
+      lowpass.frequency.value = settings.lowpass;
+      lowpass.Q.value = 0.45;
       highpass.type = 'highpass';
       highpass.frequency.value = settings.highpass;
-      source.connect(filter);
-      filter.connect(highpass);
-      highpass.connect(this.master);
+      texture.gain.value = 1;
+      source.connect(lowpass);
+      lowpass.connect(highpass);
+      highpass.connect(texture);
+      texture.connect(this.master);
+
       this.master.gain.cancelScheduledValues(context.currentTime);
       this.master.gain.setValueAtTime(0.0001, context.currentTime);
-      this.master.gain.linearRampToValueAtTime(Math.max(0.0001, this.level * settings.gain), context.currentTime + 1.4);
+      this.master.gain.linearRampToValueAtTime(Math.max(0.0001, this.level * settings.gain), context.currentTime + 2);
       source.start();
       this.source = source;
-      this.filter = filter;
+      this.filter = lowpass;
+      if (settings.thunder) this.scheduleThunder();
       return true;
     }
 
+    scheduleThunder() {
+      clearTimeout(this.thunderTimer);
+      this.thunderTimer = setTimeout(() => {
+        if (!this.active || this.preset !== 'thunder') return;
+        this.playThunder();
+        this.scheduleThunder();
+      }, 14000 + Math.random() * 18000);
+    }
+
+    playThunder() {
+      const context = this.context;
+      if (!context || !this.active) return;
+      const duration = 5.5;
+      const length = Math.floor(context.sampleRate * duration);
+      const buffer = context.createBuffer(1, length, context.sampleRate);
+      const data = buffer.getChannelData(0);
+      let low = 0;
+      for (let i = 0; i < length; i += 1) {
+        const white = Math.random() * 2 - 1;
+        low = low * 0.992 + white * 0.008;
+        data[i] = white * 0.22 + low * 7;
+      }
+
+      const source = context.createBufferSource();
+      const filter = context.createBiquadFilter();
+      const gain = context.createGain();
+      source.buffer = buffer;
+      filter.type = 'lowpass';
+      filter.frequency.value = 190;
+      filter.Q.value = 0.7;
+      const now = context.currentTime;
+      const volume = this.level * 0.58;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(volume, now + 0.18);
+      gain.gain.setTargetAtTime(volume * 0.52, now + 0.2, 0.8);
+      gain.gain.setTargetAtTime(0.0001, now + 2.1, 1.1);
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.master);
+      source.start(now);
+      source.stop(now + duration);
+      this.thunderSources.add(source);
+      source.onended = () => this.thunderSources.delete(source);
+    }
+
     stop(fade) {
+      clearTimeout(this.thunderTimer);
+      this.thunderTimer = null;
       if (!this.source || !this.context) return;
       const now = this.context.currentTime;
       const source = this.source;
@@ -116,6 +171,10 @@
       } catch (error) {
         this.master.gain.value = 0;
       }
+      this.thunderSources.forEach((item) => {
+        try { item.stop(now + Math.max(0.1, delay)); } catch (error) {}
+      });
+      this.thunderSources.clear();
     }
 
     setVolume(level) {
