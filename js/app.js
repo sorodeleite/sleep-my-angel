@@ -356,6 +356,7 @@
     initProfileFields();
     initAvatar();
     initModals();
+    if (SMA.Reminders) SMA.Reminders.init();
 
     const player = new SMA.Player();
     const library = new SMA.Library(player);
