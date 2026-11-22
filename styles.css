@@ -4979,12 +4979,15 @@ body {
 }
 
 .profile-info h2,
-.profile-info p,
+.profile-info p {
+  position: static;
+}
 
 .reminders-settings-btn {
   position: absolute;
-  right: 18px;
-  top: 14px;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 34px;
   height: 34px;
   display: grid;
@@ -5000,7 +5003,7 @@ body {
 .reminders-settings-btn:hover {
   color: var(--text-main);
   background: var(--bg-card);
-  transform: rotate(25deg);
+  transform: translateY(-50%) rotate(25deg);
 }
 
 .reminders-settings-btn svg {
