@@ -301,11 +301,12 @@
   }
 
   function boardCardHtml(board) {
-    const pins = pinsDirect(board.id, null);
+    const pins = pinsUnder(board.id, null);
+    const iconPins = pinsDirect(board.id, null);
     const folders = boardFolders(board.id).length;
     return ''
       + '<article class="mood-board-card' + (board.private ? ' is-private' : '') + '" data-mood-act="open-board" data-id="' + esc(board.id) + '" role="button" tabindex="0">'
-      + collageHtml(pins)
+      + collageHtml(iconPins)
       + '  <div class="mood-card-info">'
       + '    <div class="mood-card-title"><span class="mood-card-name">' + esc(board.title) + '</span>' + (board.private ? lockIcon() : '') + '</div>'
       + '    <div class="mood-card-meta">' + plural(pins.length, 'pin', 'pins') + ' ‧ ' + plural(folders, 'subpasta', 'subpastas') + (board.updatedAt ? ' ‧ ' + timeAgo(board.updatedAt) : '') + '</div>'
@@ -343,10 +344,11 @@
 
     const folderCards = children.map(function (item) {
       const childPins = pinsUnder(board.id, item.id);
+      const iconPins = pinsDirect(board.id, item.id);
       const subfolders = childFolders(board.id, item.id).length;
       return ''
         + '<article class="mood-folder-card" data-mood-act="open-folder" data-id="' + esc(item.id) + '" role="button" tabindex="0">'
-        + collageHtml(childPins)
+        + collageHtml(iconPins)
         + '  <div class="mood-card-info">'
         + '    <div class="mood-card-title"><span class="mood-card-name">' + esc(item.title) + '</span></div>'
         + '    <div class="mood-card-meta">' + plural(childPins.length, 'pin', 'pins') + ' ‧ ' + plural(subfolders, 'subpasta', 'subpastas') + '</div>'
