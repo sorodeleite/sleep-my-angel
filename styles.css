@@ -5528,7 +5528,9 @@ body:has(.bottom-player.is-empty) .tab-content-area { padding-bottom: 24px; }
   border-radius: 0 0 12px 12px;
   background: #fff;
   color: var(--text-main);
-  font: 14px/1.8 inherit;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.8;
   outline: none;
   overflow-wrap: anywhere;
   user-select: text;
