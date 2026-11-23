@@ -5769,3 +5769,87 @@ html[data-theme="dark"] .recipe-detail button,
 html[data-theme="dark"] .recipe-editor button {
   color: inherit;
 }
+
+
+/* refinamento do tema escuro: timer, moodboard e páginas de receitas */
+html[data-theme="dark"] .studio-field-label,
+html[data-theme="dark"] .milanote-board-head .studio-field-label {
+  color: var(--text-main);
+}
+html[data-theme="dark"] .timer-section,
+html[data-theme="dark"] .timer-display-box,
+html[data-theme="dark"] .timer-custom,
+html[data-theme="dark"] .timer-rain,
+html[data-theme="dark"] .timer-presets {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+html[data-theme="dark"] .timer-numbers,
+html[data-theme="dark"] .timer-state-label,
+html[data-theme="dark"] .timer-custom-title,
+html[data-theme="dark"] .timer-rain-title,
+html[data-theme="dark"] .timer-rain-label {
+  color: var(--text-main);
+}
+html[data-theme="dark"] .preset-btn,
+html[data-theme="dark"] .timer-custom-fields button,
+html[data-theme="dark"] .timer-ctrl-btn {
+  background: #332d38;
+  color: #f0e8f0;
+  border-color: #514657;
+}
+html[data-theme="dark"] .preset-btn.active,
+html[data-theme="dark"] .timer-ctrl-btn {
+  background: #604858;
+  color: #fff0f6;
+  border-color: #806174;
+}
+html[data-theme="dark"] .timer-custom-fields input {
+  background: #2b2630;
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+html[data-theme="dark"] .modal-backdrop:has(.recipe-sheet) {
+  background: rgba(5, 4, 8, .82);
+}
+html[data-theme="dark"] .recipe-sheet,
+html[data-theme="dark"] .recipe-sheet-scroll,
+html[data-theme="dark"] .recipe-sheet-body,
+html[data-theme="dark"] .recipe-sheet-actions,
+html[data-theme="dark"] .recipe-modal-buttons,
+html[data-theme="dark"] #modal-recipe .modal-box {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+html[data-theme="dark"] .recipe-sheet-title,
+html[data-theme="dark"] .recipe-block-head h3,
+html[data-theme="dark"] .recipe-check-copy strong,
+html[data-theme="dark"] .recipe-check-text,
+html[data-theme="dark"] .recipe-step-index {
+  color: var(--text-main);
+}
+html[data-theme="dark"] .recipe-sheet-tag,
+html[data-theme="dark"] .recipe-block-head span,
+html[data-theme="dark"] .recipe-check-note,
+html[data-theme="dark"] .recipe-check-empty {
+  color: var(--text-muted);
+}
+html[data-theme="dark"] .recipe-check,
+html[data-theme="dark"] .recipe-checklist,
+html[data-theme="dark"] .recipe-sheet-toolbar,
+html[data-theme="dark"] .recipe-progress-track {
+  background: #2b2630;
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+html[data-theme="dark"] .recipe-sheet button,
+html[data-theme="dark"] #modal-recipe button {
+  color: var(--text-main);
+}
+html[data-theme="dark"] .recipe-sheet .btn-secondary,
+html[data-theme="dark"] #modal-recipe .btn-secondary {
+  background: #332d38;
+  border-color: #514657;
+}
