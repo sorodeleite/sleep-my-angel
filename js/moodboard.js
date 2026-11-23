@@ -1253,6 +1253,50 @@
     }
   }
 
+  async function fetchPinterestSections(boardPath, boardId) {
+    const sections = [];
+    let bookmark = '';
+    const seenBookmarks = new Set();
+    while (true) {
+      const options = { board_id: boardId, page_size: 50 };
+      if (bookmark) options.bookmarks = [bookmark];
+      const data = encodeURIComponent(JSON.stringify({ options: options, context: {} }));
+      const safeSourcePath = new URL('https://www.pinterest.com' + boardPath).pathname;
+      const url = 'https://www.pinterest.com/resource/BoardSectionsResource/get/?source_url='
+        + encodeURIComponent(safeSourcePath) + '&data=' + data;
+      const text = await fetchPinterestResource(url, safeSourcePath, 'www/[username]/[slug].js');
+      if (!text) throw new Error('o pinterest não devolveu as seções da pasta.');
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch (error) {
+        throw new Error('o pinterest devolveu uma lista de seções inválida.');
+      }
+      const response = json && json.resource_response;
+      if (!response) throw new Error('o pinterest não devolveu os dados das seções.');
+      const items = Array.isArray(response.data)
+        ? response.data
+        : (response.data && typeof response.data === 'object' ? Object.values(response.data) : []);
+      items.forEach(function (item) {
+        if (!item) return;
+        const id = String(item.id || item.section_id || '');
+        const slug = String(item.slug || (item.url ? String(item.url).split('/').filter(Boolean).pop() : '') || '');
+        const title = cleanTitle(item.title || item.name || slug);
+        if (!id || !slug || !title) return;
+        if (!sections.some(function (section) { return section.id === id; })) {
+          sections.push({ id: id, slug: slug, title: title });
+        }
+      });
+      const next = Array.isArray(response.bookmark) ? response.bookmark[0] : response.bookmark;
+      if (!next || next === '-end-' || !items.length) break;
+      if (seenBookmarks.has(String(next))) throw new Error('o pinterest repetiu a lista de seções.');
+      seenBookmarks.add(String(next));
+      bookmark = next;
+      await new Promise(function (resolve) { setTimeout(resolve, 180); });
+    }
+    return sections;
+  }
+
   async function fetchPinterestFeed(resource, sourcePath, handler, baseOptions, boardId) {
     const pins = [];
     let bookmark = '';
@@ -1305,6 +1349,19 @@
 
     const collected = new Map();
     let worked = false;
+    let sections = Array.isArray(parsed.sections) ? parsed.sections.slice() : [];
+    try {
+      const remoteSections = await fetchPinterestSections(boardPath, parsed.boardId);
+      if (remoteSections.length) {
+        const byId = new Map();
+        sections.concat(remoteSections).forEach(function (section) {
+          if (section && section.id) byId.set(String(section.id), section);
+        });
+        sections = Array.from(byId.values());
+      }
+    } catch (error) {
+      // Mantém as seções presentes na página inicial se o Pinterest limitar esse recurso.
+    }
     const add = function (pins, section) {
       pins.forEach(function (pin) {
         const existing = collected.get(pin.key);
@@ -1336,7 +1393,7 @@
       worked = true;
       add(mainPins, null);
 
-      for (const section of parsed.sections) {
+      for (const section of sections) {
         if (!section.id || !section.slug) continue;
         const sectionPins = await fetchPinterestFeed(
           'BoardSectionPinsResource',
