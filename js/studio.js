@@ -127,7 +127,7 @@
     state.scriptFiles = [];
     state.scriptImages = item && Array.isArray(item.images) ? item.images.slice() : [];
     state.imagePositions = item && item.imagePositions ? Object.assign({}, item.imagePositions) : {};
-    state.pendingPreviewUrls.forEach(URL.revokeObjectURL);
+    state.pendingPreviewUrls.forEach(function (url) { URL.revokeObjectURL(url); });
     state.pendingPreviewUrls = [];
     state.drag = null;
     root.querySelector('#shift-editor-heading').textContent = item ? 'editar script' : 'novo script';
