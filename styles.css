@@ -5551,3 +5551,12 @@ body:has(.bottom-player.is-empty) .tab-content-area { padding-bottom: 24px; }
   background: #fcf7f9;
   color: var(--text-muted);
 }
+
+.planner-event-time i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
