@@ -5668,3 +5668,22 @@ html[data-theme="dark"] .studio-empty { background:#211e26;border-color:#514452;
   .milanote-board { min-height:460px; }
   .milanote-image { max-width:58%; }
 }
+
+.theme-switch-btn { position:absolute;right:54px;top:50%;transform:translateY(-50%); }
+.theme-switch-btn:hover { transform:translateY(-50%) scale(1.08); }
+html[data-theme="dark"] .reminders-settings-btn {
+  background:#302a35;color:#e3c3d2;border-color:#554957;
+}
+html[data-theme="dark"] .titlebar { background:#211e26;border-color:var(--border-color); }
+html[data-theme="dark"] .top-mello-widget,
+html[data-theme="dark"] .retro-window-frame { background:var(--bg-surface);color:var(--text-main);border-color:var(--border-color); }
+html[data-theme="dark"] .field-input { background:#3b303c;color:#f0c8d9;border-color:#594553; }
+html[data-theme="dark"] .nav-tabs { background:var(--bg-surface);border-color:var(--border-color); }
+html[data-theme="dark"] .nav-tab-btn { color:var(--text-muted); }
+html[data-theme="dark"] .studio-modal { background:rgba(5,4,8,.68); }
+html[data-theme="dark"] .milanote-board-head small { color:var(--text-muted); }
+html[data-theme="dark"] .studio-chip.active { background:#493543;border-color:#735568;color:#f1ccdc; }
+html[data-theme="dark"] .planner-day.is-today { color:#f0b9d0; }
+html[data-theme="dark"] .planner-day.is-selected { background:#4a3544;color:#f7d9e6; }
+html[data-theme="dark"] .planner-event { background:#302833; }
+html[data-theme="dark"] .planner-task.is-done span { color:#938895; }
