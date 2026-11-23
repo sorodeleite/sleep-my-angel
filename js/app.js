@@ -30,6 +30,33 @@
     });
   }
 
+  function initTheme() {
+    const button = document.getElementById('btn-theme-switch');
+    if (!button) return;
+    const moon = '<path d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.7 8.7 0 1 0 20.2 15.4Z"></path>';
+    const sun = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path>';
+    function applyTheme(theme) {
+      const dark = theme === 'dark';
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#17151b' : '#f4f4f5');
+      button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (dark ? sun : moon) + '</svg>';
+      button.setAttribute('aria-pressed', String(dark));
+      button.setAttribute('aria-label', dark ? 'desativar tema escuro' : 'ativar tema escuro');
+      button.title = dark ? 'apagar modo escuro' : 'acender modo escuro';
+    }
+    let theme = SMA.readText('sma_theme', 'light') === 'dark' ? 'dark' : 'light';
+    applyTheme(theme);
+    button.addEventListener('click', function () {
+      theme = theme === 'dark' ? 'light' : 'dark';
+      SMA.writeText('sma_theme', theme);
+      button.classList.remove('is-switching');
+      void button.offsetWidth;
+      button.classList.add('is-switching');
+      applyTheme(theme);
+      window.setTimeout(function () { button.classList.remove('is-switching'); }, 520);
+    });
+  }
+
   function initDate() {
     const label = SMA.select('#date-text');
     if (label) label.textContent = SMA.todayLabel();
@@ -407,6 +434,7 @@
     setPlatform();
     initWindowControls();
     initDate();
+    initTheme();
     initTabs();
     initProfileFields();
     initAvatar();
