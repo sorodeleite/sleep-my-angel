@@ -12,6 +12,9 @@
     scriptId: null,
     scriptFiles: [],
     scriptImages: [],
+    imagePositions: {},
+    pendingPreviewUrls: [],
+    drag: null,
     month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     selectedDay: dateKey(new Date()),
     photoUrls: new Map()
@@ -59,11 +62,16 @@
     const root = document.getElementById('shift-scripts-root');
     if (!root || root.dataset.ready) return;
     root.dataset.ready = '1';
-    root.innerHTML = '<div class="studio-shell shift-shell"><header class="studio-heading"><div><span class="studio-kicker">your desired reality · personal archive</span><h1>shift scripts <span>♡</span></h1><p>seus roteiros, detalhes, regras e referências em um só lugar.</p></div><button class="studio-primary" type="button" data-shift-action="new">＋ novo script</button></header><div class="studio-category-row" id="shift-category-list"></div><div class="shift-script-grid" id="shift-script-list"></div><div class="studio-modal" id="shift-editor" hidden><form class="studio-modal-card shift-editor-card" id="shift-script-form"><div class="studio-modal-head"><div><span class="studio-kicker">a little world of your own</span><h2 id="shift-editor-heading">novo script</h2></div><button class="studio-icon-btn" type="button" data-shift-action="close" aria-label="fechar">×</button></div><label class="studio-field">nome do script<input id="shift-title" maxlength="90" required placeholder="ex.: minha realidade desejada"></label><div class="studio-field-row"><label class="studio-field">categoria<select id="shift-category"></select></label><label class="studio-field">outra categoria<input id="shift-new-category" maxlength="32" placeholder="criar categoria"></label></div><label class="studio-field">pequena descrição<input id="shift-summary" maxlength="180" placeholder="uma frase para identificar esse script"></label><div class="studio-field notion-page-field"><span class="studio-field-label">sua página</span><div class="notion-toolbar"><button type="button" data-editor-command="bold"><b>B</b></button><button type="button" data-editor-command="italic"><i>I</i></button><button type="button" data-editor-command="underline"><u>U</u></button><button type="button" data-editor-command="formatBlock" data-editor-value="h2">H</button><button type="button" data-editor-command="insertUnorderedList">☷</button><button type="button" data-editor-command="insertOrderedList">1.</button><button type="button" data-editor-command="formatBlock" data-editor-value="blockquote">❝</button><button type="button" data-editor-command="formatBlock" data-editor-value="p">¶</button></div><div id="shift-body" class="notion-editor" contenteditable="true" data-placeholder="Comece a escrever... use títulos, listas, divisões e tudo o que precisar."></div></div><div class="studio-field"><span class="studio-field-label">fotos e referências · colagem</span><label class="studio-upload">＋ adicionar fotos<input id="shift-photos" type="file" accept="image/*" multiple hidden></label><div class="shift-image-preview" id="shift-image-preview"></div></div><div class="studio-modal-actions"><button class="studio-secondary" type="button" data-shift-action="close">cancelar</button><button class="studio-primary" type="submit">salvar script ♡</button></div></form></div></div>';
+    root.innerHTML = '<div class="studio-shell shift-shell"><header class="studio-heading"><div><span class="studio-kicker">your desired reality · personal archive</span><h1>shift scripts <span>♡</span></h1><p>seus roteiros, detalhes, regras e referências em um só lugar.</p></div><button class="studio-primary" type="button" data-shift-action="new">＋ novo script</button></header><div class="studio-category-row" id="shift-category-list"></div><div class="shift-script-grid" id="shift-script-list"></div><div class="studio-modal" id="shift-editor" hidden><form class="studio-modal-card shift-editor-card" id="shift-script-form"><div class="studio-modal-head"><div><span class="studio-kicker">a little world of your own</span><h2 id="shift-editor-heading">novo script</h2></div><button class="studio-icon-btn" type="button" data-shift-action="close" aria-label="fechar">×</button></div><label class="studio-field">nome do script<input id="shift-title" maxlength="90" required placeholder="ex.: minha realidade desejada"></label><div class="studio-field-row"><label class="studio-field">categoria<select id="shift-category"></select></label><label class="studio-field">outra categoria<input id="shift-new-category" maxlength="32" placeholder="criar categoria"></label></div><label class="studio-field">pequena descrição<input id="shift-summary" maxlength="180" placeholder="uma frase para identificar esse script"></label><div class="studio-field notion-page-field"><span class="studio-field-label">sua página</span><div class="notion-toolbar"><button type="button" data-editor-command="bold"><b>B</b></button><button type="button" data-editor-command="italic"><i>I</i></button><button type="button" data-editor-command="underline"><u>U</u></button><button type="button" data-editor-command="formatBlock" data-editor-value="h2">H</button><button type="button" data-editor-command="insertUnorderedList">☷</button><button type="button" data-editor-command="insertOrderedList">1.</button><button type="button" data-editor-command="formatBlock" data-editor-value="blockquote">❝</button><button type="button" data-editor-command="formatBlock" data-editor-value="p">¶</button></div><div id="shift-body" class="notion-editor" contenteditable="true" data-placeholder="Comece a escrever... use títulos, listas, divisões e tudo o que precisar."></div></div><div class="studio-field milanote-field"><div class="milanote-board-head"><div><span class="studio-field-label">moodboard · seu espaço criativo</span><small>arraste as imagens para organizar como quiser ♡</small></div><label class="studio-upload">＋ adicionar fotos<input id="shift-photos" type="file" accept="image/*" multiple hidden></label></div><div class="milanote-board" id="shift-image-preview"><div class="milanote-board-hint">seu mural começa aqui ✧</div></div></div><div class="studio-modal-actions"><button class="studio-secondary" type="button" data-shift-action="close">cancelar</button><button class="studio-primary" type="submit">salvar script ♡</button></div></form></div></div>';
     root.addEventListener('click', handleScriptClick);
     root.addEventListener('submit', handleScriptSubmit);
     root.addEventListener('change', handleScriptChange);
     root.addEventListener('click', handleEditorToolbar);
+    const board = root.querySelector('#shift-image-preview');
+    board.addEventListener('pointerdown', handleBoardPointerDown);
+    board.addEventListener('pointermove', handleBoardPointerMove);
+    board.addEventListener('pointerup', handleBoardPointerUp);
+    board.addEventListener('pointercancel', handleBoardPointerUp);
     renderScripts();
   }
 
@@ -118,6 +126,10 @@
     state.scriptId = item ? item.id : null;
     state.scriptFiles = [];
     state.scriptImages = item && Array.isArray(item.images) ? item.images.slice() : [];
+    state.imagePositions = item && item.imagePositions ? Object.assign({}, item.imagePositions) : {};
+    state.pendingPreviewUrls.forEach(URL.revokeObjectURL);
+    state.pendingPreviewUrls = [];
+    state.drag = null;
     root.querySelector('#shift-editor-heading').textContent = item ? 'editar script' : 'novo script';
     root.querySelector('#shift-title').value = item ? item.title : '';
     root.querySelector('#shift-summary').value = item ? item.summary || '' : '';
@@ -138,14 +150,57 @@
   async function renderShiftImagePreview() {
     const holder = document.getElementById('shift-image-preview');
     if (!holder) return;
+    state.pendingPreviewUrls.forEach(URL.revokeObjectURL);
+    state.pendingPreviewUrls = [];
     const ids = state.scriptImages.slice();
     const records = await Promise.all(ids.map(function (id) { return SMA.studioStore.getShiftImage(id); }));
     if (!holder.isConnected) return;
-    holder.innerHTML = records.filter(function (record) { return record && record.blob; }).map(function (record) {
-      return '<div class="shift-preview-image"><img src="' + SMA.studioStore.imageUrl('shift', record.id, record.blob) + '" alt=""><button type="button" data-shift-action="remove-image" data-id="' + escape(record.id) + '">×</button></div>';
-    }).join('') + state.scriptFiles.map(function (file, index) {
-      return '<div class="shift-preview-image is-pending"><span>' + escape(file.name) + '</span><button type="button" data-shift-action="remove-pending" data-index="' + index + '">×</button></div>';
+    const cards = records.filter(function (record) { return record && record.blob; }).map(function (record) {
+      const position = state.imagePositions[record.id] || {};
+      const left = Number.isFinite(position.x) ? position.x : 4 + (ids.indexOf(record.id) % 3) * 29;
+      const top = Number.isFinite(position.y) ? position.y : 5 + (ids.indexOf(record.id) % 4) * 19;
+      const width = Number.isFinite(position.width) ? position.width : 170;
+      return '<div class="milanote-image" data-image-id="' + escape(record.id) + '" style="left:' + left + '%;top:' + top + '%;width:' + width + 'px"><img src="' + SMA.studioStore.imageUrl('shift', record.id, record.blob) + '" alt="" draggable="false"><button type="button" data-shift-action="remove-image" data-id="' + escape(record.id) + '" aria-label="remover imagem">×</button></div>';
     }).join('');
+    const pending = state.scriptFiles.map(function (file, index) {
+      const id = 'pending-' + index;
+      const position = state.imagePositions[id] || {};
+      const url = URL.createObjectURL(file);
+      state.pendingPreviewUrls.push(url);
+      return '<div class="milanote-image is-pending" data-image-id="' + id + '" style="left:' + (Number.isFinite(position.x) ? position.x : 5 + (index % 3) * 29) + '%;top:' + (Number.isFinite(position.y) ? position.y : 8 + (index % 4) * 19) + '%;width:' + (Number.isFinite(position.width) ? position.width : 170) + 'px"><img src="' + url + '" alt="" draggable="false"><button type="button" data-shift-action="remove-pending" data-index="' + index + '" aria-label="remover imagem">×</button></div>';
+    }).join('');
+    holder.innerHTML = cards + pending + ((!cards && !pending) ? '<div class="milanote-board-hint">seu mural começa aqui ✧<br>adicione fotos e arraste para decorar</div>' : '');
+  }
+
+  function handleBoardPointerDown(event) {
+    if (event.target.closest('[data-shift-action]')) return;
+    const card = event.target.closest('.milanote-image');
+    if (!card) return;
+    const holder = document.getElementById('shift-image-preview');
+    const bounds = holder.getBoundingClientRect();
+    const rect = card.getBoundingClientRect();
+    state.drag = { card: card, id: card.dataset.imageId, offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top, bounds: bounds };
+    card.classList.add('is-dragging');
+    card.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+
+  function handleBoardPointerMove(event) {
+    if (!state.drag) return;
+    const drag = state.drag;
+    const width = drag.bounds.width || 1;
+    const height = drag.bounds.height || 1;
+    const x = Math.max(0, Math.min(100, ((event.clientX - drag.bounds.left - drag.offsetX) / width) * 100));
+    const y = Math.max(0, Math.min(100, ((event.clientY - drag.bounds.top - drag.offsetY) / height) * 100));
+    drag.card.style.left = x + '%';
+    drag.card.style.top = y + '%';
+    state.imagePositions[drag.id] = Object.assign({}, state.imagePositions[drag.id], { x: x, y: y });
+  }
+
+  function handleBoardPointerUp() {
+    if (!state.drag) return;
+    state.drag.card.classList.remove('is-dragging');
+    state.drag = null;
   }
 
   function editorContent(body, rules) {
@@ -219,9 +274,12 @@
     }
     if (action === 'remove-image') {
       state.scriptImages = state.scriptImages.filter(function (imageId) { return imageId !== id; });
+      delete state.imagePositions[id];
       renderShiftImagePreview();
     }
     if (action === 'remove-pending') {
+      const pendingId = 'pending-' + Number(button.dataset.index);
+      delete state.imagePositions[pendingId];
       state.scriptFiles.splice(Number(button.dataset.index), 1);
       renderShiftImagePreview();
     }
@@ -264,7 +322,11 @@
     for (const file of state.scriptFiles) {
       const imageId = uid('shift-image');
       const saved = await SMA.studioStore.putShiftImage(imageId, file);
-      if (saved) images.push(imageId);
+      if (saved) {
+        images.push(imageId);
+        const pendingPosition = state.imagePositions['pending-' + state.scriptFiles.indexOf(file)];
+        if (pendingPosition) state.imagePositions[imageId] = pendingPosition;
+      }
     }
     const item = {
       id: state.scriptId || uid('script'),
@@ -274,6 +336,17 @@
       body: cleanEditorHTML(root.querySelector('#shift-body')),
       rules: '',
       images: images.slice(0, 12),
+      imagePositions: Object.keys(state.imagePositions).reduce(function (positions, key) {
+        if (images.includes(key)) positions[key] = state.imagePositions[key];
+        else if (key.indexOf('pending-') === 0) {
+          const index = Number(key.slice(8));
+          const file = state.scriptFiles[index];
+          const imageIndex = file ? state.scriptFiles.indexOf(file) : -1;
+          const savedId = imageIndex >= 0 ? images[state.scriptImages.length + imageIndex] : null;
+          if (savedId) positions[savedId] = state.imagePositions[key];
+        }
+        return positions;
+      }, {}),
       createdAt: previous ? previous.createdAt : Date.now(),
       updatedAt: Date.now()
     };
