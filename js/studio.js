@@ -6,7 +6,6 @@
   const CATEGORY_KEY = 'sma_shift_categories';
   const EVENT_KEY = 'sma_planner_events';
   const TASK_KEY = 'sma_planner_tasks';
-  const PHOTO_KEY = 'sma_private_photos';
   const DEFAULT_CATEGORIES = ['geral', 'aparência', 'personalidade', 'relacionamentos', 'rotina', 'regras'];
   const state = {
     scriptId: null,
@@ -364,88 +363,6 @@
     }
   }
 
-  function initPrivateAlbum() {
-    const root = document.getElementById('private-album-root');
-    if (!root || root.dataset.ready) return;
-    root.dataset.ready = '1';
-    root.innerHTML = '<div class="studio-shell private-shell"><header class="studio-heading"><div><span class="studio-kicker">just for your eyes</span><h1>private album <span>♡</span></h1><p>um espaço separado do moodboard para guardar suas fotos neste aparelho.</p></div><label class="studio-primary private-upload-btn">＋ adicionar fotos<input id="private-photo-input" type="file" accept="image/*" multiple hidden></label></header><div class="private-album-note"><span>♡</span><p>as imagens ficam neste aparelho e não são enviadas para uma conta ou outro aplicativo. O álbum não tem senha própria: quem conseguir abrir o app no seu celular também poderá vê-las.</p></div><div class="private-photo-grid" id="private-photo-grid"></div><div class="studio-modal" id="private-photo-view" hidden><div class="private-photo-viewer"><button class="studio-icon-btn" type="button" data-private-action="close" aria-label="fechar">×</button><img id="private-photo-large" alt=""><div class="private-photo-viewer-bottom"><strong id="private-photo-name"></strong><button class="studio-text-btn" type="button" data-private-action="delete">apagar foto</button></div></div></div></div>';
-    root.addEventListener('click', handlePrivateClick);
-    root.addEventListener('change', handlePrivateChange);
-    renderPrivateAlbum();
-  }
-
-  function photos() {
-    return readList(PHOTO_KEY);
-  }
-
-  async function renderPrivateAlbum() {
-    const root = document.getElementById('private-album-root');
-    const grid = root && root.querySelector('#private-photo-grid');
-    if (!grid) return;
-    const list = photos().sort(function (a, b) { return (b.added || 0) - (a.added || 0); });
-    if (!list.length) {
-      grid.innerHTML = '<div class="studio-empty"><span>୨୧</span><strong>seu álbum está esperando por você</strong><p>adicione fotos que você prefere manter separadas do moodboard.</p></div>';
-      return;
-    }
-    grid.innerHTML = list.map(function (item) {
-      return '<button class="private-photo-card" type="button" data-private-action="open" data-id="' + escape(item.id) + '"><span class="private-photo-placeholder">♡</span><strong>' + escape(item.name) + '</strong></button>';
-    }).join('');
-    for (const item of list) {
-      const record = await SMA.studioStore.getPrivateImage(item.id);
-      const card = grid.querySelector('[data-id="' + CSS.escape(item.id) + '"]');
-      if (!card || !record || !record.blob) continue;
-      const url = SMA.studioStore.imageUrl('private', item.id, record.blob);
-      card.style.backgroundImage = 'url("' + url + '")';
-      card.classList.add('has-photo');
-    }
-  }
-
-  async function handlePrivateChange(event) {
-    if (event.target.id !== 'private-photo-input') return;
-    const files = Array.from(event.target.files || []).filter(function (file) {
-      return file.type.indexOf('image/') === 0 && file.size <= 15 * 1024 * 1024;
-    });
-    const list = photos();
-    for (const file of files) {
-      const id = uid('private-photo');
-      const saved = await SMA.studioStore.putPrivateImage(id, file);
-      if (saved) list.unshift({ id: id, name: file.name.replace(/\.[^.]+$/, '').slice(0, 80) || 'foto', added: Date.now() });
-    }
-    if (writeList(PHOTO_KEY, list)) {
-      renderPrivateAlbum();
-      SMA.toast(files.length + (files.length === 1 ? ' foto guardada' : ' fotos guardadas') + ' ♡');
-    }
-    event.target.value = '';
-  }
-
-  async function handlePrivateClick(event) {
-    const button = event.target.closest('[data-private-action]');
-    if (!button) return;
-    const action = button.dataset.privateAction;
-    const id = button.dataset.id;
-    const modal = document.getElementById('private-photo-view');
-    if (action === 'open') {
-      const item = photos().find(function (photo) { return photo.id === id; });
-      const record = await SMA.studioStore.getPrivateImage(id);
-      if (!item || !record || !record.blob) return;
-      document.getElementById('private-photo-large').src = SMA.studioStore.imageUrl('private', id, record.blob);
-      document.getElementById('private-photo-name').textContent = item.name;
-      modal.dataset.photoId = id;
-      modal.hidden = false;
-    }
-    if (action === 'close') modal.hidden = true;
-    if (action === 'delete') {
-      const photoId = modal.dataset.photoId;
-      if (!window.confirm('apagar esta foto do álbum?')) return;
-      await SMA.studioStore.removePrivateImage(photoId);
-      writeList(PHOTO_KEY, photos().filter(function (photo) { return photo.id !== photoId; }));
-      modal.hidden = true;
-      renderPrivateAlbum();
-      SMA.toast('foto apagada');
-    }
-  }
-
   SMA.ShiftScripts = { init: initScripts };
   SMA.PersonalPlanner = { init: initPlanner };
-  SMA.PrivateAlbum = { init: initPrivateAlbum };
 })();
