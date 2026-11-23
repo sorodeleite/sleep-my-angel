@@ -436,6 +436,8 @@
     initDate();
     initTheme();
     initTabs();
+    if (SMA.ShiftScripts) SMA.ShiftScripts.init();
+    if (SMA.PersonalPlanner) SMA.PersonalPlanner.init();
     initProfileFields();
     initAvatar();
     initModals();
