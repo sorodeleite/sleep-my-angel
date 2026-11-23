@@ -5548,3 +5548,123 @@ body:has(.bottom-player.is-empty) .tab-content-area { padding-bottom: 24px; }
   border-radius: 50%;
   vertical-align: middle;
 }
+
+
+.milanote-field { margin-top: 20px; }
+.milanote-board-head { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }
+.milanote-board-head small { display:block;margin-top:4px;color:var(--text-light);font-size:10px; }
+.milanote-board {
+  position:relative;
+  min-height:520px;
+  overflow:hidden;
+  border:1px solid #e9e0e4;
+  border-radius:16px;
+  background-color:#fcfafb;
+  background-image:radial-gradient(#e5dce1 1px,transparent 1px);
+  background-size:19px 19px;
+  touch-action:pan-y;
+}
+.milanote-board-hint {
+  position:absolute;top:45%;left:50%;width:80%;
+  color:#b9aab1;font-family:"Playfair Display",Georgia,serif;
+  font-size:17px;line-height:1.8;text-align:center;
+  transform:translate(-50%,-50%);pointer-events:none;
+}
+.milanote-image {
+  position:absolute;z-index:1;min-width:105px;max-width:45%;
+  padding:7px;border:1px solid #eee5e9;border-radius:9px;
+  background:#fff;box-shadow:0 5px 17px rgba(67,48,57,.13);
+  cursor:grab;touch-action:none;user-select:none;
+}
+.milanote-image img { display:block;width:100%;max-height:250px;aspect-ratio:4/5;object-fit:cover;border-radius:5px;pointer-events:none; }
+.milanote-image button {
+  position:absolute;top:-9px;right:-9px;width:24px;height:24px;
+  border:1px solid #eee5e9;border-radius:50%;background:#fff;
+  color:#856d79;font-size:16px;cursor:pointer;box-shadow:0 2px 8px #00000012;
+}
+.milanote-image.is-dragging { z-index:5;cursor:grabbing;box-shadow:0 12px 28px rgba(67,48,57,.2); }
+.milanote-image.is-pending { border-style:dashed; }
+.theme-switch-btn {
+  display:inline-grid;width:30px;height:30px;place-items:center;
+  margin-left:5px;border:1px solid #eee2e8;border-radius:50%;
+  background:#fff8e9;color:#ad8b55;cursor:pointer;
+  transition:transform .2s,background .35s,color .35s,box-shadow .35s;
+}
+.theme-switch-btn svg { width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round; }
+.theme-switch-btn.is-switching { animation:theme-switch-click .5s ease; }
+@keyframes theme-switch-click {
+  0%{transform:scale(1)}35%{transform:scale(.82);box-shadow:0 0 0 7px #eacb8955}70%{transform:scale(1.12)}100%{transform:scale(1)}
+}
+html[data-theme="dark"] {
+  color-scheme:dark;
+  --bg-app:#17151b;--bg-surface:#211e26;--bg-subtle:#2c2731;--bg-card:#25212a;
+  --border-color:#3a3340;--border-focus:#66596c;--text-main:#eee8f0;
+  --text-muted:#b4a8b9;--text-light:#918496;
+  --accent-pink:#49313e;--accent-pink-text:#efb9cb;
+  --accent-matcha:#303e35;--accent-matcha-text:#b8d7b8;
+  --accent-lavender:#373249;--accent-lavender-text:#c9bdf5;
+  --accent-peach:#49372e;--accent-peach-text:#efc0a0;
+  --accent-blue:#2e3b4c;--accent-blue-text:#b7d0ef;
+}
+html[data-theme="dark"] body { background:var(--bg-app);color:var(--text-main); }
+html[data-theme="dark"] .titlebar,
+html[data-theme="dark"] .retro-window-frame,
+html[data-theme="dark"] .section-hero,
+html[data-theme="dark"] .quote-display-card,
+html[data-theme="dark"] .affirmation-card,
+html[data-theme="dark"] .music-card,
+html[data-theme="dark"] .nav-tabs,
+html[data-theme="dark"] .planner-calendar-card,
+html[data-theme="dark"] .planner-agenda-card,
+html[data-theme="dark"] .shift-script-card,
+html[data-theme="dark"] .studio-modal-card {
+  background:var(--bg-surface);color:var(--text-main);border-color:var(--border-color);
+}
+html[data-theme="dark"] .tab-content-area,
+html[data-theme="dark"] .main-layout { background:var(--bg-app); }
+html[data-theme="dark"] .nav-tab-btn,
+html[data-theme="dark"] .field-input,
+html[data-theme="dark"] .studio-field,
+html[data-theme="dark"] .studio-heading,
+html[data-theme="dark"] .planner-month-head h2,
+html[data-theme="dark"] .planner-agenda-head h2,
+html[data-theme="dark"] .shift-card-open,
+html[data-theme="dark"] .hero-text h3,
+html[data-theme="dark"] .quote-content { color:var(--text-main); }
+html[data-theme="dark"] .nav-tab-btn.active { background:var(--bg-subtle);color:#e7b8ca; }
+html[data-theme="dark"] .studio-primary { background:#513b49;border-color:#705464;color:#f4dce6; }
+html[data-theme="dark"] .studio-secondary,
+html[data-theme="dark"] .studio-icon-btn,
+html[data-theme="dark"] .studio-chip,
+html[data-theme="dark"] .notion-toolbar,
+html[data-theme="dark"] .notion-editor,
+html[data-theme="dark"] .planner-task,
+html[data-theme="dark"] .planner-event,
+html[data-theme="dark"] .planner-day,
+html[data-theme="dark"] .studio-field input,
+html[data-theme="dark"] .studio-field select,
+html[data-theme="dark"] .studio-field textarea,
+html[data-theme="dark"] .timer-custom-fields input,
+html[data-theme="dark"] .timer-custom-fields button {
+  background:#2b2630;color:var(--text-main);border-color:var(--border-color);
+}
+html[data-theme="dark"] .notion-toolbar button,
+html[data-theme="dark"] .planner-event-copy strong,
+html[data-theme="dark"] .planner-day.is-selected { color:var(--text-main); }
+html[data-theme="dark"] .notion-editor blockquote { background:#332936;border-color:#9b7188;color:#e3d2dc; }
+html[data-theme="dark"] .milanote-board { background-color:#211e26;background-image:radial-gradient(#4a414e 1px,transparent 1px);border-color:var(--border-color); }
+html[data-theme="dark"] .milanote-image { background:#332d38;border-color:#4a404d; }
+html[data-theme="dark"] .milanote-image button { background:#3a3340;color:#f3dce7;border-color:#55485a; }
+html[data-theme="dark"] .theme-switch-btn { background:#3a3345;color:#e9d7ff;border-color:#62546d;box-shadow:0 0 12px #c7a8ff25; }
+html[data-theme="dark"] .profile-info p,
+html[data-theme="dark"] .studio-heading p,
+html[data-theme="dark"] .studio-field,
+html[data-theme="dark"] .shift-card-open p { color:var(--text-muted); }
+html[data-theme="dark"] .bottom-player,
+html[data-theme="dark"] .expanded-player,
+html[data-theme="dark"] .modal-backdrop .modal-content { background:var(--bg-surface);color:var(--text-main);border-color:var(--border-color); }
+html[data-theme="dark"] .studio-empty { background:#211e26;border-color:#514452;color:var(--text-muted); }
+@media(max-width:700px) {
+  .milanote-board { min-height:460px; }
+  .milanote-image { max-width:58%; }
+}
