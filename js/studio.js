@@ -213,6 +213,8 @@
     const current = scripts();
     const previous = current.find(function (item) { return item.id === state.scriptId; });
     const images = state.scriptImages.slice();
+    const removedImages = previous && Array.isArray(previous.images) ? previous.images.filter(function (id) { return !images.includes(id); }) : [];
+    await Promise.all(removedImages.map(function (id) { return SMA.studioStore.removeShiftImage(id); }));
     for (const file of state.scriptFiles) {
       const imageId = uid('shift-image');
       const saved = await SMA.studioStore.putShiftImage(imageId, file);
@@ -366,7 +368,7 @@
     const root = document.getElementById('private-album-root');
     if (!root || root.dataset.ready) return;
     root.dataset.ready = '1';
-    root.innerHTML = '<div class="studio-shell private-shell"><header class="studio-heading"><div><span class="studio-kicker">just for your eyes</span><h1>private album <span>♡</span></h1><p>um espaço separado do moodboard para guardar suas fotos neste aparelho.</p></div><label class="studio-primary private-upload-btn">＋ adicionar fotos<input id="private-photo-input" type="file" accept="image/*" multiple hidden></label></header><div class="private-album-note"><span>♡</span><p>suas imagens ficam no armazenamento local do Sleep My Angel. Não são enviadas para uma conta ou rede social.</p></div><div class="private-photo-grid" id="private-photo-grid"></div><div class="studio-modal" id="private-photo-view" hidden><div class="private-photo-viewer"><button class="studio-icon-btn" type="button" data-private-action="close" aria-label="fechar">×</button><img id="private-photo-large" alt=""><div class="private-photo-viewer-bottom"><strong id="private-photo-name"></strong><button class="studio-text-btn" type="button" data-private-action="delete">apagar foto</button></div></div></div></div>';
+    root.innerHTML = '<div class="studio-shell private-shell"><header class="studio-heading"><div><span class="studio-kicker">just for your eyes</span><h1>private album <span>♡</span></h1><p>um espaço separado do moodboard para guardar suas fotos neste aparelho.</p></div><label class="studio-primary private-upload-btn">＋ adicionar fotos<input id="private-photo-input" type="file" accept="image/*" multiple hidden></label></header><div class="private-album-note"><span>♡</span><p>as imagens ficam neste aparelho e não são enviadas para uma conta ou outro aplicativo. O álbum não tem senha própria: quem conseguir abrir o app no seu celular também poderá vê-las.</p></div><div class="private-photo-grid" id="private-photo-grid"></div><div class="studio-modal" id="private-photo-view" hidden><div class="private-photo-viewer"><button class="studio-icon-btn" type="button" data-private-action="close" aria-label="fechar">×</button><img id="private-photo-large" alt=""><div class="private-photo-viewer-bottom"><strong id="private-photo-name"></strong><button class="studio-text-btn" type="button" data-private-action="delete">apagar foto</button></div></div></div></div>';
     root.addEventListener('click', handlePrivateClick);
     root.addEventListener('change', handlePrivateChange);
     renderPrivateAlbum();
