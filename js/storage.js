@@ -10,7 +10,6 @@
   const STORE_MOOD_PINS = 'mood-pins';
   const STORE_MOOD_IMAGES = 'mood-images';
   const STORE_SHIFT_IMAGES = 'shift-images';
-  const STORE_PRIVATE_IMAGES = 'private-images';
   const ALL_STORES = [
     STORE_AUDIO,
     STORE_BOOKS,
@@ -19,8 +18,7 @@
     STORE_MOOD_FOLDERS,
     STORE_MOOD_PINS,
     STORE_MOOD_IMAGES,
-    STORE_SHIFT_IMAGES,
-    STORE_PRIVATE_IMAGES
+    STORE_SHIFT_IMAGES
   ];
   const objectUrls = new Map();
   let databasePromise = null;
@@ -358,24 +356,6 @@
     removeShiftImage: function (id) {
       releaseUrl('shift:' + id);
       return transact(STORE_SHIFT_IMAGES, 'readwrite', function (store) {
-        store.delete(id);
-        return true;
-      });
-    },
-    putPrivateImage: function (id, blob) {
-      return transact(STORE_PRIVATE_IMAGES, 'readwrite', function (store) {
-        store.put({ id: id, blob: blob, added: Date.now() });
-        return id;
-      });
-    },
-    getPrivateImage: function (id) {
-      return transact(STORE_PRIVATE_IMAGES, 'readonly', function (store) {
-        return requestResult(store.get(id));
-      });
-    },
-    removePrivateImage: function (id) {
-      releaseUrl('private:' + id);
-      return transact(STORE_PRIVATE_IMAGES, 'readwrite', function (store) {
         store.delete(id);
         return true;
       });
