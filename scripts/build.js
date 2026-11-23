@@ -7,6 +7,7 @@ const targets = process.argv.includes('--site-only') ? ['site'] : ['www', 'site'
 const appAudio = path.join(root, 'media', 'meditacao');
 const files = [
   'index.html',
+  'privacy.html',
   'styles.css',
   'manifest.webmanifest',
   'sw.js'
