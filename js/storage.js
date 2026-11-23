@@ -1,7 +1,7 @@
 (function () {
   const SMA = window.SMA;
   const DB_NAME = 'sleep-my-angel';
-  const DB_VERSION = 3;
+  const DB_VERSION = 4;
   const STORE_AUDIO = 'imported-audio';
   const STORE_BOOKS = 'imported-books';
   const STORE_DOCS = 'offline-docs';
@@ -9,6 +9,8 @@
   const STORE_MOOD_FOLDERS = 'mood-folders';
   const STORE_MOOD_PINS = 'mood-pins';
   const STORE_MOOD_IMAGES = 'mood-images';
+  const STORE_SHIFT_IMAGES = 'shift-images';
+  const STORE_PRIVATE_IMAGES = 'private-images';
   const ALL_STORES = [
     STORE_AUDIO,
     STORE_BOOKS,
@@ -16,7 +18,9 @@
     STORE_MOOD_BOARDS,
     STORE_MOOD_FOLDERS,
     STORE_MOOD_PINS,
-    STORE_MOOD_IMAGES
+    STORE_MOOD_IMAGES,
+    STORE_SHIFT_IMAGES,
+    STORE_PRIVATE_IMAGES
   ];
   const objectUrls = new Map();
   let databasePromise = null;
@@ -338,4 +342,47 @@
       });
     }
   };
+
+  SMA.studioStore = {
+    putShiftImage: function (id, blob) {
+      return transact(STORE_SHIFT_IMAGES, 'readwrite', function (store) {
+        store.put({ id: id, blob: blob, added: Date.now() });
+        return id;
+      });
+    },
+    getShiftImage: function (id) {
+      return transact(STORE_SHIFT_IMAGES, 'readonly', function (store) {
+        return requestResult(store.get(id));
+      });
+    },
+    removeShiftImage: function (id) {
+      releaseUrl('shift:' + id);
+      return transact(STORE_SHIFT_IMAGES, 'readwrite', function (store) {
+        store.delete(id);
+        return true;
+      });
+    },
+    putPrivateImage: function (id, blob) {
+      return transact(STORE_PRIVATE_IMAGES, 'readwrite', function (store) {
+        store.put({ id: id, blob: blob, added: Date.now() });
+        return id;
+      });
+    },
+    getPrivateImage: function (id) {
+      return transact(STORE_PRIVATE_IMAGES, 'readonly', function (store) {
+        return requestResult(store.get(id));
+      });
+    },
+    removePrivateImage: function (id) {
+      releaseUrl('private:' + id);
+      return transact(STORE_PRIVATE_IMAGES, 'readwrite', function (store) {
+        store.delete(id);
+        return true;
+      });
+    },
+    imageUrl: function (kind, id, blob) {
+      return blobUrl(kind + ':' + id, blob);
+    }
+  };
+
 })();
