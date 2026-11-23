@@ -1415,7 +1415,12 @@
         collected.set(pin.key, Object.assign({}, pin, { sectionId: '', sectionTitle: '' }));
       }
     });
-    return Array.from(collected.values());
+    const result = Array.from(collected.values());
+    const expected = Number(parsed.pinCount) || 0;
+    if (expected > result.length) {
+      throw new Error('o Pinterest informa ' + expected + ' pins nesta pasta, mas só consegui localizar ' + result.length + '. a importação foi interrompida para não salvar uma pasta incompleta. tente novamente mais tarde.');
+    }
+    return result;
   }
 
   function parseBoardPage(html, normalized) {
