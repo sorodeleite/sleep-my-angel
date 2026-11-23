@@ -7,6 +7,7 @@
   const EVENT_KEY = 'sma_planner_events';
   const TASK_KEY = 'sma_planner_tasks';
   const DEFAULT_CATEGORIES = ['geral', 'aparência', 'personalidade', 'relacionamentos', 'rotina', 'regras'];
+  const CalendarEvents = window.PooftieCalendarEvents || null;
   const state = {
     scriptId: null,
     scriptFiles: [],
@@ -289,14 +290,35 @@
     const root = document.getElementById('planner-root');
     if (!root || root.dataset.ready) return;
     root.dataset.ready = '1';
-    root.innerHTML = '<div class="studio-shell planner-shell"><header class="studio-heading"><div><span class="studio-kicker">little plans, lovely days</span><h1>my planner <span>♡</span></h1><p>compromissos, datas especiais e pequenas tarefas.</p></div></header><div class="planner-layout"><section class="planner-calendar-card"><div class="planner-month-head"><button class="studio-icon-btn" type="button" data-planner-action="prev" aria-label="mês anterior">‹</button><h2 id="planner-month-label"></h2><button class="studio-icon-btn" type="button" data-planner-action="next" aria-label="próximo mês">›</button></div><div class="planner-weekdays"><span>seg</span><span>ter</span><span>qua</span><span>qui</span><span>sex</span><span>sáb</span><span>dom</span></div><div class="planner-days" id="planner-days"></div><div class="planner-legend"><span><i></i> compromisso</span><span><b>♡</b> hoje</span></div></section><section class="planner-agenda-card"><div class="planner-agenda-head"><div><span class="studio-kicker">selected day</span><h2 id="planner-selected-label"></h2></div><button class="studio-primary" type="button" data-planner-action="new-event">＋ evento</button></div><div class="planner-events" id="planner-events"></div><form class="planner-task-form" id="planner-task-form"><label class="studio-field">nova tarefa<input id="planner-task-input" maxlength="150" placeholder="uma coisinha para fazer..." required></label><input id="planner-task-date" type="date" aria-label="data da tarefa"><button class="studio-primary" type="submit">＋</button></form><div class="planner-task-list" id="planner-task-list"></div></section></div><div class="studio-modal" id="planner-event-modal" hidden><form class="studio-modal-card planner-event-form" id="planner-event-form"><div class="studio-modal-head"><div><span class="studio-kicker">save the date</span><h2>novo compromisso</h2></div><button class="studio-icon-btn" type="button" data-planner-action="close-event" aria-label="fechar">×</button></div><label class="studio-field">nome<input id="planner-event-title" maxlength="100" required placeholder="ex.: consulta, encontro, aniversário"></label><div class="studio-field-row"><label class="studio-field">data<input id="planner-event-date" type="date" required></label><label class="studio-field">horário<input id="planner-event-time" type="time"></label></div><label class="studio-field">observações<textarea id="planner-event-notes" rows="3" placeholder="detalhes, endereço, lembretes..."></textarea></label><div class="studio-modal-actions"><button class="studio-secondary" type="button" data-planner-action="close-event">cancelar</button><button class="studio-primary" type="submit">salvar evento</button></div></form></div></div>';
+    root.innerHTML = '<div class="studio-shell planner-shell"><header class="studio-heading"><div><span class="studio-kicker">little plans, lovely days</span><h1>calendar <span>♡</span></h1><p>compromissos, datas especiais e pequenas tarefas.</p></div></header><div class="planner-layout"><section class="planner-calendar-card"><div class="planner-month-head"><button class="studio-icon-btn" type="button" data-planner-action="prev" aria-label="mês anterior">‹</button><h2 id="planner-month-label"></h2><button class="studio-icon-btn" type="button" data-planner-action="next" aria-label="próximo mês">›</button></div><div class="planner-weekdays"><span>seg</span><span>ter</span><span>qua</span><span>qui</span><span>sex</span><span>sáb</span><span>dom</span></div><div class="planner-days" id="planner-days"></div><div class="planner-legend"><span><i></i> compromisso</span><span><b>♡</b> hoje</span></div></section><section class="planner-agenda-card"><div class="planner-agenda-head"><div><span class="studio-kicker">selected day</span><h2 id="planner-selected-label"></h2></div><button class="studio-primary" type="button" data-planner-action="new-event">＋ evento</button></div><div class="planner-events" id="planner-events"></div><form class="planner-task-form" id="planner-task-form"><label class="studio-field">nova tarefa<input id="planner-task-input" maxlength="150" placeholder="uma coisinha para fazer..." required></label><input id="planner-task-date" type="date" aria-label="data da tarefa"><button class="studio-primary" type="submit">＋</button></form><div class="planner-task-list" id="planner-task-list"></div></section></div><div class="studio-modal" id="planner-event-modal" hidden><form class="studio-modal-card planner-event-form" id="planner-event-form"><div class="studio-modal-head"><div><span class="studio-kicker">save the date</span><h2>novo compromisso</h2></div><button class="studio-icon-btn" type="button" data-planner-action="close-event" aria-label="fechar">×</button></div><label class="studio-field">nome<input id="planner-event-title" maxlength="100" required placeholder="ex.: consulta, encontro, aniversário"></label><div class="studio-field-row"><label class="studio-field">data<input id="planner-event-date" type="date" required></label><label class="studio-field">horário<input id="planner-event-time" type="time"></label></div><label class="studio-field">observações<textarea id="planner-event-notes" rows="3" placeholder="detalhes, endereço, lembretes..."></textarea></label><div class="studio-modal-actions"><button class="studio-secondary" type="button" data-planner-action="close-event">cancelar</button><button class="studio-primary" type="submit">salvar evento</button></div></form></div></div>';
     root.addEventListener('click', handlePlannerClick);
     root.addEventListener('submit', handlePlannerSubmit);
     renderPlanner();
   }
 
   function events() {
-    return readList(EVENT_KEY);
+    if (!CalendarEvents) return readList(EVENT_KEY);
+    let list = CalendarEvents.ler(localStorage);
+    if (!list.length) {
+      const legacy = readList(EVENT_KEY);
+      if (legacy.length) {
+        list = legacy.map(function (item) {
+          return CalendarEvents.criar({
+            titulo: item.title,
+            inicio: item.date,
+            fim: item.endDate || item.date,
+            cor: CalendarEvents.CORES[0]
+          });
+        }).filter(Boolean);
+        CalendarEvents.guardar(localStorage, list);
+      }
+    }
+    return list;
+  }
+
+  function saveEvents(list) {
+    if (CalendarEvents) return CalendarEvents.guardar(localStorage, list);
+    return writeList(EVENT_KEY, list);
   }
 
   function tasks() {
@@ -314,7 +336,13 @@
     const offset = (first.getDay() + 6) % 7;
     const count = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 0).getDate();
     const today = dateKey(new Date());
-    const marked = new Set(events().map(function (item) { return item.date; }));
+    const marked = new Set();
+    events().forEach(function (item) {
+      if (CalendarEvents) {
+        let day = item.inicio;
+        while (day <= item.fim) { marked.add(day); day = CalendarEvents.somarDias(day, 1); }
+      } else marked.add(item.date);
+    });
     let cells = '';
     for (let i = 0; i < offset; i += 1) cells += '<span class="planner-day is-empty"></span>';
     for (let day = 1; day <= count; day += 1) {
@@ -327,9 +355,15 @@
     }
     days.innerHTML = cells;
     root.querySelector('#planner-selected-label').textContent = dateLabel(state.selectedDay, { weekday: 'long', day: 'numeric', month: 'long' });
-    const dayEvents = events().filter(function (item) { return item.date === state.selectedDay; }).sort(function (a, b) { return String(a.time || '').localeCompare(String(b.time || '')); });
+    const dayEvents = events().filter(function (item) {
+      return CalendarEvents ? item.inicio <= state.selectedDay && item.fim >= state.selectedDay : item.date === state.selectedDay;
+    }).sort(function (a, b) {
+      return String(a.horario || a.time || '').localeCompare(String(b.horario || b.time || ''));
+    });
     root.querySelector('#planner-events').innerHTML = dayEvents.length ? dayEvents.map(function (item) {
-      return '<article class="planner-event"><div class="planner-event-time">' + escape(item.time || 'dia todo') + '</div><div class="planner-event-copy"><strong>' + escape(item.title) + '</strong>' + (item.notes ? '<p>' + escape(item.notes) + '</p>' : '') + '</div><button type="button" data-planner-action="delete-event" data-id="' + escape(item.id) + '" aria-label="apagar evento">×</button></article>';
+      const title = item.titulo || item.title;
+      const when = CalendarEvents ? (item.inicio === item.fim ? 'dia todo' : dateLabel(item.inicio, { day: 'numeric', month: 'short' }) + ' – ' + dateLabel(item.fim, { day: 'numeric', month: 'short' })) : (item.time || 'dia todo');
+      return '<article class="planner-event"><div class="planner-event-time"><i style="background:' + escape(item.cor || '#f9c8d7') + '"></i>' + escape(when) + '</div><div class="planner-event-copy"><strong>' + escape(title) + '</strong></div><button type="button" data-planner-action="delete-event" data-id="' + escape(item.id) + '" aria-label="apagar evento">×</button></article>';
     }).join('') : '<div class="planner-empty">nenhum compromisso por aqui ♡</div>';
     root.querySelector('#planner-task-date').value = state.selectedDay;
     const dayTasks = tasks().filter(function (item) { return !item.date || item.date === state.selectedDay; });
@@ -357,7 +391,9 @@
     }
     if (action === 'close-event') document.getElementById('planner-event-modal').hidden = true;
     if (action === 'delete-event') {
-      writeList(EVENT_KEY, events().filter(function (item) { return item.id !== button.dataset.id; }));
+      const remaining = events().filter(function (item) { return item.id !== button.dataset.id; });
+      if (CalendarEvents) saveEvents(CalendarEvents.semEvento(remaining, button.dataset.id));
+      else saveEvents(remaining);
     }
     if (action === 'delete-task') {
       writeList(TASK_KEY, tasks().filter(function (item) { return item.id !== button.dataset.id; }));
@@ -390,15 +426,14 @@
       const date = document.getElementById('planner-event-date').value;
       if (!title || !date) return;
       const list = events();
-      list.push({
-        id: uid('event'),
-        title: title.slice(0, 100),
-        date: date,
-        time: document.getElementById('planner-event-time').value,
-        notes: document.getElementById('planner-event-notes').value.trim().slice(0, 500),
-        createdAt: Date.now()
-      });
-      if (writeList(EVENT_KEY, list)) {
+      if (CalendarEvents) {
+        const endDate = document.getElementById('planner-event-end').value || date;
+        const event = CalendarEvents.criar({ titulo: title, inicio: date, fim: endDate, cor: CalendarEvents.CORES[list.length % CalendarEvents.CORES.length] });
+        if (event) list.push(event);
+      } else {
+        list.push({ id: uid('event'), title: title.slice(0, 100), date: date, time: document.getElementById('planner-event-time').value, notes: document.getElementById('planner-event-notes').value.trim().slice(0, 500), createdAt: Date.now() });
+      }
+      if (saveEvents(list)) {
         state.selectedDay = date;
         const parsed = parseDate(date);
         state.month = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
