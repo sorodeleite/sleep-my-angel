@@ -58,10 +58,11 @@
     const root = document.getElementById('shift-scripts-root');
     if (!root || root.dataset.ready) return;
     root.dataset.ready = '1';
-    root.innerHTML = '<div class="studio-shell shift-shell"><header class="studio-heading"><div><span class="studio-kicker">your desired reality · personal archive</span><h1>shift scripts <span>♡</span></h1><p>seus roteiros, detalhes, regras e referências em um só lugar.</p></div><button class="studio-primary" type="button" data-shift-action="new">＋ novo script</button></header><div class="studio-category-row" id="shift-category-list"></div><div class="shift-script-grid" id="shift-script-list"></div><div class="studio-modal" id="shift-editor" hidden><form class="studio-modal-card shift-editor-card" id="shift-script-form"><div class="studio-modal-head"><div><span class="studio-kicker">a little world of your own</span><h2 id="shift-editor-heading">novo script</h2></div><button class="studio-icon-btn" type="button" data-shift-action="close" aria-label="fechar">×</button></div><label class="studio-field">nome do script<input id="shift-title" maxlength="90" required placeholder="ex.: minha realidade desejada"></label><div class="studio-field-row"><label class="studio-field">categoria<select id="shift-category"></select></label><label class="studio-field">outra categoria<input id="shift-new-category" maxlength="32" placeholder="criar categoria"></label></div><label class="studio-field">pequena descrição<input id="shift-summary" maxlength="180" placeholder="uma frase para identificar esse script"></label><label class="studio-field">script<textarea id="shift-body" rows="8" placeholder="escreva sua realidade, detalhes, cenas e tudo o que quiser..."></textarea></label><label class="studio-field">regras e observações<textarea id="shift-rules" rows="6" placeholder="regras, limites, detalhes importantes, safe words..."></textarea></label><div class="studio-field"><span class="studio-field-label">fotos e referências · colagem</span><label class="studio-upload">＋ adicionar fotos<input id="shift-photos" type="file" accept="image/*" multiple hidden></label><div class="shift-image-preview" id="shift-image-preview"></div></div><div class="studio-modal-actions"><button class="studio-secondary" type="button" data-shift-action="close">cancelar</button><button class="studio-primary" type="submit">salvar script ♡</button></div></form></div></div>';
+    root.innerHTML = '<div class="studio-shell shift-shell"><header class="studio-heading"><div><span class="studio-kicker">your desired reality · personal archive</span><h1>shift scripts <span>♡</span></h1><p>seus roteiros, detalhes, regras e referências em um só lugar.</p></div><button class="studio-primary" type="button" data-shift-action="new">＋ novo script</button></header><div class="studio-category-row" id="shift-category-list"></div><div class="shift-script-grid" id="shift-script-list"></div><div class="studio-modal" id="shift-editor" hidden><form class="studio-modal-card shift-editor-card" id="shift-script-form"><div class="studio-modal-head"><div><span class="studio-kicker">a little world of your own</span><h2 id="shift-editor-heading">novo script</h2></div><button class="studio-icon-btn" type="button" data-shift-action="close" aria-label="fechar">×</button></div><label class="studio-field">nome do script<input id="shift-title" maxlength="90" required placeholder="ex.: minha realidade desejada"></label><div class="studio-field-row"><label class="studio-field">categoria<select id="shift-category"></select></label><label class="studio-field">outra categoria<input id="shift-new-category" maxlength="32" placeholder="criar categoria"></label></div><label class="studio-field">pequena descrição<input id="shift-summary" maxlength="180" placeholder="uma frase para identificar esse script"></label><div class="studio-field notion-page-field"><span class="studio-field-label">sua página</span><div class="notion-toolbar"><button type="button" data-editor-command="bold"><b>B</b></button><button type="button" data-editor-command="italic"><i>I</i></button><button type="button" data-editor-command="underline"><u>U</u></button><button type="button" data-editor-command="formatBlock" data-editor-value="h2">H</button><button type="button" data-editor-command="insertUnorderedList">☷</button><button type="button" data-editor-command="insertOrderedList">1.</button><button type="button" data-editor-command="formatBlock" data-editor-value="blockquote">❝</button><button type="button" data-editor-command="formatBlock" data-editor-value="p">¶</button></div><div id="shift-body" class="notion-editor" contenteditable="true" data-placeholder="Comece a escrever... use títulos, listas, divisões e tudo o que precisar."></div></div><div class="studio-field"><span class="studio-field-label">fotos e referências · colagem</span><label class="studio-upload">＋ adicionar fotos<input id="shift-photos" type="file" accept="image/*" multiple hidden></label><div class="shift-image-preview" id="shift-image-preview"></div></div><div class="studio-modal-actions"><button class="studio-secondary" type="button" data-shift-action="close">cancelar</button><button class="studio-primary" type="submit">salvar script ♡</button></div></form></div></div>';
     root.addEventListener('click', handleScriptClick);
     root.addEventListener('submit', handleScriptSubmit);
     root.addEventListener('change', handleScriptChange);
+    root.addEventListener('click', handleEditorToolbar);
     renderScripts();
   }
 
@@ -119,8 +120,8 @@
     root.querySelector('#shift-editor-heading').textContent = item ? 'editar script' : 'novo script';
     root.querySelector('#shift-title').value = item ? item.title : '';
     root.querySelector('#shift-summary').value = item ? item.summary || '' : '';
-    root.querySelector('#shift-body').value = item ? item.body || '' : '';
-    root.querySelector('#shift-rules').value = item ? item.rules || '' : '';
+    const editor = root.querySelector('#shift-body');
+    editor.innerHTML = item ? editorContent(item.body || '', item.rules || '') : '<p><br></p>';
     root.querySelector('#shift-new-category').value = '';
     const select = root.querySelector('#shift-category');
     select.innerHTML = categories().map(function (category) {
@@ -144,6 +145,51 @@
     }).join('') + state.scriptFiles.map(function (file, index) {
       return '<div class="shift-preview-image is-pending"><span>' + escape(file.name) + '</span><button type="button" data-shift-action="remove-pending" data-index="' + index + '">×</button></div>';
     }).join('');
+  }
+
+  function editorContent(body, rules) {
+    const text = String(body || '');
+    const html = /<\\/?(p|h[1-3]|ul|ol|li|strong|em|u|blockquote|br|hr)\\b/i.test(text)
+      ? text
+      : text.split(/\\n{2,}/).map(function (part) { return '<p>' + escape(part).replace(/\\n/g, '<br>') + '</p>'; }).join('');
+    const extra = rules ? '<h2>regras e observações</h2><p>' + escape(rules).replace(/\\n/g, '<br>') + '</p>' : '';
+    return cleanEditorHTMLFromString(html + extra);
+  }
+
+  function cleanEditorHTMLFromString(value) {
+    const template = document.createElement('template');
+    template.innerHTML = String(value || '');
+    const allowed = new Set(['P', 'H1', 'H2', 'H3', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'STRONG', 'B', 'EM', 'I', 'U', 'BR', 'HR', 'DIV']);
+    function clean(parent) {
+      Array.from(parent.childNodes).forEach(function (node) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if (!allowed.has(node.tagName)) {
+            node.replaceWith(document.createTextNode(node.textContent || ''));
+            return;
+          }
+          Array.from(node.attributes).forEach(function (attribute) { node.removeAttribute(attribute.name); });
+          clean(node);
+        } else if (node.nodeType !== Node.TEXT_NODE) {
+          node.remove();
+        }
+      });
+    }
+    clean(template.content);
+    return template.innerHTML || '<p><br></p>';
+  }
+
+  function cleanEditorHTML(editor) {
+    return cleanEditorHTMLFromString(editor.innerHTML);
+  }
+
+  function handleEditorToolbar(event) {
+    const button = event.target.closest('[data-editor-command]');
+    if (!button) return;
+    const editor = document.getElementById('shift-body');
+    if (!editor) return;
+    editor.focus();
+    const command = button.dataset.editorCommand;
+    document.execCommand(command, false, button.dataset.editorValue || null);
   }
 
   function handleScriptClick(event) {
@@ -224,8 +270,8 @@
       title: title.slice(0, 90),
       category: category,
       summary: root.querySelector('#shift-summary').value.trim().slice(0, 180),
-      body: root.querySelector('#shift-body').value,
-      rules: root.querySelector('#shift-rules').value,
+      body: cleanEditorHTML(root.querySelector('#shift-body')),
+      rules: '',
       images: images.slice(0, 12),
       createdAt: previous ? previous.createdAt : Date.now(),
       updatedAt: Date.now()
