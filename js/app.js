@@ -436,8 +436,20 @@
     initDate();
     initTheme();
     initTabs();
-    if (SMA.ShiftScripts) SMA.ShiftScripts.init();
-    if (SMA.PersonalPlanner) SMA.PersonalPlanner.init();
+    try {
+      if (SMA.ShiftScripts) SMA.ShiftScripts.init();
+    } catch (error) {
+      console.error('não foi possível iniciar Scripts:', error);
+      const root = document.getElementById('shift-scripts-root');
+      if (root) root.innerHTML = '<div class="studio-empty"><strong>não consegui abrir Scripts</strong><p>feche e abra a página novamente. se continuar, me avise.</p></div>';
+    }
+    try {
+      if (SMA.PersonalPlanner) SMA.PersonalPlanner.init();
+    } catch (error) {
+      console.error('não foi possível iniciar Calendar:', error);
+      const root = document.getElementById('planner-root');
+      if (root) root.innerHTML = '<div class="studio-empty"><strong>não consegui abrir Calendar</strong><p>feche e abra a página novamente. se continuar, me avise.</p></div>';
+    }
     initProfileFields();
     initAvatar();
     initModals();
