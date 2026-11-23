@@ -5687,3 +5687,85 @@ html[data-theme="dark"] .planner-day.is-today { color:#f0b9d0; }
 html[data-theme="dark"] .planner-day.is-selected { background:#4a3544;color:#f7d9e6; }
 html[data-theme="dark"] .planner-event { background:#302833; }
 html[data-theme="dark"] .planner-task.is-done span { color:#938895; }
+
+
+/* pequenos ajustes dos controles do perfil e dos componentes no tema escuro */
+.profile-info { position: relative; padding-right: 92px; }
+.profile-actions {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateY(-50%);
+}
+.profile-actions .reminders-settings-btn,
+.profile-actions .theme-switch-btn {
+  position: static;
+  inset: auto;
+  margin: 0;
+  transform: none;
+  flex: 0 0 auto;
+}
+.profile-actions .reminders-settings-btn:hover { transform: rotate(12deg); }
+.profile-actions .theme-switch-btn:hover { transform: scale(1.08); }
+
+html[data-theme="dark"] .rain-btn {
+  background: #2b2630;
+  color: var(--text-muted);
+  border-color: var(--border-color);
+}
+html[data-theme="dark"] .rain-btn:hover { background: #39313d; color: var(--text-main); }
+html[data-theme="dark"] .rain-btn.active {
+  background: #ead2df;
+  color: #33232d;
+  border-color: #ead2df;
+}
+html[data-theme="dark"] .timer-ctrl-btn {
+  background: #ead2df;
+  color: #33232d;
+}
+html[data-theme="dark"] .thread-importer {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+html[data-theme="dark"] .thread-importer-row .form-input,
+html[data-theme="dark"] .books-hero-actions .btn-secondary {
+  background: #2b2630;
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+html[data-theme="dark"] .recipe-card-action {
+  background: rgba(43, 38, 48, .96);
+  color: var(--text-main);
+  border-color: #5a4e60;
+}
+html[data-theme="dark"] .recipe-card-action:hover {
+  background: #4a3c4c;
+  color: #fff0f6;
+}
+html[data-theme="dark"] .recipe-card-action-remove { color: #f0b4c7; }
+html[data-theme="dark"] .recipe-card-tag {
+  background: rgba(43, 38, 48, .92);
+  color: #f0dce6;
+}
+html[data-theme="dark"] .recipe-card,
+html[data-theme="dark"] .recipe-detail,
+html[data-theme="dark"] .recipe-detail-panel,
+html[data-theme="dark"] .recipe-editor,
+html[data-theme="dark"] .recipe-modal {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+html[data-theme="dark"] .recipe-card-body,
+html[data-theme="dark"] .recipe-detail-body { color: var(--text-main); }
+html[data-theme="dark"] .recipe-card-sub,
+html[data-theme="dark"] .recipe-detail-intro { color: var(--text-muted); }
+html[data-theme="dark"] .recipe-card button,
+html[data-theme="dark"] .recipe-detail button,
+html[data-theme="dark"] .recipe-editor button {
+  color: inherit;
+}
