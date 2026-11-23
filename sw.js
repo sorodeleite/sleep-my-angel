@@ -1,7 +1,8 @@
-const CACHE = 'sleep-my-angel-v17';
+const CACHE = 'sleep-my-angel-v18';
 const SHELL = [
   './',
   './index.html',
+  './privacy.html',
   './styles.css',
   './manifest.webmanifest',
   './js/vendor/jszip.min.js',
