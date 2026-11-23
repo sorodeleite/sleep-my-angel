@@ -39,8 +39,7 @@
     'tab-books': function () { return SMA.Books.init(); },
     'tab-moodboard': function () { return SMA.Moodboard.init(); },
     'tab-shift-scripts': function () { return SMA.ShiftScripts.init(); },
-    'tab-planner': function () { return SMA.PersonalPlanner.init(); },
-    'tab-private-album': function () { return SMA.PrivateAlbum.init(); }
+    'tab-planner': function () { return SMA.PersonalPlanner.init(); }
   };
   const lazyStarted = Object.create(null);
 
