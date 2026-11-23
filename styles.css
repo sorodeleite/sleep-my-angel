@@ -5255,12 +5255,12 @@ body {
 @media (max-width: 768px) {
   .titlebar { display: none; }
   .main-layout { padding-top: env(safe-area-inset-top, 0); }
-  .profile-info { padding-right: 42px; }
+  .profile-info { padding-right: 54px; }
   
   .reminders-settings-btn {
     position: absolute;
-    top: 14px;
-    right: 14px;
+    top: 8px;
+    right: 8px;
     transform: none;
     width: 36px;
     height: 36px;
