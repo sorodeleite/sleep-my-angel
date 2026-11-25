@@ -305,6 +305,15 @@
                 <button class="rain-btn" data-rain="storm" type="button">chuva forte</button>
                 <button class="rain-btn" data-rain="thunder" type="button">chuva com raios</button>
               </div>
+              <div class="timer-rain-volume" id="timer-rain-volume">
+                <span class="timer-rain-volume-title">volume da chuva</span>
+                <div class="timer-rain-volume-row">
+                  <button class="rain-volume-step" id="rain-volume-down" type="button" aria-label="diminuir volume da chuva">−</button>
+                  <input type="range" class="rain-volume-slider" id="rain-volume" min="0" max="100" step="1" value="70" aria-label="volume da chuva">
+                  <button class="rain-volume-step" id="rain-volume-up" type="button" aria-label="aumentar volume da chuva">+</button>
+                  <span class="rain-volume-value" id="rain-volume-value">70%</span>
+                </div>
+              </div>
             </div>
 
             <button class="timer-ctrl-btn" id="btn-toggle-timer" type="button">Iniciar Contador</button>

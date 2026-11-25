@@ -109,9 +109,8 @@ jobs:
           body: |
             atualização do sleep my angel v${{ steps.version.outputs.version }}
 
-            - **Calendar** novo: calendário com tarefinhas, eventos de vários dias, carinhas, foto do dia, adesivos, fundo, cores, letra e quadradinhos no 🎨
-            - **Scripts** com notas, listas, fotos, vídeos, áudios e adesivos no quadro
-            - **modo texto no pdf**: o botão `texto` no leitor refaz o pdf em parágrafos, com letra ajustável, tema escuro e marcação de trechos
+            - **contador** agora tem volume próprio da chuva, com slider e botões −/+, pra equilibrar a chuva com a meditação
+            - **chuva com raios** refeita: som em estéreo, loop sem emenda e trovões com estalo e estrondo mais naturais
             - se o download da atualização falhar, baixe o `sleep-my-angel.apk` aqui na release e instale por cima
           files: sleep-my-angel.apk
         env:

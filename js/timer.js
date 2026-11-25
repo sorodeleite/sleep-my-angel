@@ -20,10 +20,16 @@
       this.rain = new SMA.Rain();
       this.rainPreset = 'off';
       this.rainVolume = 0.7;
+      this.fade = 1;
       this.display = SMA.select('#timer-display');
       this.status = SMA.select('#timer-status');
       this.button = SMA.select('#btn-toggle-timer');
       this.rainLabel = SMA.select('#timer-rain-label');
+      this.rainVolumeRow = SMA.select('#timer-rain-volume');
+      this.rainVolumeSlider = SMA.select('#rain-volume');
+      this.rainVolumeValue = SMA.select('#rain-volume-value');
+      this.rainVolumeDown = SMA.select('#rain-volume-down');
+      this.rainVolumeUp = SMA.select('#rain-volume-up');
     }
 
     init() {
@@ -34,6 +40,8 @@
       this.remaining = this.minutes * 60;
       const savedRain = SMA.readText('sma_timer_rain', 'off');
       if (RAIN_LABELS[savedRain]) this.rainPreset = savedRain;
+      const savedRainVolume = Number(SMA.readJSON('sma_timer_rain_volume', 0.7));
+      if (Number.isFinite(savedRainVolume)) this.rainVolume = SMA.clamp(savedRainVolume, 0, 1);
       this.remaining = this.minutes * 60;
       this.customHours = SMA.select('#timer-custom-hours');
       this.customMinutes = SMA.select('#timer-custom-minutes');
@@ -63,11 +71,22 @@
             item.classList.toggle('active', item === button);
           });
           this.paintRainLabel();
+          this.paintRainVolume();
           if (this.running) this.startRain();
         });
       });
+      this.rainVolumeSlider?.addEventListener('input', () => {
+        this.setRainVolume(Number(this.rainVolumeSlider.value) / 100);
+      });
+      this.rainVolumeDown?.addEventListener('click', () => {
+        this.setRainVolume(this.rainVolume - 0.05);
+      });
+      this.rainVolumeUp?.addEventListener('click', () => {
+        this.setRainVolume(this.rainVolume + 0.05);
+      });
       this.button?.addEventListener('click', () => this.toggle());
       this.paintRainLabel();
+      this.paintRainVolume();
       this.render('idle');
     }
 
@@ -77,6 +96,26 @@
       this.rainLabel.textContent = this.rainPreset === 'off'
         ? 'escolha uma chuva pra tocar em loop'
         : label + ' em loop até o fim do timer';
+    }
+
+    paintRainVolume() {
+      const off = this.rainPreset === 'off';
+      const percent = Math.round(this.rainVolume * 100);
+      if (this.rainVolumeRow) this.rainVolumeRow.classList.toggle('is-off', off);
+      if (this.rainVolumeValue) this.rainVolumeValue.textContent = percent + '%';
+      if (this.rainVolumeSlider) {
+        this.rainVolumeSlider.value = String(percent);
+        this.rainVolumeSlider.disabled = off;
+      }
+      if (this.rainVolumeDown) this.rainVolumeDown.disabled = off || percent <= 0;
+      if (this.rainVolumeUp) this.rainVolumeUp.disabled = off || percent >= 100;
+    }
+
+    setRainVolume(value) {
+      this.rainVolume = SMA.clamp(Number(value) || 0, 0, 1);
+      SMA.writeJSON('sma_timer_rain_volume', this.rainVolume);
+      this.paintRainVolume();
+      if (this.rain.active) this.rain.setVolume(this.rainVolume * this.fade);
     }
 
     applyCustomTime() {
@@ -125,7 +164,7 @@
         return;
       }
       this.rain.setPreset(this.rainPreset);
-      this.rain.start(this.rainPreset, this.rainVolume);
+      this.rain.start(this.rainPreset, this.rainVolume * this.fade);
       this.setKeepAlive(true);
     }
 
@@ -138,6 +177,7 @@
       clearInterval(this.interval);
       this.interval = null;
       this.running = false;
+      this.fade = 1;
       this.player.setFade(1);
       this.rain.stop(1.2);
       this.setKeepAlive(false);
@@ -150,6 +190,7 @@
       this.running = false;
       this.done = false;
       this.remaining = this.minutes * 60;
+      this.fade = 1;
       this.player.setFade(1);
       this.rain.stop(0.8);
       this.setKeepAlive(false);
@@ -168,6 +209,7 @@
 
     applyFade() {
       const fade = this.remaining <= 60 && this.remaining > 0 ? this.remaining / 60 : 1;
+      this.fade = fade;
       this.player.setFade(fade);
       if (this.rain.active) this.rain.setVolume(this.rainVolume * fade);
     }
@@ -178,6 +220,7 @@
       this.running = false;
       this.done = true;
       this.remaining = 0;
+      this.fade = 1;
       this.player.pause();
       this.player.setFade(1);
       this.rain.stop(5);

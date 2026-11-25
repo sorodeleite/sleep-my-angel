@@ -35,7 +35,7 @@ leia a [**Política de Privacidade**](https://github.com/sorodeleite/sleep-my-an
 - **modo texto no pdf** — o pdf abre na página como sempre, mas o botão **texto** refaz ele em parágrafos: letra do tamanho que quiser, tema escuro e trechos marcados. livro escaneado (só imagem) continua na página, porque aí precisa de OCR.
 - **cookbook** com receitinhas da noite em cartões, ingredientes e passos que dá pra ir marcando.
 - **afirmações da suposição** com leitura em voz alta pra ouvir deitada.
-- **contador** de 15 min a 2 horas, com chuva suave, na janela ou forte tocando em loop e sumindo junto com o som.
+- **contador** de 15 min a 2 horas, com chuva suave, na janela ou forte tocando em loop e sumindo junto com o som. a chuva tem volume próprio, então dá pra deixar a meditação em primeiro plano e a chuva baixinha por baixo.
 - **áudio em segundo plano** no Android, com notificação e wake lock pra continuar tocando com a tela apagada.
 - **atualizar app** — não precisa mais desinstalar pra atualizar: o botão no cartão do perfil baixa a versão nova e instala por cima, mantendo notas, playlists, capas e áudios importados.
 
