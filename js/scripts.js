@@ -3,7 +3,7 @@
   const STORAGE_KEY = 'sma_scripts_v1';
   const DB_NAME = 'sma_scripts_media';
   const STORE_NAME = 'blobs';
-  const STICKER_MANIFEST_URL = 'little-place/assets/stickers/manifest.json';
+  const STICKER_MANIFEST_URL = 'assets/stickers/manifest.json';
 
   const CATEGORY_LABELS = {
     all: 'todos',
@@ -170,12 +170,45 @@
     ];
   }
 
+  function fixStickerPath(value) {
+    const src = String(value == null ? '' : value);
+    if (!src) return '';
+    const marker = '/little-place/assets/';
+    const at = src.indexOf(marker);
+    if (at >= 0) return 'assets/' + src.slice(at + marker.length);
+    if (src.indexOf('little-place/assets/') === 0) return src.slice('little-place/'.length);
+    return src;
+  }
+
+  function migratePages(pages) {
+    let changed = false;
+    pages.forEach(function (page) {
+      (page.cards || []).forEach(function (card) {
+        if (card && card.type === 'sticker') {
+          const next = fixStickerPath(card.src);
+          if (next !== card.src) {
+            card.src = next;
+            changed = true;
+          }
+        }
+      });
+    });
+    return changed;
+  }
+
   function loadState() {
     const saved = SMA.readJSON ? SMA.readJSON(STORAGE_KEY, null) : null;
     if (saved && Array.isArray(saved.pages) && saved.pages.length > 0) {
       state.pages = saved.pages;
       state.activePageId = saved.activePageId || saved.pages[0].id;
       state.sidebarOpen = saved.sidebarOpen !== false;
+      if (migratePages(state.pages)) {
+        SMA.writeJSON(STORAGE_KEY, {
+          activePageId: state.activePageId,
+          sidebarOpen: state.sidebarOpen,
+          pages: state.pages
+        });
+      }
     } else {
       state.pages = defaultPages();
       state.activePageId = state.pages[0].id;
@@ -228,16 +261,19 @@
     if (stickerState.loaded || stickerState.loading) return;
     stickerState.loading = true;
     try {
-      const response = await fetch(STICKER_MANIFEST_URL);
-      const data = await response.json();
-      const list = Array.isArray(data && data.stickers) ? data.stickers : [];
+      let list = Array.isArray(window.SMA_STICKER_MANIFEST) ? window.SMA_STICKER_MANIFEST : null;
+      if (!list) {
+        const response = await fetch(STICKER_MANIFEST_URL);
+        const data = await response.json();
+        list = Array.isArray(data && data.stickers) ? data.stickers : [];
+      }
       const categories = new Set(['all']);
       stickerState.all = list.map(function (rel) {
         const parts = String(rel).split('/');
         const category = parts.length >= 4 ? parts[2] : 'random';
         categories.add(category);
         return {
-          path: 'little-place/' + rel,
+          path: String(rel),
           category: category,
           name: (parts[parts.length - 1] || '').replace(/\.[^.]+$/, '')
         };

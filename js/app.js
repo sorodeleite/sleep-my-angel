@@ -66,13 +66,6 @@
     'tab-books': function () { return SMA.Books.init(); },
     'tab-moodboard': function () { return SMA.Moodboard.init(); },
     'tab-scripts': function () { return SMA.Scripts.init(); },
-    'tab-little-place': function () {
-      const frame = document.getElementById('little-place-frame');
-      if (frame && !frame.getAttribute('src')) {
-        frame.setAttribute('src', frame.dataset.src || 'little-place/index.html');
-      }
-    },
-    'tab-shift-scripts': function () { return SMA.ShiftScripts.init(); },
     'tab-planner': function () { return SMA.PersonalPlanner.init(); }
   };
   const lazyStarted = Object.create(null);
@@ -104,7 +97,6 @@
         panes.forEach(function (pane) {
           pane.classList.toggle('active', pane.id === button.dataset.tab);
         });
-        document.body.classList.toggle('little-place-active', button.dataset.tab === 'tab-little-place');
         const area = SMA.select('.tab-content-area');
         if (area && window.innerWidth < 769) area.scrollTop = 0;
         ensureTab(button.dataset.tab);
@@ -112,7 +104,6 @@
     });
     const active = buttons.find(function (button) { return button.classList.contains('active'); });
     if (active) {
-      document.body.classList.toggle('little-place-active', active.dataset.tab === 'tab-little-place');
       ensureTab(active.dataset.tab);
     }
   }
@@ -448,18 +439,11 @@
     initTheme();
     initTabs();
     try {
-      if (SMA.ShiftScripts) SMA.ShiftScripts.init();
-    } catch (error) {
-      console.error('não foi possível iniciar Scripts:', error);
-      const root = document.getElementById('shift-scripts-root');
-      if (root) root.innerHTML = '<div class="studio-empty"><strong>não consegui abrir Scripts</strong><p>feche e abra a página novamente. se continuar, me avise.</p></div>';
-    }
-    try {
       if (SMA.PersonalPlanner) SMA.PersonalPlanner.init();
     } catch (error) {
       console.error('não foi possível iniciar Calendar:', error);
       const root = document.getElementById('planner-root');
-      if (root) root.innerHTML = '<div class="studio-empty"><strong>não consegui abrir Calendar</strong><p>feche e abra a página novamente. se continuar, me avise.</p></div>';
+      if (root) root.innerHTML = '<div class="planner-error"><strong>não consegui abrir Calendar</strong><p>feche e abra a página novamente. se continuar, me avise.</p></div>';
     }
     initProfileFields();
     initAvatar();

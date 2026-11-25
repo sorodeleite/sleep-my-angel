@@ -9,10 +9,11 @@ const files = [
   'index.html',
   'privacy.html',
   'styles.css',
+  'planner.css',
   'manifest.webmanifest',
   'sw.js'
 ];
-const directories = ['js', 'assets', 'little-place'];
+const directories = ['js', 'assets'];
 
 function copyFile(name, destination) {
   const source = path.join(root, name);

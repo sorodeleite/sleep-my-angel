@@ -109,8 +109,9 @@ jobs:
           body: |
             atualização do sleep my angel v${{ steps.version.outputs.version }}
 
+            - **Calendar** novo: calendário com tarefinhas, eventos de vários dias, carinhas, foto do dia, adesivos, fundo, cores, letra e quadradinhos no 🎨
+            - **Scripts** com notas, listas, fotos, vídeos, áudios e adesivos no quadro
             - **modo texto no pdf**: o botão `texto` no leitor refaz o pdf em parágrafos, com letra ajustável, tema escuro e marcação de trechos
-            - livros escaneados (só imagem) podem virar texto de verdade com `npm run books:ocr`
             - se o download da atualização falhar, baixe o `sleep-my-angel.apk` aqui na release e instale por cima
           files: sleep-my-angel.apk
         env:

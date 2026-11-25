@@ -1,9 +1,10 @@
-const CACHE = 'sleep-my-angel-v28';
+const CACHE = 'sleep-my-angel-v29';
 const SHELL = [
   './',
   './index.html',
   './privacy.html',
   './styles.css',
+  './planner.css',
   './manifest.webmanifest',
   './js/vendor/jszip.min.js',
   './js/vendor/epub.min.js',
@@ -13,6 +14,7 @@ const SHELL = [
   './js/utils.js',
   './js/track-name.js',
   './js/storage.js',
+  './js/sticker-manifest.js',
   './js/ambience.js',
   './js/keepalive.js',
   './js/player.js',
@@ -29,7 +31,7 @@ const SHELL = [
   './js/reminders.js',
   './js/calendar-style.js',
   './js/calendar-events.js',
-  './js/studio.js',
+  './js/planner.js',
   './js/app.js',
   './assets/icon/icon-192.png',
   './assets/icon/icon-512.png',

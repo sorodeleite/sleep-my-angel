@@ -29,6 +29,8 @@ leia a [**Política de Privacidade**](https://github.com/sorodeleite/sleep-my-an
 - **library** no estilo spotify, em tons de cinza e pastel, com busca, filtros e playlists. já vem com a **corvo seco**, que junta todas as meditações.
 - **meditações com nome e autor** — os arquivos seguem `nome_pessoa`, e o cartão mostra a meditação primeiro e a pessoa embaixo. elas vão **dentro do apk** (versão leve em `media/`), então tocam offline no celular.
 - **notion script** — importa a página do notion com **imagens, cores, colunas, callouts e subpáginas** dentro da mesma nota, do jeitinho que eu vejo lá. também aceita `.docx`, `.pdf`, texto colado e print.
+- **scripts** — páginas livres no estilo notion/milanote, com notas, listas, fotos, vídeos, áudios e **adesivos** pra colar no quadro.
+- **calendar** — calendário fofinho com tarefinhas coloridas, eventos de vários dias, carinhas, foto do dia e **adesivos**; dá pra trocar o fundo, as cores, a letra e os quadradinhos no 🎨.
 - **estante** estilo kindle pra `.epub`, `.pdf` e `.txt`, com índice, progresso salvo, tema sépia/claro/escuro e troca de capa, nome e autor.
 - **modo texto no pdf** — o pdf abre na página como sempre, mas o botão **texto** refaz ele em parágrafos: letra do tamanho que quiser, tema escuro e trechos marcados. livro escaneado (só imagem) continua na página, porque aí precisa de OCR.
 - **cookbook** com receitinhas da noite em cartões, ingredientes e passos que dá pra ir marcando.
