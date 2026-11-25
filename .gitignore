@@ -24,3 +24,4 @@ assets/books/*.azw
 assets/books/*.mobi
 assets/books/*.prc
 assets/books/texto/*.txt
+*.traineddata
