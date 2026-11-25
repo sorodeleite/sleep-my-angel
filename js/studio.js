@@ -205,10 +205,10 @@
 
   function editorContent(body, rules) {
     const text = String(body || '');
-    const html = /<\\/?(p|h[1-3]|ul|ol|li|strong|em|u|blockquote|br|hr)\\b/i.test(text)
+    const html = /<\/?(p|h[1-3]|ul|ol|li|strong|em|u|blockquote|br|hr)\b/i.test(text)
       ? text
-      : text.split(/\\n{2,}/).map(function (part) { return '<p>' + escape(part).replace(/\\n/g, '<br>') + '</p>'; }).join('');
-    const extra = rules ? '<h2>regras e observações</h2><p>' + escape(rules).replace(/\\n/g, '<br>') + '</p>' : '';
+      : text.split(/\n{2,}/).map(function (part) { return '<p>' + escape(part).replace(/\n/g, '<br>') + '</p>'; }).join('');
+    const extra = rules ? '<h2>regras e observações</h2><p>' + escape(rules).replace(/\n/g, '<br>') + '</p>' : '';
     return cleanEditorHTMLFromString(html + extra);
   }
 

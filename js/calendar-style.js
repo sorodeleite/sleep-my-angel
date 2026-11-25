@@ -1,23 +1,3 @@
-/* ═════════════════════════════════════════════════════════════════
-   ✧ O JEITINHO DO CALENDÁRIO (do jeitinho da agenda coreana) ✧
-   ------------------------------------------------------------------
-   A pessoa escolhe, dentro do app:
-     • o FUNDO (papel lisinho, bolinhas, nuvens, corações, xadrez,
-       listras, estrelinhas, papel quadriculado ou uma fotinha dela);
-     • as CORES do fundo e do detalhe;
-     • os QUADRADOS (grade coladinha, cartõezinhos, redondinhos ou
-       soltinhos);
-     • a LETRA (a mesma galeria de fontes do diário);
-     • o DOMINGO vermelhozinho;
-     • o NÚMERO PEQUENININHO do lado do dia (dia do ano, semana ou
-       a data "mês.dia" — é aquele numerinho cinza da foto);
-     • a PALETA das tarefinhas (os bloquinhos coloridos do dia).
-
-   As continhas purinhas moram aqui (nada de DOM), testadas em
-   test/calendar-style.test.mjs. O app só pega o resultado e joga nas
-   variáveis CSS do calendário — é por isso que `fundoCss` devolve texto
-   de CSS em vez de mexer na tela. ✧
-   ═════════════════════════════════════════════════════════════════ */
 (function (root, factory) {
   const api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -26,19 +6,14 @@
   'use strict';
 
   const CHAVE = 'pooftie_calendar_style';
-  // ✧ v2: o calendário ficou do jeitinho da agenda coreana (papel branco,
-  // linhas fininhas, letra de romance e o numerinho da data do lado) ✧
   const VERSAO = 2;
 
-  // ⚠️ a ordem é a ordem dos botõezinhos no painelzinho
   const FUNDOS = ['nenhum', 'bolinhas', 'nuvens', 'coracoes', 'xadrez', 'listras', 'estrelinhas', 'papel', 'foto'];
   const QUADROS = ['grade', 'cartoes', 'redondos', 'limpos'];
   const FONTES = ['batang', 'nunito', 'patrick', 'caveat', 'gloria', 'indie', 'vt323'];
   const MINIS = ['nada', 'dia', 'semana', 'mesdia'];
   const PALETAS = ['romantica', 'terrosa', 'pastel', 'neutra'];
 
-  // as MESMAS fontes da galeria do diário (+ a letrinha de romance da
-  // agenda coreana, que é a padrão do calendário) ✧
   const FAMILIAS = {
     batang: "'Gowun Batang', Georgia, 'Times New Roman', serif",
     nunito: "'Nunito', sans-serif",
@@ -49,7 +24,6 @@
     vt323: "'VT323', monospace"
   };
 
-  // as paletinhas das tarefinhas (bem clarinhas: a letra escura aparece em cima)
   const CORES_DAS_PALETAS = {
     romantica: ['#f9c8d7', '#b3aeab', '#e9d7bf', '#ef93ae'],
     terrosa: ['#edd6c3', '#e0bda6', '#f3e5d7', '#ccb3a1'],
@@ -67,21 +41,18 @@
   };
 
   const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
-  // a fotinha de fundo é pequenininha de propósito (vira WebP antes de entrar)
   const LIMITE_DA_FOTO = 300 * 1024;
 
   function expandirCor(curta) {
     return ('#' + curta[1] + curta[1] + curta[2] + curta[2] + curta[3] + curta[3]).toLowerCase();
   }
 
-  /** Uma cor em hexadecimal (#abc ou #aabbcc); qualquer outra coisa cai no padrão. */
   function normalizarCor(valor, padrao) {
     const texto = String(valor == null ? '' : valor).trim();
     if (!HEX.test(texto)) return padrao;
     return texto.length === 4 ? expandirCor(texto) : texto.toLowerCase();
   }
 
-  /** A mesma cor, com transparência (o "9a" do fim é o alfa em hexadecimal). */
   function comAlfa(cor, alfa) {
     const valor = Math.max(0, Math.min(1, Number(alfa)));
     const byte = Math.round(valor * 255).toString(16).padStart(2, '0');
@@ -90,7 +61,6 @@
 
   const escolha = (lista, valor, padrao) => (lista.includes(valor) ? valor : padrao);
 
-  /** Um "não" de verdade (false, 0, '0', 'false' ou vazio viram false). */
   function ehFalso(valor) {
     return valor === false || valor === 0 || valor === '0' || valor === 'false' || valor === '';
   }
@@ -125,13 +95,6 @@
     };
   }
 
-  /**
-   * ✧ O JEITINHO VELHO VIRA O NOVO ✧
-   * Quem já tinha o calendário personalizado não pode perder as escolhas —
-   * mas quem nunca mexeu tem que ver o calendário novo (branquinho, de
-   * letra de romance) sem precisar clicar em nada. Então: só troca o que
-   * ainda está IGUALZINHO ao padrão antigo. ✧
-   */
   const TROCAS_DA_V1 = {
     fundo: ['nuvens', 'nenhum'],
     fundoCor: ['#fceaf1', CORES_PADRAO.fundoCor],
@@ -155,7 +118,6 @@
     return novo;
   }
 
-  /** Deixa qualquer coisa que veio do navegador num jeitinho seguro. */
   function normalizar(original) {
     const base = padrao();
     const entrada = migrar(original);
@@ -164,7 +126,6 @@
     const fundo = escolha(FUNDOS, entrada.fundo, base.fundo);
     return {
       version: VERSAO,
-      // sem fotinha guardada, o fundo "foto" cai nas nuvens (nada de buraco branco)
       fundo: fundo === 'foto' && !foto ? base.fundo : fundo,
       fundoCor: normalizarCor(entrada.fundoCor, base.fundoCor),
       detalheCor: normalizarCor(entrada.detalheCor, base.detalheCor),
@@ -201,21 +162,17 @@
     }
   }
 
-  /** A corzinha da tarefinha nº `indice` daquele dia. */
   function corDaTarefa(estilo, indice) {
     const paleta = CORES_DAS_PALETAS[(estilo && estilo.paleta) || 'romantica'] || CORES_DAS_PALETAS.romantica;
     const numero = Math.trunc(Number(indice) || 0);
-    // a continha do "resto" que também funciona pra número negativo ✧
     const posicao = ((numero % paleta.length) + paleta.length) % paleta.length;
     return paleta[posicao];
   }
 
-  /** As cores da paleta escolhida (a fileirinha inteira). */
   function coresDaPaleta(estilo) {
     return (CORES_DAS_PALETAS[(estilo && estilo.paleta) || 'romantica'] || CORES_DAS_PALETAS.romantica).slice();
   }
 
-  /** O fundo do calendário, em CSS prontinho (vai direto pro `background`). */
   function fundoCss(estilo) {
     const s = normalizar(estilo);
     const base = s.fundoCor;
@@ -232,7 +189,6 @@
         ].join(', ');
 
       case 'nuvens':
-        // as nuvenzinhas fofinhas da foto: bolões brancos bem desfocados ✧
         return [
           `radial-gradient(ellipse 26% 22% at 16% 22%, ${comAlfa(det, 0.85)} 0 55%, transparent 78%)`,
           `radial-gradient(ellipse 32% 26% at 82% 34%, ${comAlfa(det, 0.85)} 0 52%, transparent 76%)`,
@@ -283,7 +239,6 @@
     }
   }
 
-  /** Joga o jeitinho nas variáveis CSS do calendário (quem desenha é o CSS). */
   function aplicar(elemento, estilo) {
     if (!elemento || !elemento.style || !elemento.dataset) return null;
     const s = normalizar(estilo);
@@ -292,21 +247,17 @@
     elemento.dataset.mini = s.mini;
     elemento.dataset.domingo = s.domingoVermelho ? 'sim' : 'nao';
     elemento.style.setProperty('--cal-fundo', fundoCss(s));
-    // o quadradinho é um veuzinho: o fundo escolhido aparece por baixo dele ✧
     elemento.style.setProperty('--cal-celula', comAlfa(s.celulaCor, 0.86));
     elemento.style.setProperty('--cal-celula-cheia', s.celulaCor);
     elemento.style.setProperty('--cal-linha', s.linhaCor);
     elemento.style.setProperty('--cal-texto', s.textoCor);
     elemento.style.setProperty('--cal-domingo-cor', s.domingoCor);
-    // o cabecalho dos dias da semana e o "hoje" são um veuzinho da cor
-    // do domingo (é assim na agenda coreana: tudo puxa pro rosinha) ✧
     elemento.style.setProperty('--cal-cabecalho', comAlfa(s.domingoCor, 0.075));
     elemento.style.setProperty('--cal-hoje', comAlfa(s.domingoCor, 0.1));
     elemento.style.setProperty('--cal-fonte', FAMILIAS[s.fonte] || FAMILIAS.batang);
     return s;
   }
 
-  /** O texto do lembrete vira uma tarefinha por linha (como na agenda). */
   function linhasDaNota(nota) {
     return String(nota == null ? '' : nota)
       .split(/\r?\n/)
@@ -314,7 +265,6 @@
       .filter(Boolean);
   }
 
-  /** A data "YYYY-MM-DD" em Date (no fuso de casa, sem susto de virada). */
   function dataDeTexto(dateStr) {
     const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ''));
     if (!partes) return null;
@@ -322,7 +272,6 @@
     return Number.isNaN(data.getTime()) ? null : data;
   }
 
-  /** Que dia do ano é esse? (1º de janeiro = 1) */
   function diaDoAno(data) {
     if (!data || Number.isNaN(data.getTime())) return 0;
     const inicio = Date.UTC(data.getFullYear(), 0, 1);
@@ -330,7 +279,6 @@
     return Math.floor((agora - inicio) / 86400000) + 1;
   }
 
-  /** A semana do ano (a mesma continha da ISO, que começa no domingo... não: na segunda). */
   function semanaDoAno(data) {
     if (!data || Number.isNaN(data.getTime())) return 0;
     const dia = new Date(Date.UTC(data.getFullYear(), data.getMonth(), data.getDate()));
@@ -340,13 +288,6 @@
     return Math.ceil((((dia.getTime() - inicio) / 86400000) + 1) / 7);
   }
 
-  /**
-   * O numerinho cinza do lado do dia (o "8.17" da foto).
-   *  • 'dia'    ➜ o dia do ano (1…366)
-   *  • 'semana' ➜ a semana do ano (1…53)
-   *  • 'mesdia' ➜ a data curtinha (10.1)
-   *  • 'nada'   ➜ sem numerinho
-   */
   function miniDoDia(dateStr, modo) {
     if (!MINIS.includes(modo) || modo === 'nada') return '';
     const data = dataDeTexto(dateStr);

@@ -11,5 +11,10 @@ contextBridge.exposeInMainWorld('api', {
   readBookFile: (relativePath) => ipcRenderer.invoke('read-book-file', relativePath),
   fetchPinterest: (url) => ipcRenderer.invoke('fetch-pinterest', url),
   fetchPinterestImage: (url) => ipcRenderer.invoke('fetch-pinterest-image', url),
-  fetchPinterestResource: (payload) => ipcRenderer.invoke('fetch-pinterest-resource', payload)
+  fetchPinterestResource: (payload) => ipcRenderer.invoke('fetch-pinterest-resource', payload),
+  pinterestConnect: () => ipcRenderer.invoke('pinterest-connect'),
+  pinterestStatus: () => ipcRenderer.invoke('pinterest-status'),
+  pinterestDisconnect: () => ipcRenderer.invoke('pinterest-disconnect'),
+  pinterestBoards: () => ipcRenderer.invoke('pinterest-boards'),
+  pinterestDebug: () => ipcRenderer.invoke('pinterest-debug')
 });

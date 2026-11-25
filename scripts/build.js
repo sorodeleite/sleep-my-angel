@@ -12,7 +12,7 @@ const files = [
   'manifest.webmanifest',
   'sw.js'
 ];
-const directories = ['js', 'assets'];
+const directories = ['js', 'assets', 'little-place'];
 
 function copyFile(name, destination) {
   const source = path.join(root, name);

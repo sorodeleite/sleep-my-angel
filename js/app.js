@@ -65,6 +65,13 @@
   const lazyTabs = {
     'tab-books': function () { return SMA.Books.init(); },
     'tab-moodboard': function () { return SMA.Moodboard.init(); },
+    'tab-scripts': function () { return SMA.Scripts.init(); },
+    'tab-little-place': function () {
+      const frame = document.getElementById('little-place-frame');
+      if (frame && !frame.getAttribute('src')) {
+        frame.setAttribute('src', frame.dataset.src || 'little-place/index.html');
+      }
+    },
     'tab-shift-scripts': function () { return SMA.ShiftScripts.init(); },
     'tab-planner': function () { return SMA.PersonalPlanner.init(); }
   };
@@ -97,13 +104,17 @@
         panes.forEach(function (pane) {
           pane.classList.toggle('active', pane.id === button.dataset.tab);
         });
+        document.body.classList.toggle('little-place-active', button.dataset.tab === 'tab-little-place');
         const area = SMA.select('.tab-content-area');
         if (area && window.innerWidth < 769) area.scrollTop = 0;
         ensureTab(button.dataset.tab);
       });
     });
     const active = buttons.find(function (button) { return button.classList.contains('active'); });
-    if (active) ensureTab(active.dataset.tab);
+    if (active) {
+      document.body.classList.toggle('little-place-active', active.dataset.tab === 'tab-little-place');
+      ensureTab(active.dataset.tab);
+    }
   }
 
   function initProfileFields() {

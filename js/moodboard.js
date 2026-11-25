@@ -12,6 +12,7 @@
   let nameResolve = null;
   let movingPin = null;
   let initialized = false;
+  let pinterestSyncing = false;
 
   const state = {
     boards: [],
@@ -23,7 +24,16 @@
     filter: 'public',
     query: '',
     organize: false,
-    dragPinId: null
+    dragPinId: null,
+    pinterest: {
+      connected: false,
+      username: '',
+      name: '',
+      boards: [],
+      loading: false,
+      autoSync: SMA.readJSON('sma_pinterest_auto_sync', true),
+      autoImport: SMA.readJSON('sma_pinterest_auto_import', true)
+    }
   };
 
   function uid(prefix) {
@@ -56,7 +66,9 @@
 
   function httpUrl(value) {
     try {
-      const url = new URL(String(value || ''));
+      let raw = String(value || '').trim();
+      if (raw.indexOf('//') === 0) raw = 'https:' + raw;
+      const url = new URL(raw);
       if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
       return url.href;
     } catch (error) {
@@ -241,6 +253,7 @@
       + '        <input type="search" id="mood-search" placeholder="procurar nas suas pastas" autocomplete="off" value="' + esc(state.query) + '">'
       + '      </label>'
       + '      <button class="mood-btn" type="button" data-mood-act="new-board">＋ nova pasta</button>'
+      + (state.pinterest.connected ? '      <button class="mood-btn" type="button" data-mood-act="sync-pinterest">sincronizar pinterest</button>' : '')
       + '      <button class="mood-btn mood-btn-dark" type="button" data-mood-act="open-import">＋ importar</button>'
       + '    </div>'
       + '  </header>'
@@ -865,15 +878,21 @@
   }
 
   function boardMenu(anchor, board) {
-    openMenu(anchor, [
+    const items = [
       { label: 'abrir pasta', run: function () { openBoard(board.id); } },
       { label: 'renomear', run: function () { renameBoard(board); } },
       { label: 'organizar pins', run: function () { openBoard(board.id); state.organize = true; render(); } },
       { label: 'usar primeiras fotos no ícone', run: function () { board.iconPinIds = []; board.updatedAt = now(); SMA.moodStore.saveBoard(board).then(function () { refresh().then(render); }); } },
-      { label: 'importar pasta…', run: function () { openImportModal('folder'); } },
+      { label: 'importar pasta…', run: function () { openImportModal('folder'); } }
+    ];
+    if (board.source === 'pinterest' && pinterestBoardUrl(board)) {
+      items.push({ label: 'sincronizar pins', run: function () { syncPinterestBoard(board); } });
+    }
+    items.push(
       { label: board.private ? 'mostrar pasta' : 'ocultar pasta', run: function () { togglePrivate(board); } },
       { label: 'apagar pasta', danger: true, run: function () { deleteBoard(board); } }
-    ]);
+    );
+    openMenu(anchor, items);
   }
 
   function folderMenu(anchor, folder) {
@@ -968,9 +987,12 @@
     const chosen = tab === 'folder' || tab === 'images' ? tab : 'pinterest';
     setImportTab(chosen);
     updateImportTarget();
+    paintPinterestConnect();
     if (chosen !== 'pinterest') return;
-    const input = document.getElementById('mood-pinterest-url');
-    if (input) setTimeout(function () { input.focus(); }, 60);
+    refreshPinterestStatus().then(function () {
+      const input = document.getElementById('mood-pinterest-url');
+      if (input && !state.pinterest.connected) setTimeout(function () { input.focus(); }, 60);
+    });
   }
 
   function closeImportModal() {
@@ -1126,13 +1148,42 @@
   async function fetchPinterestText(url) {
     if (window.api && typeof window.api.fetchPinterest === 'function') {
       const result = await window.api.fetchPinterest(url);
-      if (result && result.text && looksLikePinterest(result.text)) return result.text;
+      if (result && result.text && looksLikePinterest(result.text)) {
+        return {
+          text: result.text,
+          appVersion: result.appVersion || pinterestAppVersion(result.text),
+          connected: Boolean(result.connected),
+          username: result.username || ''
+        };
+      }
       throw new Error((result && result.error) || 'o pinterest não devolveu a página dessa pasta.');
+    }
+
+    const plugin = capacitorHttp();
+    if (plugin) {
+      try {
+        const response = await plugin.request({
+          url: url,
+          method: 'GET',
+          headers: { accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
+          responseType: 'text'
+        });
+        if (response && response.status >= 200 && response.status < 300) {
+          const text = String(response.data || '');
+          if (looksLikePinterest(text)) {
+            return { text: text, appVersion: pinterestAppVersion(text), connected: false, username: '' };
+          }
+        }
+      } catch (error) {
+        void error;
+      }
     }
 
     try {
       const direct = await fetchText(url, 10000);
-      if (looksLikePinterest(direct)) return direct;
+      if (looksLikePinterest(direct)) {
+        return { text: direct, appVersion: pinterestAppVersion(direct), connected: false, username: '' };
+      }
     } catch (error) {
     }
 
@@ -1144,7 +1195,9 @@
     for (const proxy of proxies) {
       try {
         const text = await fetchText(proxy(url), 18000);
-        if (looksLikePinterest(text)) return text;
+        if (looksLikePinterest(text)) {
+          return { text: text, appVersion: pinterestAppVersion(text), connected: false, username: '' };
+        }
       } catch (error) {
       }
     }
@@ -1169,10 +1222,17 @@
     const match = html.match(pattern);
     if (!match) return null;
     try {
-      return JSON.parse(match[1]);
+      return JSON.parse(match[1].replace(/^\uFEFF/, ''));
     } catch (error) {
       return null;
     }
+  }
+
+  function pinterestAppVersion(html) {
+    const data = scriptJson(html, '__PWS_DATA__');
+    if (data && data.appVersion) return String(data.appVersion);
+    const match = String(html || '').match(/"appVersion"\s*:\s*"([^"]+)"/);
+    return match ? match[1] : '';
   }
 
   function cleanTitle(value) {
@@ -1203,32 +1263,85 @@
   }
 
   function mapPinterestPin(pin) {
-    if (!pin || !pin.id) return null;
-    const images = pin.images || {};
-    const best = images['736x'] || images['474x'] || images['orig'] || images['236x'];
-    const image = httpUrl(best && best.url);
+    if (!pin) return null;
+    const id = pin.id || pin.pin_id || pin.entity_id;
+    if (!id) return null;
+    const images = pin.images || (pin.image && pin.image.images) || {};
+    const best = images['736x'] || images['474x'] || images['orig'] || images['236x']
+      || images['736x-webp'] || images['474x-webp'] || (pin.image && pin.image.url ? pin.image : null);
+    let image = httpUrl(best && best.url);
+    if (image && image.indexOf('//') === 0) image = 'https:' + image;
     if (!image) return null;
     return {
-      key: 'pinterest:' + pin.id,
-      title: cleanTitle(pin.title || pin.grid_title || ''),
+      key: 'pinterest:' + id,
+      title: cleanTitle(pin.title || pin.grid_title || pin.description || ''),
       imageUrl: image,
-      sourceUrl: 'https://www.pinterest.com/pin/' + pin.id + '/',
+      sourceUrl: 'https://www.pinterest.com/pin/' + id + '/',
       width: Number(best.width) || 0,
       height: Number(best.height) || 0
     };
   }
 
-  function canUsePinterestApi() {
-    return Boolean((window.api && typeof window.api.fetchPinterestResource === 'function') || SMA.platform() !== 'web');
+  function pinterestItems(data) {
+    if (Array.isArray(data)) return data;
+    if (!data || typeof data !== 'object') return [];
+    if (Array.isArray(data.results)) return data.results;
+    if (Array.isArray(data.pins)) return data.pins;
+    if (Array.isArray(data.items)) return data.items;
+    if (Array.isArray(data.data)) return data.data;
+    return [];
   }
 
-  async function fetchPinterestResource(url, sourcePath, handler) {
+  function pinterestBookmark(response, json) {
+    const raw = (response && response.bookmark) || (json && json.bookmark);
+    if (Array.isArray(raw)) return raw[0] || '';
+    return raw ? String(raw) : '';
+  }
+
+  function canUsePinterestApi() {
+    return Boolean((window.api && typeof window.api.fetchPinterestResource === 'function') || capacitorHttp());
+  }
+
+  function capacitorHttp() {
+    if (!window.Capacitor || !window.Capacitor.Plugins) return null;
+    return window.Capacitor.Plugins.CapacitorHttp || null;
+  }
+
+  async function fetchPinterestResource(url, sourcePath, handler, appVersion) {
     if (window.api && typeof window.api.fetchPinterestResource === 'function') {
-      const result = await window.api.fetchPinterestResource({ url: url, sourcePath: sourcePath, handler: handler });
+      const result = await window.api.fetchPinterestResource({
+        url: url,
+        sourcePath: sourcePath,
+        handler: handler,
+        appVersion: appVersion || ''
+      });
       if (result && result.text) return result.text;
       throw new Error((result && result.error) || 'o pinterest não devolveu a lista de pins.');
     }
-    if (SMA.platform() === 'web') return '';
+
+    const headers = {
+      accept: 'application/json, text/javascript, */*, q=0.01',
+      'accept-language': 'pt-BR,pt;q=0.9,en;q=0.7',
+      'x-requested-with': 'XMLHttpRequest',
+      'x-pinterest-appstate': 'active',
+      'x-pinterest-pws-handler': handler,
+      'x-pinterest-source-url': sourcePath,
+      'x-csrftoken': 'undefined',
+      referer: 'https://www.pinterest.com' + sourcePath,
+      origin: 'https://www.pinterest.com'
+    };
+    if (appVersion) headers['x-app-version'] = appVersion;
+
+    const plugin = capacitorHttp();
+    if (plugin) {
+      try {
+        const response = await plugin.request({ url: url, method: 'GET', headers: headers, responseType: 'text' });
+        if (response && response.status >= 200 && response.status < 300) return String(response.data || '');
+      } catch (error) {
+        void error;
+      }
+    }
+
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = controller ? setTimeout(function () { controller.abort(); }, 20000) : null;
     try {
@@ -1236,15 +1349,7 @@
         credentials: 'omit',
         cache: 'no-store',
         signal: controller ? controller.signal : undefined,
-        headers: {
-          accept: 'application/json, text/javascript, */*, q=0.01',
-          'x-requested-with': 'XMLHttpRequest',
-          'x-pinterest-appstate': 'active',
-          'x-pinterest-pws-handler': handler,
-          'x-pinterest-source-url': sourcePath,
-          'x-csrftoken': 'undefined',
-          referer: 'https://www.pinterest.com' + sourcePath
-        }
+        headers: headers
       });
       if (!response.ok) throw new Error('status ' + response.status);
       return await response.text();
@@ -1253,90 +1358,139 @@
     }
   }
 
-  async function fetchPinterestSections(boardPath, boardId) {
-    const sections = [];
+  async function fetchPinterestFeed(resource, sourcePath, handler, baseOptions, boardId, appVersion, pageLimit) {
+    const pins = [];
+    const seen = new Set();
     let bookmark = '';
-    const seenBookmarks = new Set();
-    while (true) {
-      const options = { board_id: boardId, page_size: 50 };
+    const limit = pageLimit || 140;
+    for (let page = 0; page < limit; page += 1) {
+      const options = Object.assign({ bookmarks: [] }, baseOptions);
       if (bookmark) options.bookmarks = [bookmark];
       const data = encodeURIComponent(JSON.stringify({ options: options, context: {} }));
-      const safeSourcePath = new URL('https://www.pinterest.com' + boardPath).pathname;
-      const url = 'https://www.pinterest.com/resource/BoardSectionsResource/get/?source_url='
-        + encodeURIComponent(safeSourcePath) + '&data=' + data;
-      const text = await fetchPinterestResource(url, safeSourcePath, 'www/[username]/[slug].js');
-      if (!text) throw new Error('o pinterest não devolveu as seções da pasta.');
-      let json;
+      const url = 'https://www.pinterest.com/resource/' + resource + '/get/?source_url='
+        + encodeURIComponent(sourcePath) + '&data=' + data;
+      let text = '';
+      let retries = 0;
+      while (retries < 3 && !text) {
+        try {
+          text = await fetchPinterestResource(url, sourcePath, handler, appVersion);
+        } catch (error) {
+          retries += 1;
+          await new Promise(function (resolve) { setTimeout(resolve, 500 * retries); });
+        }
+      }
+      if (!text) break;
+      let json = null;
       try {
         json = JSON.parse(text);
       } catch (error) {
-        throw new Error('o pinterest devolveu uma lista de seções inválida.');
+        break;
       }
       const response = json && json.resource_response;
-      if (!response) throw new Error('o pinterest não devolveu os dados das seções.');
-      const items = Array.isArray(response.data)
-        ? response.data
-        : (response.data && typeof response.data === 'object' ? Object.values(response.data) : []);
+      if (!response) break;
+      const items = pinterestItems(response.data);
       items.forEach(function (item) {
         if (!item) return;
-        const id = String(item.id || item.section_id || '');
-        const slug = String(item.slug || (item.url ? String(item.url).split('/').filter(Boolean).pop() : '') || '');
-        const title = cleanTitle(item.title || item.name || slug);
-        if (!id || !slug || !title) return;
-        if (!sections.some(function (section) { return section.id === id; })) {
-          sections.push({ id: id, slug: slug, title: title });
-        }
-      });
-      const next = Array.isArray(response.bookmark) ? response.bookmark[0] : response.bookmark;
-      if (!next || next === '-end-' || !items.length) break;
-      if (seenBookmarks.has(String(next))) throw new Error('o pinterest repetiu a lista de seções.');
-      seenBookmarks.add(String(next));
-      bookmark = next;
-      await new Promise(function (resolve) { setTimeout(resolve, 180); });
-    }
-    return sections;
-  }
-
-  async function fetchPinterestFeed(resource, sourcePath, handler, baseOptions, boardId) {
-    const pins = [];
-    let bookmark = '';
-    const seenBookmarks = new Set();
-    while (true) {
-      const options = Object.assign({}, baseOptions);
-      if (bookmark) options.bookmarks = [bookmark];
-      const data = encodeURIComponent(JSON.stringify({ options: options, context: {} }));
-      const safeSourcePath = new URL('https://www.pinterest.com' + sourcePath).pathname;
-      const url = 'https://www.pinterest.com/resource/' + resource + '/get/?source_url='
-        + encodeURIComponent(safeSourcePath) + '&data=' + data;
-      const text = await fetchPinterestResource(url, safeSourcePath, handler);
-      if (!text) throw new Error('o pinterest não devolveu uma página de pins.');
-      let json;
-      try {
-        json = JSON.parse(text);
-      } catch (error) {
-        throw new Error('o pinterest devolveu uma página de pins inválida.');
-      }
-      const response = json && json.resource_response;
-      if (!response) throw new Error('o pinterest não devolveu os dados dessa página.');
-      const items = Array.isArray(response.data) ? response.data : [];
-      items.forEach(function (item) {
-        if (!item || (item.type && item.type !== 'pin')) return;
+        if (item.type && item.type !== 'pin' && item.type !== 'story') return;
         if (boardId && item.board && String(item.board.id) !== String(boardId)) return;
         const pin = mapPinterestPin(item);
-        if (!pin) return;
+        if (!pin || seen.has(pin.key)) return;
+        seen.add(pin.key);
         pins.push(pin);
       });
-      const next = Array.isArray(response.bookmark) ? response.bookmark[0] : response.bookmark;
+      const next = pinterestBookmark(response, json);
       if (!next || next === '-end-' || !items.length) break;
-      if (seenBookmarks.has(String(next))) throw new Error('o pinterest repetiu a página durante a importação. tenta novamente.');
-      seenBookmarks.add(String(next));
       bookmark = next;
-      await new Promise(function (resolve) { setTimeout(resolve, 180); });
+      await new Promise(function (resolve) { setTimeout(resolve, 240 + Math.floor(Math.random() * 160)); });
     }
     return pins;
   }
 
-  async function collectAllBoardPins(parsed, normalized) {
+  function addPinterestSection(list, section) {
+    if (!section || !section.id) return;
+    const existing = list.find(function (item) { return item.id === String(section.id); });
+    if (existing) {
+      if (!existing.title && section.title) existing.title = section.title;
+      if (!existing.slug && section.slug) existing.slug = section.slug;
+      return;
+    }
+    list.push({
+      id: String(section.id),
+      title: cleanTitle(section.title || section.slug || ''),
+      slug: String(section.slug || '')
+    });
+  }
+
+  async function fetchBoardSections(parsed, boardPath, appVersion) {
+    if (!parsed.boardId || !boardPath || !parsed.sectionCount) return;
+    if (parsed.sections.length >= parsed.sectionCount) return;
+    const sourcePath = boardPath;
+    const handler = 'www/[username]/[slug].js';
+    const attempts = [
+      { board_id: parsed.boardId, field_set_key: 'board_sections', page_size: 50, redux_normalize_feed: true, bookmarks: [] },
+      { board_id: parsed.boardId, page_size: 50, redux_normalize_feed: true, bookmarks: [] }
+    ];
+    for (const options of attempts) {
+      const data = encodeURIComponent(JSON.stringify({ options: options, context: {} }));
+      const url = 'https://www.pinterest.com/resource/BoardSectionsResource/get/?source_url='
+        + encodeURIComponent(sourcePath) + '&data=' + data;
+      try {
+        const text = await fetchPinterestResource(url, sourcePath, handler, appVersion);
+        if (!text) continue;
+        const json = JSON.parse(text);
+        const response = json && json.resource_response;
+        if (!response) continue;
+        const items = pinterestItems(response.data);
+        items.forEach(function (item) {
+          if (!item || item.type === 'pin') return;
+          addPinterestSection(parsed.sections, item);
+        });
+        if (parsed.sections.length) return;
+      } catch (error) {
+        void error;
+      }
+    }
+  }
+
+  async function crawlBoardPages(parsed, normalized, collected, add, report) {
+    if (!parsed.boardPath) return 0;
+    const base = 'https://www.pinterest.com' + parsed.boardPath;
+    const target = parsed.pinCount || 0;
+    const maxPages = target > 1200 ? 70 : 96;
+    const stagnantLimit = target > 400 ? 14 : 10;
+    let stagnant = 0;
+    let added = 0;
+    for (let page = 2; page <= maxPages; page += 1) {
+      if (target && collected.size >= target) break;
+      let result = null;
+      try {
+        result = await fetchPinterestText(base + '?page=' + page);
+      } catch (error) {
+        stagnant += 1;
+        if (stagnant >= 5) break;
+        continue;
+      }
+      const boardPage = parseBoardPage(result.text, normalized);
+      boardPage.sections.forEach(function (section) {
+        addPinterestSection(parsed.sections, section);
+      });
+      const before = collected.size;
+      add(boardPage.pins, null);
+      const gained = collected.size - before;
+      added += gained;
+      if (gained) stagnant = 0;
+      else stagnant += 1;
+      report('página ' + page + ' ‧ ' + collected.size + (target ? ' de ' + target : '') + ' pins…', target ? Math.min(1, collected.size / target) : null);
+      if (stagnant >= stagnantLimit) break;
+      await new Promise(function (resolve) { setTimeout(resolve, 180 + Math.floor(Math.random() * 120)); });
+    }
+    return added;
+  }
+
+  async function collectAllBoardPins(parsed, normalized, appVersion, options) {
+    const opts = options || {};
+    const report = typeof opts.report === 'function' ? opts.report : function () {};
+    const full = opts.full !== false;
     let boardPath = parsed.boardPath;
     if (!boardPath && !normalized.short) {
       try {
@@ -1349,19 +1503,6 @@
 
     const collected = new Map();
     let worked = false;
-    let sections = Array.isArray(parsed.sections) ? parsed.sections.slice() : [];
-    try {
-      const remoteSections = await fetchPinterestSections(boardPath, parsed.boardId);
-      if (remoteSections.length) {
-        const byId = new Map();
-        sections.concat(remoteSections).forEach(function (section) {
-          if (section && section.id) byId.set(String(section.id), section);
-        });
-        sections = Array.from(byId.values());
-      }
-    } catch (error) {
-      // Mantém as seções presentes na página inicial se o Pinterest limitar esse recurso.
-    }
     const add = function (pins, section) {
       pins.forEach(function (pin) {
         const existing = collected.get(pin.key);
@@ -1382,31 +1523,97 @@
     const baseOptions = {
       board_id: parsed.boardId,
       field_set_key: 'react_grid_pin',
-      filter_section_pins: true,
+      filter_section_pins: false,
       sort: 'default',
       layout: 'default',
-      page_size: 50,
+      page_size: 25,
       redux_normalize_feed: true
     };
-    try {
-      const mainPins = await fetchPinterestFeed('BoardFeedResource', boardPath, 'www/[username]/[slug].js', baseOptions, parsed.boardId);
-      worked = true;
-      add(mainPins, null);
+    const target = parsed.pinCount || 0;
 
-      for (const section of sections) {
-        if (!section.id || !section.slug) continue;
-        const sectionPins = await fetchPinterestFeed(
-          'BoardSectionPinsResource',
-          boardPath + section.slug + '/',
-          'www/[username]/[slug]/[section_slug].js',
-          { section_id: section.id, page_size: 50 },
-          parsed.boardId
-        );
-        add(sectionPins, section);
+    try {
+      const mainPins = await fetchPinterestFeed('BoardFeedResource', boardPath, 'www/[username]/[slug].js', baseOptions, parsed.boardId, appVersion);
+      if (mainPins.length) {
+        worked = true;
+        add(mainPins, null);
+      }
+
+      if (!worked || (target && collected.size < target)) {
+        const widePins = await fetchPinterestFeed('BoardFeedResource', boardPath, 'www/[username]/[slug].js', Object.assign({}, baseOptions, {
+          page_size: 50,
+          filter_section_pins: false
+        }), parsed.boardId, appVersion);
+        if (widePins.length) {
+          worked = true;
+          add(widePins, null);
+        }
+      }
+
+      if (target && collected.size < target) {
+        const sectionedPins = await fetchPinterestFeed('BoardFeedResource', boardPath, 'www/[username]/[slug].js', Object.assign({}, baseOptions, {
+          page_size: 50,
+          filter_section_pins: true
+        }), parsed.boardId, appVersion);
+        if (sectionedPins.length) {
+          worked = true;
+          add(sectionedPins, null);
+        }
+      }
+
+      if (!parsed.sections.length || (target && collected.size < target)) {
+        await fetchBoardSections(parsed, boardPath, appVersion);
+      }
+
+      for (const section of parsed.sections) {
+        if (!section.id) continue;
+        const sectionPath = section.slug ? boardPath + section.slug + '/' : boardPath;
+        const sectionOptions = {
+          board_id: parsed.boardId,
+          section_id: section.id,
+          field_set_key: 'react_grid_pin',
+          page_size: 25,
+          redux_normalize_feed: true
+        };
+        let sectionPins = [];
+        try {
+          sectionPins = await fetchPinterestFeed(
+            'BoardSectionPinsResource',
+            sectionPath,
+            'www/[username]/[slug]/[section_slug].js',
+            sectionOptions,
+            parsed.boardId,
+            appVersion
+          );
+        } catch (error) {
+          sectionPins = [];
+        }
+        if (!sectionPins.length) {
+          try {
+            sectionPins = await fetchPinterestFeed(
+              'BoardFeedResource',
+              sectionPath,
+              'www/[username]/[slug].js',
+              sectionOptions,
+              parsed.boardId,
+              appVersion
+            );
+          } catch (error) {
+            sectionPins = [];
+          }
+        }
+        if (sectionPins.length) {
+          worked = true;
+          add(sectionPins, section);
+        }
       }
     } catch (error) {
       if (!worked) return null;
-      throw error;
+    }
+
+    if (full && target && collected.size < target) {
+      const before = collected.size;
+      await crawlBoardPages(parsed, normalized, collected, add, report);
+      if (collected.size > before) worked = true;
     }
 
     if (!worked) return null;
@@ -1415,12 +1622,7 @@
         collected.set(pin.key, Object.assign({}, pin, { sectionId: '', sectionTitle: '' }));
       }
     });
-    const result = Array.from(collected.values());
-    const expected = Number(parsed.pinCount) || 0;
-    if (expected > result.length) {
-      throw new Error('o Pinterest informa ' + expected + ' pins nesta pasta, mas só consegui localizar ' + result.length + '. a importação foi interrompida para não salvar uma pasta incompleta. tente novamente mais tarde.');
-    }
-    return result;
+    return Array.from(collected.values());
   }
 
   function parseBoardPage(html, normalized) {
@@ -1430,6 +1632,8 @@
     let boardPath = '';
     let boardId = '';
     let sections = [];
+    let pinCount = 0;
+    let sectionCount = 0;
     if (props && props.initialReduxState) {
       const data = props.initialReduxState;
       const boards = data.boards ? Object.keys(data.boards).map(function (key) { return data.boards[key]; }) : [];
@@ -1455,23 +1659,45 @@
         }
         boardPath = boardPathFromUrl(board.url);
         boardId = String(board.id || '');
-        const sectionMap = data.boardsections || {};
-        sections = Object.keys(sectionMap).map(function (key) {
-          return sectionMap[key];
-        }).filter(Boolean).map(function (section) {
-          return {
-            id: String(section.id || ''),
-            title: cleanTitle(section.title || section.slug || ''),
-            slug: String(section.slug || '')
-          };
-        }).filter(function (section) {
-          return section.id && section.title;
+        pinCount = Number(board.pin_count) || 0;
+        sectionCount = Number(board.section_count) || 0;
+
+        const sectionMap = data.boardsections || data.boardSections || {};
+        Object.keys(sectionMap).forEach(function (key) {
+          addPinterestSection(sections, sectionMap[key]);
+        });
+
+        const resources = data.resources || {};
+        Object.keys(resources.BoardSectionsResource || {}).forEach(function (key) {
+          const entry = resources.BoardSectionsResource[key];
+          if (!entry) return;
+          pinterestItems(entry.data).forEach(function (item) {
+            addPinterestSection(sections, item);
+          });
+        });
+        Object.keys(resources.BoardFeedResource || {}).forEach(function (key) {
+          const entry = resources.BoardFeedResource[key];
+          if (!entry) return;
+          pinterestItems(entry.data).forEach(function (item) {
+            const mapped = mapPinterestPin(item);
+            if (mapped) pins.push(mapped);
+          });
+        });
+      }
+      const resourceBoards = data.resources && data.resources.BoardResource;
+      if (!board && resourceBoards) {
+        Object.keys(resourceBoards).forEach(function (key) {
+          const item = resourceBoards[key] && resourceBoards[key].data;
+          if (item && item.type === 'board') board = item;
         });
       }
     }
     if (!boardId) {
       const idMatch = html.match(/"board_id"\s*:\s*"(\d+)"/);
       if (idMatch) boardId = idMatch[1];
+    }
+    if (!boardPath && !normalized.short) {
+      boardPath = boardPathFromUrl(normalized.url);
     }
 
     const title = cleanTitle((board && board.name) || metaContent(html, 'og:title') || '');
@@ -1492,8 +1718,10 @@
       pins: unique,
       boardPath: boardPath,
       boardId: boardId,
-      pinCount: Number(board && board.pin_count) || 0,
-      sections: sections
+      pinCount: pinCount,
+      sectionCount: sectionCount,
+      sections: sections,
+      appVersion: pinterestAppVersion(html)
     };
   }
 
@@ -1569,25 +1797,35 @@
       } catch (error) {
       }
     }
-    try {
-      const controller = typeof AbortController === 'function' ? new AbortController() : null;
-      const timer = controller ? setTimeout(function () { controller.abort(); }, 20000) : null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
       try {
-        const response = await fetch(safe, {
-          mode: 'cors',
-          credentials: 'omit',
-          cache: 'force-cache',
-          signal: controller ? controller.signal : undefined
-        });
-        if (!response.ok) return null;
-        const blob = await response.blob();
-        return blob && blob.size ? blob : null;
-      } finally {
-        if (timer) clearTimeout(timer);
+        const controller = typeof AbortController === 'function' ? new AbortController() : null;
+        const timer = controller ? setTimeout(function () { controller.abort(); }, 20000) : null;
+        try {
+          const response = await fetch(safe, {
+            mode: 'cors',
+            credentials: 'omit',
+            cache: 'force-cache',
+            signal: controller ? controller.signal : undefined
+          });
+          if (!response.ok) {
+            if (response.status === 429 || response.status >= 500) {
+              await new Promise(function (resolve) { setTimeout(resolve, 500 * (attempt + 1)); });
+              continue;
+            }
+            return null;
+          }
+          const blob = await response.blob();
+          return blob && blob.size ? blob : null;
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
+      } catch (error) {
+        if (attempt === 2) return null;
+        await new Promise(function (resolve) { setTimeout(resolve, 500 * (attempt + 1)); });
       }
-    } catch (error) {
-      return null;
     }
+    return null;
   }
 
   async function insertPinterestPin(boardId, folderId, sourcePin, blob, order) {
@@ -1624,15 +1862,380 @@
     return true;
   }
 
-  async function runPinterestImport(rawUrl) {
-    let normalized;
-    try {
-      normalized = normalizePinterestUrl(rawUrl);
-    } catch (error) {
-      setStatus(error.message, 'error', 1);
+  function pinterestBridge() {
+    const api = window.api;
+    if (!api || typeof api.pinterestConnect !== 'function' || typeof api.pinterestStatus !== 'function') return null;
+    return api;
+  }
+
+  function paintPinterestConnect() {
+    const bridge = pinterestBridge();
+    const dot = document.getElementById('mood-pinterest-dot');
+    const title = document.getElementById('mood-pinterest-connect-title');
+    const sub = document.getElementById('mood-pinterest-connect-sub');
+    const connect = document.getElementById('mood-pinterest-connect');
+    const disconnect = document.getElementById('mood-pinterest-disconnect');
+    const account = document.getElementById('mood-pinterest-account');
+    const accountName = document.getElementById('mood-pinterest-account-name');
+    const autoRow = document.getElementById('mood-pinterest-auto-sync-row');
+    const auto = document.getElementById('mood-pinterest-auto-sync');
+    const autoImportRow = document.getElementById('mood-pinterest-auto-import-row');
+    const autoImport = document.getElementById('mood-pinterest-auto-import');
+    const connected = Boolean(state.pinterest.connected && state.pinterest.username);
+
+    if (dot) dot.classList.toggle('is-on', connected);
+    if (!bridge) {
+      if (title) title.textContent = 'pinterest pelo link';
+      if (sub) sub.textContent = 'conectar a conta fica no app do computador; aqui você cola o link da pasta';
+      if (connect) connect.hidden = true;
+      if (disconnect) disconnect.hidden = true;
+      if (account) account.hidden = true;
+      if (autoRow) autoRow.hidden = true;
+      if (autoImportRow) autoImportRow.hidden = true;
       return;
     }
 
+
+    if (connected) {
+      if (title) title.textContent = 'pinterest conectado';
+      if (sub) sub.textContent = 'suas pastas podem entrar sozinhas, sem copiar link';
+      if (connect) connect.hidden = true;
+      if (disconnect) disconnect.hidden = false;
+      if (account) account.hidden = false;
+      if (accountName) accountName.textContent = '@' + state.pinterest.username;
+      if (autoRow) autoRow.hidden = false;
+      if (auto) auto.checked = Boolean(state.pinterest.autoSync);
+      if (autoImportRow) autoImportRow.hidden = true;
+    } else {
+      if (title) title.textContent = 'conectar pinterest';
+      if (sub) sub.textContent = 'entra uma vez e suas pastas entram sozinhas';
+      if (connect) connect.hidden = false;
+      if (disconnect) disconnect.hidden = true;
+      if (account) account.hidden = true;
+      if (autoRow) autoRow.hidden = true;
+      if (autoImportRow) autoImportRow.hidden = false;
+      if (autoImport) autoImport.checked = Boolean(state.pinterest.autoImport);
+    }
+  }
+
+  async function refreshPinterestStatus() {
+    const bridge = pinterestBridge();
+    if (!bridge) {
+      paintPinterestConnect();
+      return;
+    }
+    try {
+      const result = await bridge.pinterestStatus();
+      state.pinterest.connected = Boolean(result && result.connected);
+      state.pinterest.username = result && result.username ? result.username : '';
+      state.pinterest.name = result && result.name ? result.name : '';
+    } catch (error) {
+      state.pinterest.connected = false;
+    }
+    paintPinterestConnect();
+  }
+
+  function renderPinterestBoards() {
+    const box = document.getElementById('mood-pinterest-boards');
+    const list = document.getElementById('mood-pinterest-board-list');
+    if (!box || !list) return;
+    if (!state.pinterest.boards.length) {
+      box.hidden = true;
+      list.innerHTML = '';
+      return;
+    }
+    box.hidden = false;
+    list.innerHTML = state.pinterest.boards.map(function (board) {
+      const meta = [
+        plural(board.pinCount || 0, 'pin', 'pins'),
+        board.sectionCount ? plural(board.sectionCount, 'subpasta', 'subpastas') : '',
+        board.private ? 'oculta' : ''
+      ].filter(Boolean).join(' ‧ ');
+      return ''
+        + '<label class="mood-board-row">'
+        + '  <input type="checkbox" value="' + esc(board.id) + '" checked>'
+        + '  <span class="mood-board-row-info">'
+        + '    <span class="mood-board-row-name">' + esc(board.title) + '</span>'
+        + '    <span class="mood-board-row-meta">' + esc(meta) + '</span>'
+        + '  </span>'
+        + '</label>';
+    }).join('');
+  }
+
+  async function loadPinterestBoards() {
+    const bridge = pinterestBridge();
+    if (!bridge || state.pinterest.loading) return;
+    state.pinterest.loading = true;
+    const button = document.getElementById('mood-pinterest-load-boards');
+    if (button) button.disabled = true;
+    setStatus('buscando suas pastas no pinterest…', '', null);
+    try {
+      const result = await bridge.pinterestBoards();
+      if (!result || !result.ok) throw new Error((result && result.error) || 'não consegui listar suas pastas.');
+      state.pinterest.boards = Array.isArray(result.boards) ? result.boards : [];
+      state.pinterest.username = result.username || state.pinterest.username;
+      state.pinterest.name = result.name || state.pinterest.name;
+      paintPinterestConnect();
+      renderPinterestBoards();
+      setStatus(
+        state.pinterest.boards.length
+          ? state.pinterest.boards.length + ' pastas encontradas ‧ escolhe e importa'
+          : 'não encontrei pastas nessa conta.',
+        state.pinterest.boards.length ? 'success' : 'error',
+        state.pinterest.boards.length ? 1 : 1
+      );
+    } catch (error) {
+      setStatus(error && error.message ? error.message : 'não consegui listar suas pastas.', 'error', 1);
+    } finally {
+      state.pinterest.loading = false;
+      if (button) button.disabled = false;
+    }
+  }
+
+  async function connectPinterest() {
+    const bridge = pinterestBridge();
+    if (!bridge) return;
+    const button = document.getElementById('mood-pinterest-connect');
+    if (button) button.disabled = true;
+    setStatus('abrindo o pinterest pra você entrar…', '', null);
+    try {
+      const result = await bridge.pinterestConnect();
+      await refreshPinterestStatus();
+      if (state.pinterest.connected) {
+        setStatus('conectado como @' + state.pinterest.username + ' ‧ buscando suas pastas…', 'success', null);
+        await loadPinterestBoards();
+        if (state.pinterest.autoImport && state.pinterest.boards.length) {
+          await importSelectedPinterestBoards({ auto: true });
+        }
+      } else {
+        setStatus((result && result.error) || 'não consegui conectar sua conta do pinterest.', 'error', 1);
+      }
+    } catch (error) {
+      setStatus('não consegui abrir o login do pinterest agora.', 'error', 1);
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
+  async function disconnectPinterest() {
+    const bridge = pinterestBridge();
+    if (!bridge) return;
+    if (!window.confirm('desconectar a conta do pinterest? as pastas que você já importou continuam aqui.')) return;
+    try {
+      await bridge.pinterestDisconnect();
+    } catch (error) {
+      void error;
+    }
+    state.pinterest.connected = false;
+    state.pinterest.username = '';
+    state.pinterest.name = '';
+    state.pinterest.boards = [];
+    paintPinterestConnect();
+    renderPinterestBoards();
+    setStatus('desconectado do pinterest.', 'success', 1);
+    SMA.toast('pinterest desconectado');
+  }
+
+  function pinterestBoardUrl(board) {
+    if (board && board.sourceUrl) return board.sourceUrl;
+    const key = String((board && board.sourceKey) || '');
+    if (key.indexOf('pinterest:') === 0) {
+      const path = key.slice('pinterest:'.length).replace(/^\/+/, '');
+      if (path) return 'https://www.pinterest.com/' + path;
+    }
+    return '';
+  }
+
+  async function importPinterestBoard(rawUrl, options) {
+    const opts = options || {};
+    const report = typeof opts.report === 'function' ? opts.report : function () {};
+    const normalized = normalizePinterestUrl(rawUrl);
+
+    let parsed = null;
+    let appVersion = '';
+    try {
+      const page = await fetchPinterestText(normalized.url);
+      appVersion = page.appVersion || '';
+      parsed = parseBoardPage(page.text, normalized);
+      parsed.appVersion = appVersion;
+    } catch (error) {
+      parsed = null;
+    }
+
+    if (!parsed || !parsed.pins.length) {
+      try {
+        const boardPath = parsed && parsed.boardPath
+          ? parsed.boardPath
+          : (!normalized.short ? new URL(normalized.url).pathname : '');
+        if (boardPath) {
+          const rss = await fetchPinterestText('https://www.pinterest.com' + boardPath.replace(/\/+$/, '') + '.rss');
+          const rssBoard = parseBoardRss(rss.text, normalized);
+          if (!parsed) {
+            parsed = {
+              title: rssBoard.title,
+              description: '',
+              pins: rssBoard.pins,
+              boardPath: rssBoard.boardPath,
+              boardId: '',
+              pinCount: rssBoard.pins.length,
+              sectionCount: 0,
+              sections: [],
+              appVersion: rss.appVersion || ''
+            };
+          } else if (rssBoard.pins.length) {
+            parsed.pins = rssBoard.pins;
+          }
+        }
+      } catch (error) {
+        void error;
+      }
+    }
+
+    if (parsed && parsed.boardId && canUsePinterestApi()) {
+      report('puxando todas as páginas da pasta…', null);
+      const allPins = await collectAllBoardPins(parsed, normalized, appVersion || parsed.appVersion, {
+        report: report,
+        full: opts.full !== false
+      });
+      if (allPins && allPins.length) parsed.pins = allPins;
+    }
+
+    if (!parsed || !parsed.pins.length) {
+      if (normalized.short) {
+        throw new Error('não achei uma pasta nesse link curto. no celular, abre a pasta no pinterest (não um pin) → ⋯ → compartilhar → copiar link, e cola aqui. o pin.it da pasta funciona.');
+      }
+      throw new Error('não achei pins nessa pasta. confere se ela é pública e se o link é o da pasta, não do perfil.');
+    }
+
+    const boardPath = parsed.boardPath || (!normalized.short ? normalized.key.replace(/^pinterest:/, '') : '');
+    const sourceKey = boardPath
+      ? 'pinterest:' + boardPath.replace(/^\/+|\/+$/g, '').toLowerCase()
+      : normalized.key;
+    const sourceUrl = boardPath ? 'https://www.pinterest.com' + boardPath : normalized.url;
+
+    const privateBox = document.getElementById('mood-import-private');
+    const makePrivate = typeof opts.private === 'boolean' ? opts.private : Boolean(privateBox && privateBox.checked);
+    let board = state.boards.find(function (item) { return item.sourceKey === sourceKey; }) || null;
+    if (!board) {
+      board = {
+        id: uid('board'),
+        title: parsed.title || 'pasta do pinterest',
+        private: makePrivate,
+        source: 'pinterest',
+        sourceKey: sourceKey,
+        sourceUrl: sourceUrl,
+        pinCount: parsed.pinCount || 0,
+        sectionCount: parsed.sectionCount || parsed.sections.length,
+        createdAt: now(),
+        updatedAt: now()
+      };
+      await SMA.moodStore.saveBoard(board);
+      state.boards.push(board);
+    } else {
+      board.sourceUrl = sourceUrl;
+      board.pinCount = parsed.pinCount || board.pinCount || 0;
+      board.sectionCount = parsed.sectionCount || parsed.sections.length;
+      board.updatedAt = now();
+      await SMA.moodStore.saveBoard(board);
+    }
+
+    const sectionFolders = new Map();
+    for (const section of parsed.sections) {
+      if (!section.id || !section.title) continue;
+      let folder = state.folders.find(function (item) {
+        return item.boardId === board.id && !item.parentId && item.title.toLowerCase() === section.title.toLowerCase();
+      });
+      if (!folder) {
+        folder = await createFolder(board.id, null, section.title);
+        state.folders.push(folder);
+      }
+      sectionFolders.set(section.id, folder.id);
+    }
+
+    const existingPins = state.pins.filter(function (pin) { return pin.boardId === board.id; });
+    const existingKeys = new Set(existingPins.map(function (pin) { return pin.key; }));
+    const byKey = new Map(existingPins.map(function (pin) { return [pin.key, pin]; }));
+    const fresh = parsed.pins.filter(function (pin) { return !existingKeys.has(pin.key); });
+    const folderForPin = new Map();
+    parsed.pins.forEach(function (pin) {
+      folderForPin.set(pin.key, pin.sectionId ? sectionFolders.get(pin.sectionId) || null : null);
+    });
+
+    const moves = [];
+    parsed.pins.forEach(function (pin) {
+      const existing = byKey.get(pin.key);
+      if (!existing || !pin.sectionId) return;
+      const folderId = sectionFolders.get(pin.sectionId);
+      if (folderId && existing.folderId !== folderId) {
+        existing.folderId = folderId;
+        existing.updatedAt = now();
+        moves.push(SMA.moodStore.savePin(existing));
+      }
+    });
+    if (moves.length) await Promise.all(moves);
+
+    const orderForPin = new Map();
+    const groups = new Map();
+    fresh.forEach(function (pin) {
+      const folderId = folderForPin.get(pin.key) || null;
+      if (!groups.has(folderId)) groups.set(folderId, []);
+      groups.get(folderId).push(pin);
+    });
+    groups.forEach(function (group, folderId) {
+      let base = 0;
+      state.pins.forEach(function (pin) {
+        if (pin.boardId === board.id && (pin.folderId || null) === (folderId || null) && Number.isFinite(pin.order)) {
+          base = Math.max(base, pin.order);
+        }
+      });
+      group.forEach(function (pin, index) {
+        orderForPin.set(pin.key, base + group.length - index);
+      });
+    });
+
+    let saved = 0;
+    let remote = 0;
+    let cursor = 0;
+    const total = fresh.length;
+    const workers = [];
+    const workerCount = Math.min(3, total);
+    for (let w = 0; w < workerCount; w += 1) {
+      workers.push((async function () {
+        while (cursor < total) {
+          const index = cursor;
+          cursor += 1;
+          const sourcePin = fresh[index];
+          let blob = null;
+          try {
+            blob = await downloadPinterestImage(sourcePin.imageUrl);
+          } catch (error) {
+            blob = null;
+          }
+          const folderId = folderForPin.get(sourcePin.key) || null;
+          const ok = await insertPinterestPin(board.id, folderId, sourcePin, blob, orderForPin.get(sourcePin.key) || 1);
+          if (ok) {
+            saved += 1;
+            if (!blob) remote += 1;
+          }
+          report('guardando ' + Math.min(cursor, total) + ' de ' + total + ' fotos…', total ? Math.min(cursor, total) / total : 1);
+        }
+      })());
+    }
+    await Promise.all(workers);
+
+    await touchBoard(board.id);
+    return {
+      board: board,
+      saved: saved,
+      remote: remote,
+      total: parsed.pins.length,
+      fresh: fresh.length,
+      pinCount: parsed.pinCount || 0,
+      sections: parsed.sections.length
+    };
+  }
+
+  async function runPinterestImport(rawUrl) {
     const button = document.getElementById('mood-pinterest-go');
     const input = document.getElementById('mood-pinterest-url');
     if (button) button.disabled = true;
@@ -1640,119 +2243,19 @@
     setStatus('abrindo a pasta no pinterest…', '', null);
 
     try {
-      let parsed = null;
-      try {
-        const html = await fetchPinterestText(normalized.url);
-        parsed = parseBoardPage(html, normalized);
-      } catch (error) {
-        parsed = null;
-      }
-
-      if (parsed && parsed.boardId) {
-        setStatus('puxando todos os pins da pasta…', '', null);
-        const allPins = await collectAllBoardPins(parsed, normalized);
-        if (!allPins || !allPins.length) {
-          throw new Error('não consegui confirmar todos os pins dessa pasta. a importação foi interrompida para não salvar só uma parte.');
+      const result = await importPinterestBoard(rawUrl, {
+        report: function (text, progress) {
+          setStatus(text, '', progress);
         }
-        parsed.pins = allPins;
-      }
-
-      if (!parsed || !parsed.pins.length) {
-        if (normalized.short) {
-          throw new Error('não achei uma pasta nesse link curto. no celular, abre a pasta no pinterest (não um pin) → ⋯ → compartilhar → copiar link, e cola aqui. o pin.it da pasta funciona.');
-        }
-        throw new Error('não achei pins nessa pasta. confere se ela é pública e se o link é o da pasta, não o do perfil.');
-      }
-
-      const boardPath = parsed.boardPath || (!normalized.short ? normalized.key.replace(/^pinterest:/, '') : '');
-      const sourceKey = boardPath
-        ? 'pinterest:' + boardPath.replace(/^\/+|\/+$/g, '').toLowerCase()
-        : normalized.key;
-
-      const privateBox = document.getElementById('mood-import-private');
-      const makePrivate = Boolean(privateBox && privateBox.checked);
-      let board = state.boards.find(function (item) { return item.sourceKey === sourceKey; }) || null;
-      if (!board) {
-        board = {
-          id: uid('board'),
-          title: parsed.title || 'pasta do pinterest',
-          private: makePrivate,
-          source: 'pinterest',
-          sourceKey: sourceKey,
-          createdAt: now(),
-          updatedAt: now()
-        };
-        await SMA.moodStore.saveBoard(board);
-      } else {
-        board.updatedAt = now();
-        await SMA.moodStore.saveBoard(board);
-      }
-
-      const sectionFolders = new Map();
-      for (const section of parsed.sections) {
-        if (!section.id || !section.title) continue;
-        let folder = state.folders.find(function (item) {
-          return item.boardId === board.id && !item.parentId && item.title.toLowerCase() === section.title.toLowerCase();
-        });
-        if (!folder) {
-          folder = await createFolder(board.id, null, section.title);
-          state.folders.push(folder);
-        }
-        sectionFolders.set(section.id, folder.id);
-      }
-
-      const existing = new Set(state.pins
-        .filter(function (pin) { return pin.boardId === board.id; })
-        .map(function (pin) { return pin.key; }));
-      const fresh = parsed.pins.filter(function (pin) { return !existing.has(pin.key); });
-      const folderForPin = new Map();
-      parsed.pins.forEach(function (pin) {
-        folderForPin.set(pin.key, pin.sectionId ? sectionFolders.get(pin.sectionId) || null : null);
       });
-      const orderForPin = new Map();
-      const groups = new Map();
-      fresh.forEach(function (pin) {
-        const folderId = folderForPin.get(pin.key) || null;
-        if (!groups.has(folderId)) groups.set(folderId, []);
-        groups.get(folderId).push(pin);
-      });
-      groups.forEach(function (group, folderId) {
-        let base = 0;
-        state.pins.forEach(function (pin) {
-          if (pin.boardId === board.id && (pin.folderId || null) === (folderId || null) && Number.isFinite(pin.order)) {
-            base = Math.max(base, pin.order);
-          }
-        });
-        group.forEach(function (pin, index) {
-          orderForPin.set(pin.key, base + group.length - index);
-        });
-      });
-
-      let saved = 0;
-      let offline = 0;
-      let remote = 0;
-
-      for (let index = 0; index < fresh.length; index += 1) {
-        const sourcePin = fresh[index];
-        setStatus('guardando ' + (index + 1) + ' de ' + fresh.length + ' fotos…', '', index / Math.max(1, fresh.length));
-        const blob = await downloadPinterestImage(sourcePin.imageUrl);
-        const folderId = folderForPin.get(sourcePin.key) || null;
-        const ok = await insertPinterestPin(board.id, folderId, sourcePin, blob, orderForPin.get(sourcePin.key) || 1);
-        if (ok) {
-          saved += 1;
-          if (blob) offline += 1; else remote += 1;
-        }
-      }
-
-      await touchBoard(board.id);
       await refresh();
-      state.filter = board.private ? 'private' : 'public';
+      state.filter = result.board.private ? 'private' : 'public';
       closeImportModal();
-      openBoard(board.id);
+      openBoard(result.board.id);
 
-      if (saved) {
-        let message = plural(saved, 'pin novo', 'pins novos') + ' ‧°✧';
-        if (remote) message += ' (' + remote + ' só aparece com internet)';
+      if (result.saved) {
+        let message = plural(result.saved, 'pin novo', 'pins novos') + ' ‧°✧';
+        if (result.remote) message += ' (' + result.remote + ' só aparece com internet)';
         SMA.toast(message);
       } else {
         SMA.toast('essa pasta já tava em dia ‧ nenhum pin novo');
@@ -1763,6 +2266,139 @@
     } finally {
       if (button) button.disabled = false;
     }
+  }
+
+  async function importSelectedPinterestBoards(options) {
+    const opts = options || {};
+    const ids = SMA.selectAll('#mood-pinterest-board-list input[type="checkbox"]:checked').map(function (input) {
+      return input.value;
+    });
+    const selected = state.pinterest.boards.filter(function (board) {
+      return ids.indexOf(board.id) !== -1;
+    });
+    if (!selected.length) {
+      setStatus('marca pelo menos uma pasta pra importar.', 'error', 1);
+      return;
+    }
+    if (selected.length > 40 && !window.confirm('você marcou ' + selected.length + ' pastas. importar todas agora pode demorar. continuar?')) {
+      setStatus('tudo bem ‧ escolhe as pastas e toca em importar selecionadas.', '', 1);
+      return;
+    }
+    const button = document.getElementById('mood-pinterest-import-selected');
+    if (button) button.disabled = true;
+    let saved = 0;
+    let failed = 0;
+    try {
+      for (let index = 0; index < selected.length; index += 1) {
+        const board = selected[index];
+        setStatus('pasta ' + (index + 1) + ' de ' + selected.length + ' ‧ ' + board.title, '', index / selected.length);
+        try {
+          const result = await importPinterestBoard(board.url, {
+            private: board.private,
+            report: function (text, progress) {
+              const base = index / selected.length;
+              setStatus('pasta ' + (index + 1) + ' de ' + selected.length + ' ‧ ' + text, '', base + (progress == null ? 0 : progress / selected.length));
+            }
+          });
+          saved += result.saved;
+        } catch (error) {
+          failed += 1;
+        }
+      }
+      await refresh();
+      closeImportModal();
+      state.filter = 'public';
+      render();
+      let message = saved ? plural(saved, 'pin novo', 'pins novos') + ' ‧°✧' : 'nenhum pin novo por aqui';
+      if (failed) message += ' ‧ ' + plural(failed, 'pasta falhou', 'pastas falharam');
+      SMA.toast(message);
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
+  async function syncPinterestBoards(options) {
+    if (pinterestSyncing) return;
+    const opts = options || {};
+    const boards = state.boards.filter(function (board) {
+      return board.source === 'pinterest' && Boolean(pinterestBoardUrl(board));
+    });
+    if (!boards.length) {
+      if (!opts.quiet) SMA.toast('nenhuma pasta do pinterest pra sincronizar ainda');
+      return;
+    }
+    pinterestSyncing = true;
+    let saved = 0;
+    let failed = 0;
+    const report = function (text, progress) {
+      if (importModalOpen()) setStatus(text, '', progress);
+      else setBusy(text);
+    };
+    try {
+      for (let index = 0; index < boards.length; index += 1) {
+        const board = boards[index];
+        try {
+          const result = await importPinterestBoard(pinterestBoardUrl(board), {
+            full: false,
+            report: function (text, progress) {
+              const base = index / boards.length;
+              report('sincronizando ' + (index + 1) + ' de ' + boards.length + ' ‧ ' + board.title + ' ‧ ' + text, base + (progress == null ? 0 : progress / boards.length));
+            }
+          });
+          saved += result.saved;
+        } catch (error) {
+          failed += 1;
+        }
+      }
+      SMA.writeText('sma_pinterest_last_sync', String(Date.now()));
+      await refresh();
+      render();
+      if (saved) {
+        SMA.toast(plural(saved, 'pin novo', 'pins novos') + ' chegaram do pinterest ‧°✧');
+      } else if (!opts.quiet) {
+        SMA.toast(failed ? 'algumas pastas não sincronizaram agora' : 'tudo em dia no pinterest ✧');
+      }
+    } finally {
+      pinterestSyncing = false;
+      finishReport();
+    }
+  }
+
+  async function syncPinterestBoard(board) {
+    const url = pinterestBoardUrl(board);
+    if (!url) {
+      SMA.toast('essa pasta não tem um link do pinterest salvo');
+      return;
+    }
+    setBusy('sincronizando “' + board.title + '”…');
+    try {
+      const result = await importPinterestBoard(url, {
+        report: function (text) {
+          setBusy('sincronizando “' + board.title + '” ‧ ' + text);
+        }
+      });
+      await refresh();
+      render();
+      if (result.saved) SMA.toast(plural(result.saved, 'pin novo', 'pins novos') + ' ‧°✧');
+      else SMA.toast('essa pasta já tava em dia ✧');
+    } catch (error) {
+      SMA.toast(error && error.message ? error.message : 'não consegui sincronizar essa pasta agora', 'error');
+    } finally {
+      finishReport();
+    }
+  }
+
+  function maybeAutoSyncPinterest() {
+    if (!state.pinterest.connected || !state.pinterest.autoSync) return;
+    const boards = state.boards.filter(function (board) {
+      return board.source === 'pinterest' && Boolean(pinterestBoardUrl(board));
+    });
+    if (!boards.length) return;
+    const last = Number(SMA.readText('sma_pinterest_last_sync', '0')) || 0;
+    if (Date.now() - last < 30 * 60 * 1000) return;
+    setTimeout(function () {
+      syncPinterestBoards({ quiet: true, auto: true });
+    }, 1400);
   }
 
   function imageFilesFrom(list) {
@@ -2088,6 +2724,7 @@
     if (action === 'new-board') { askNewBoard(); return; }
     if (action === 'new-folder') { askNewFolder(); return; }
     if (action === 'open-import') { openImportModal(); return; }
+    if (action === 'sync-pinterest') { syncPinterestBoards(); return; }
     if (action === 'toggle-organize') {
       state.organize = !state.organize;
       state.dragPinId = null;
@@ -2260,6 +2897,38 @@
     SMA.selectAll('[data-mood-import-tab]').forEach(function (button) {
       button.addEventListener('click', function () { setImportTab(button.dataset.moodImportTab); });
     });
+    const connect = document.getElementById('mood-pinterest-connect');
+    if (connect) connect.addEventListener('click', connectPinterest);
+    const disconnect = document.getElementById('mood-pinterest-disconnect');
+    if (disconnect) disconnect.addEventListener('click', disconnectPinterest);
+    const loadBoards = document.getElementById('mood-pinterest-load-boards');
+    if (loadBoards) loadBoards.addEventListener('click', loadPinterestBoards);
+    const syncAll = document.getElementById('mood-pinterest-sync-all');
+    if (syncAll) syncAll.addEventListener('click', function () { syncPinterestBoards(); });
+    const selectAll = document.getElementById('mood-pinterest-select-all');
+    if (selectAll) selectAll.addEventListener('click', function () {
+      const inputs = SMA.selectAll('#mood-pinterest-board-list input[type="checkbox"]');
+      const allChecked = inputs.length > 0 && inputs.every(function (input) { return input.checked; });
+      inputs.forEach(function (input) { input.checked = !allChecked; });
+    });
+    const importSelected = document.getElementById('mood-pinterest-import-selected');
+    if (importSelected) importSelected.addEventListener('click', importSelectedPinterestBoards);
+    const autoSync = document.getElementById('mood-pinterest-auto-sync');
+    if (autoSync) {
+      autoSync.addEventListener('change', function () {
+        state.pinterest.autoSync = Boolean(autoSync.checked);
+        SMA.writeJSON('sma_pinterest_auto_sync', state.pinterest.autoSync);
+        if (state.pinterest.autoSync) maybeAutoSyncPinterest();
+      });
+    }
+    const autoImport = document.getElementById('mood-pinterest-auto-import');
+    if (autoImport) {
+      autoImport.addEventListener('change', function () {
+        state.pinterest.autoImport = Boolean(autoImport.checked);
+        SMA.writeJSON('sma_pinterest_auto_import', state.pinterest.autoImport);
+      });
+    }
+
     const go = document.getElementById('mood-pinterest-go');
     const urlInput = document.getElementById('mood-pinterest-url');
     if (go) {
@@ -2335,6 +3004,11 @@
 
     refresh().then(function () {
       render();
+      paintPinterestConnect();
+      refreshPinterestStatus().then(function () {
+        if (state.view === 'shelf') render();
+        maybeAutoSyncPinterest();
+      });
     }).catch(function () {
       render();
     });

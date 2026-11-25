@@ -122,7 +122,23 @@
           </svg>
           Moodboard
         </button>
-        <button class="nav-tab-btn" data-tab="tab-shift-scripts" type="button">♡ Scripts</button>
+        <button class="nav-tab-btn" data-tab="tab-scripts" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            <path d="M14 17h7M17.5 14v7"></path>
+          </svg>
+          Scripts
+        </button>
+        <button class="nav-tab-btn" data-tab="tab-little-place" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+          </svg>
+          Little Place
+        </button>
+        <button class="nav-tab-btn" data-tab="tab-shift-scripts" type="button">♡ Shift Scripts</button>
         <button class="nav-tab-btn" data-tab="tab-planner" type="button">Calendar</button>
       </nav>
 
@@ -296,9 +312,24 @@
         <section id="tab-moodboard" class="tab-pane">
           <div id="mood-root" class="mood-root"></div>
         </section>
+
+        <section id="tab-scripts" class="tab-pane">
+          <div id="scripts-root" class="scripts-root"></div>
+        </section>
+
+        <section id="tab-little-place" class="tab-pane">
+          <iframe
+            id="little-place-frame"
+            class="little-place-frame"
+            title="Little Place - Diário e Adesivos"
+            data-src="little-place/index.html"
+          ></iframe>
+        </section>
+
         <section id="tab-shift-scripts" class="tab-pane">
           <div id="shift-scripts-root"></div>
         </section>
+
         <section id="tab-planner" class="tab-pane">
           <div id="planner-root"></div>
         </section>
@@ -510,13 +541,46 @@
         </div>
 
         <div class="mood-import-panel" data-mood-panel="pinterest">
+          <div class="mood-connect" id="mood-pinterest-connect-box">
+            <div class="mood-connect-copy">
+              <span class="mood-connect-dot" id="mood-pinterest-dot" aria-hidden="true"></span>
+              <div>
+                <strong id="mood-pinterest-connect-title">conectar pinterest</strong>
+                <small id="mood-pinterest-connect-sub">entra uma vez e suas pastas entram sozinhas</small>
+              </div>
+            </div>
+            <button class="mood-btn mood-btn-dark" id="mood-pinterest-connect" type="button">conectar</button>
+            <button class="mood-btn" id="mood-pinterest-disconnect" type="button" hidden>desconectar</button>
+          </div>
+          <label class="mood-check mood-check-sync" id="mood-pinterest-auto-import-row"><input type="checkbox" id="mood-pinterest-auto-import" checked> quando eu conectar, importar todas as minhas pastas</label>
+
+          <div class="mood-account" id="mood-pinterest-account" hidden>
+            <span class="mood-account-name" id="mood-pinterest-account-name"></span>
+            <div class="mood-account-actions">
+              <button class="mood-btn" id="mood-pinterest-load-boards" type="button">ver minhas pastas</button>
+              <button class="mood-btn mood-btn-dark" id="mood-pinterest-sync-all" type="button">sincronizar todas</button>
+            </div>
+          </div>
+          <label class="mood-check mood-check-sync" id="mood-pinterest-auto-sync-row" hidden><input type="checkbox" id="mood-pinterest-auto-sync" checked> sincronizar minhas pastas quando abrir o app</label>
+
+          <div class="mood-board-picker" id="mood-pinterest-boards" hidden>
+            <div class="mood-board-picker-head">
+              <strong>suas pastas no pinterest</strong>
+              <button class="mood-link-btn" id="mood-pinterest-select-all" type="button">marcar todas</button>
+            </div>
+            <div class="mood-board-picker-list" id="mood-pinterest-board-list"></div>
+            <button class="btn-primary" id="mood-pinterest-import-selected" type="button">importar selecionadas</button>
+          </div>
+
+          <div class="mood-divider"><span>ou cola o link da pasta</span></div>
+
           <label class="mood-label" for="mood-pinterest-url">link da pasta (pinterest ou pin.it)</label>
           <div class="mood-url-row">
             <input class="form-input" id="mood-pinterest-url" type="url" placeholder="https://pin.it/... ou pinterest.com/usuario/pasta/" autocomplete="off" spellcheck="false">
             <button class="btn-primary" id="mood-pinterest-go" type="button">importar</button>
           </div>
           <label class="mood-check"><input type="checkbox" id="mood-import-private"> importar como pasta oculta</label>
-          <p class="mood-import-hint"><strong>no celular:</strong> abre a pasta no pinterest (não um pin) → compartilhar → copiar link.<br>as seções do pinterest viram subpastas aqui. se você adicionar pins novos depois, importe o mesmo link novamente.<br>no navegador o pinterest às vezes bloqueia ou limita a 25 pins; no app vem todos.</p>
+          <p class="mood-import-hint"><strong>no celular:</strong> abre a pasta no pinterest (não um pin) → ⋯ → compartilhar → copiar link. pode colar o link completo, o <strong>pin.it</strong> da pasta ou até o textinho do compartilhamento — eu acho o link no meio.<br>puxo <strong>todas as imagens</strong> da pasta, página por página, e as seções do pinterest viram subpastas aqui. se você adicionar pins novos lá depois, é só sincronizar de novo.<br>no navegador o pinterest às vezes bloqueia ou limita a 25 pins; no app do computador vem todos e dá pra conectar sua conta.</p>
           <div class="mood-import-status" id="mood-import-status" hidden>
             <div class="mood-import-bar"><span id="mood-import-bar"></span></div>
             <p class="mood-import-status-text"></p>
@@ -796,6 +860,7 @@
   <script src="js/timer.js"></script>
   <script src="js/books.js"></script>
   <script src="js/moodboard.js"></script>
+  <script src="js/scripts.js"></script>
   <script src="js/updater.js"></script>
   <script src="js/reminders.js"></script>
   <script src="js/calendar-style.js"></script>

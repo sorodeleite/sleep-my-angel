@@ -1,0 +1,28 @@
+/* ═════════════════════════════════════════════════════════════════
+   ✧ AS CARINHAS DO IPHONE (funcionam em QUALQUER aparelho) ✧
+   ------------------------------------------------------------------
+   O "Apple Color Emoji" só existe nos aparelhos da Apple. Pra pessoa
+   escolher as carinhas do iPhone também no computador, o app leva
+   junto um fontinho de bitmaps com os desenhos da Apple (64px, cores
+   quantizadas) — do mesmo jeitinho que o Noto Color Emoji do Android.
+
+   ⚠️ o arquivo é um .ttf (e NÃO um .woff2): o Chrome não abre as
+   tabelas de bitmap (CBDT) quando elas vêm embrulhadas num woff2 —
+   ele dá erro na fonte e cai no emoji do sistema. O TTF vai inteirinho
+   e funciona no Chrome, no Edge, no Opera e no Android.
+
+   Quem monta esse arquivo é o `scripts/build-emoji-font.py` (com o
+   pacote `emoji-datasource-apple`); os desenhos são da Apple (© Apple
+   Inc.), então ele só entra quando a pessoa escolhe "iPhone".
+
+   No Firefox não dá pra desenhar fonte de bitmap: lá o app fica com as
+   carinhas do aparelho (e avisa na configuração), pra nenhum emoji
+   sumir. ✧
+   ═════════════════════════════════════════════════════════════════ */
+@font-face {
+  font-family: 'Pooftie Apple Emoji';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('apple-emoji.ttf') format('truetype');
+}
