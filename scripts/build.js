@@ -28,6 +28,7 @@ function copyDirectory(name, destination) {
     recursive: true,
     filter: function (file) {
       if (/\.(azw3|azw|mobi|prc)$/i.test(file)) return false;
+      if (/assets[\\/]books[\\/]texto[\\/].*\.txt$/i.test(file)) return false;
       return true;
     }
   });

@@ -1,6 +1,6 @@
 {
   "name": "sleep-my-angel",
-  "version": "1.11.0",
+  "version": "1.13.0",
   "private": true,
   "description": "cozy sleep companion with rain, ambient frequencies, affirmations and night rituals",
   "main": "main.js",
@@ -10,6 +10,7 @@
     "serve": "node scripts/serve.js",
     "build": "node scripts/build.js",
     "books": "node scripts/prepare-books.js",
+    "books:ocr": "node scripts/ocr-to-text.js --all",
     "audio:manifest": "node scripts/audio-manifest.js",
     "cap:sync": "node scripts/build.js && npx cap sync android"
   },
@@ -29,7 +30,8 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.6.0",
-    "electron": "^40.8.0"
+    "electron": "^40.8.0",
+    "tesseract.js": "^5.1.1"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",

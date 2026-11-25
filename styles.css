@@ -2979,6 +2979,13 @@ body {
   white-space: pre-wrap;
 }
 
+.reader-view-text .reader-text-loading {
+  opacity: 0.6;
+  font-style: italic;
+  text-align: center;
+  white-space: normal;
+}
+
 .reader-view-pdf {
   overflow: auto;
   padding: 24px;

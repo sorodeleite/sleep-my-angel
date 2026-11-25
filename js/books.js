@@ -1290,6 +1290,7 @@
     el.tocList.textContent = '';
     if (el.marksList) el.marksList.textContent = '';
     setTocVisibility(false);
+    if (el.textButton) el.textButton.hidden = true;
     setCleanMode(false, false);
     closeModeMenu();
     hideHighlightBar();
@@ -1314,8 +1315,10 @@
     }
     try { if (reader.rendition) reader.rendition.destroy(); } catch (error) {}
     try { if (reader.book) reader.book.destroy(); } catch (error) {}
+    try { if (reader.pdf && typeof reader.pdf.destroy === 'function') reader.pdf.destroy(); } catch (error) {}
     try { if (reader.url) URL.revokeObjectURL(reader.url); } catch (error) {}
     reader = null;
+    if (el.textButton) el.textButton.hidden = true;
     setCleanMode(false, false);
     closeModeMenu();
     hideHighlightBar();
@@ -1330,7 +1333,7 @@
   async function openBook(book) {
     showReaderShell(book);
     const saved = progress[book.id] || {};
-    reader = { id: book.id, type: book.format, book: null, rendition: null, url: '', pdf: null, page: saved.page || 1, pages: 0 };
+    reader = { id: book.id, type: book.format, book: null, rendition: null, url: '', pdf: null, page: saved.page || 1, pages: 0, fromPdf: false, pdfHasText: false, pdfText: null, mode: '' };
     renderBookmarks();
     paintMarkButton();
     try {
@@ -1455,7 +1458,11 @@
       showHighlightBar();
     });
     if (saved.cfi) {
-      await rendition.display(saved.cfi);
+      try {
+        await rendition.display(saved.cfi);
+      } catch (error) {
+        await rendition.display();
+      }
     } else {
       await rendition.display();
     }
@@ -1483,17 +1490,120 @@
       return;
     }
     reader.type = 'pdf';
+    reader.fromPdf = true;
     setTocVisibility(false);
     window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
     const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     reader.pdf = pdf;
     reader.pages = pdf.numPages;
     reader.page = SMA.clamp(Number(saved.page) || 1, 1, pdf.numPages);
+
+    // pdf de scanner não tem texto: aí o botão de texto nem aparece
+    reader.pdfHasText = await SMA.pdfText.hasSelectableText(pdf);
+    paintTextModeButton();
+
+    if (reader.pdfHasText && saved.mode === 'text') {
+      await renderPdfTextMode(saved);
+      return;
+    }
+    renderPdfPageMode(saved);
+  }
+
+  function paintTextModeButton() {
+    if (!el.textButton) return;
+    const available = Boolean(reader && reader.fromPdf && reader.pdfHasText);
+    el.textButton.hidden = !available;
+    if (!available) return;
+    const inText = reader.type === 'text';
+    el.textButton.textContent = inText ? 'página' : 'texto';
+    el.textButton.title = inText
+      ? 'ver a página do jeito que ela é'
+      : 'ler como texto ‧ modo escuro, marcação e letra maior';
+    el.textButton.setAttribute('aria-pressed', String(inText));
+    el.textButton.classList.toggle('active', inText);
+  }
+
+  function renderPdfPageMode(saved) {
+    if (!reader) return;
+    reader.type = 'pdf';
+    reader.mode = 'page';
     el.view.className = 'reader-view reader-view-pdf';
+    el.view.textContent = '';
+    el.view.onscroll = null;
+    reader.page = SMA.clamp(Number((saved && saved.page) || reader.page) || 1, 1, reader.pages || 1);
     const canvas = document.createElement('canvas');
     canvas.className = 'pdf-page';
     el.view.appendChild(canvas);
-    await renderPdfPage(canvas);
+    paintTextModeButton();
+    renderPdfPage(canvas);
+  }
+
+  async function renderPdfTextMode(saved) {
+    if (!reader || !reader.pdf) return;
+    const target = reader;
+    reader.type = 'text';
+    reader.mode = 'text';
+    el.view.className = 'reader-view reader-view-text reader-view-pdftext';
+    el.view.textContent = '';
+    el.view.onscroll = null;
+    paintTextModeButton();
+
+    if (!reader.pdfText) {
+      const loading = document.createElement('p');
+      loading.className = 'reader-text-loading';
+      loading.textContent = 'preparando o texto desse pdf…';
+      el.view.appendChild(loading);
+      if (el.progressLabel) el.progressLabel.textContent = 'preparando';
+      const paragraphs = await SMA.pdfText.paragraphs(reader.pdf, function (done, total) {
+        if (!el.progressLabel || !reader || reader !== target) return;
+        el.progressLabel.textContent = Math.round((done / total) * 100) + '%';
+      });
+      if (!reader || reader !== target) return;
+      reader.pdfText = paragraphs;
+    }
+
+    el.view.textContent = '';
+    if (!reader.pdfText.length) {
+      const empty = document.createElement('p');
+      empty.className = 'reader-empty';
+      empty.textContent = 'esse pdf não tem texto selecionável — só imagem.';
+      el.view.appendChild(empty);
+      return;
+    }
+    reader.pdfText.forEach(function (text) {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = text;
+      el.view.appendChild(paragraph);
+    });
+    applyTextHighlights();
+    applyReaderFontSize();
+
+    const reportScroll = function () {
+      if (!reader) return;
+      const max = el.view.scrollHeight - el.view.clientHeight;
+      const percent = max > 0 ? SMA.clamp((el.view.scrollTop / max) * 100, 0, 100) : 0;
+      updateReaderProgress(percent, Math.round(percent) + '%');
+      saveProgress({ id: reader.id }, percent, { mode: 'text', scroll: Math.round(el.view.scrollTop) });
+    };
+    el.view.onscroll = reportScroll;
+    const startScroll = Number((saved && saved.scroll) || 0);
+    el.view.scrollTop = startScroll > 0 ? startScroll : 0;
+    reportScroll();
+    paintMarkButton();
+  }
+
+  async function togglePdfTextMode() {
+    if (!reader || !reader.fromPdf || !reader.pdfHasText) return;
+    const saved = progress[reader.id] || {};
+    if (reader.type === 'text') {
+      renderPdfPageMode(saved);
+      SMA.toast('agora é a página ‧ toque em texto pra voltar');
+      return;
+    }
+    await renderPdfTextMode({});
+    if (reader && reader.type === 'text' && reader.pdfText && reader.pdfText.length) {
+      SMA.toast('modo texto ‧ marque à vontade ‧°');
+    }
   }
 
   async function renderPdfPage(canvas) {
@@ -1513,7 +1623,7 @@
     await page.render({ canvasContext: context, viewport: viewport }).promise;
     const percent = (reader.page / reader.pages) * 100;
     updateReaderProgress(percent, reader.page + ' / ' + reader.pages);
-    saveProgress({ id: reader.id }, percent, { page: reader.page });
+    saveProgress({ id: reader.id }, percent, { page: reader.page, mode: 'page' });
   }
 
   async function pdfNext(direction) {
@@ -1578,6 +1688,13 @@
 
   function seekReader(value) {
     if (!reader) return;
+    if (reader.type === 'text') {
+      const max = el.view.scrollHeight - el.view.clientHeight;
+      if (max > 0) {
+        el.view.scrollTop = (SMA.clamp(Number(value) || 0, 0, 100) / 100) * max;
+      }
+      return;
+    }
     if (reader.type === 'pdf' && reader.pages) {
       const page = Math.max(1, Math.round((value / 100) * reader.pages));
       reader.page = page;
@@ -1648,6 +1765,11 @@
       seekReader(Number(el.progress.value));
       paintMarkButton();
     });
+    if (el.textButton) {
+      el.textButton.addEventListener('click', function () {
+        togglePdfTextMode();
+      });
+    }
     el.coverInput.addEventListener('change', function (event) {
       const file = event.target.files && event.target.files[0];
       event.target.value = '';
@@ -1776,6 +1898,7 @@
     el.markButton = SMA.select('#reader-mark-btn');
     el.marksButton = SMA.select('#reader-marks-btn');
     el.tocButton = SMA.select('#reader-toc-btn');
+    el.textButton = SMA.select('#reader-text-btn');
     el.toc = SMA.select('#reader-toc');
     el.tocHead = SMA.select('#reader-toc-head');
     el.tocTitle = SMA.select('#reader-toc-title');

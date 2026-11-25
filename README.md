@@ -30,6 +30,7 @@ leia a [**Política de Privacidade**](https://github.com/sorodeleite/sleep-my-an
 - **meditações com nome e autor** — os arquivos seguem `nome_pessoa`, e o cartão mostra a meditação primeiro e a pessoa embaixo. elas vão **dentro do apk** (versão leve em `media/`), então tocam offline no celular.
 - **notion script** — importa a página do notion com **imagens, cores, colunas, callouts e subpáginas** dentro da mesma nota, do jeitinho que eu vejo lá. também aceita `.docx`, `.pdf`, texto colado e print.
 - **estante** estilo kindle pra `.epub`, `.pdf` e `.txt`, com índice, progresso salvo, tema sépia/claro/escuro e troca de capa, nome e autor.
+- **modo texto no pdf** — o pdf abre na página como sempre, mas o botão **texto** refaz ele em parágrafos: letra do tamanho que quiser, tema escuro e trechos marcados. livro escaneado (só imagem) continua na página, porque aí precisa de OCR.
 - **cookbook** com receitinhas da noite em cartões, ingredientes e passos que dá pra ir marcando.
 - **afirmações da suposição** com leitura em voz alta pra ouvir deitada.
 - **contador** de 15 min a 2 horas, com chuva suave, na janela ou forte tocando em loop e sumindo junto com o som.
@@ -95,6 +96,21 @@ node scripts/prepare-books.js
 ```
 
 ele usa o **Calibre** pra converter `.azw3`, `.mobi` e `.prc`, tirar a capa e atualizar o manifest. também dá pra importar livro direto pelo botão **importar livro**.
+
+#### quando o livro é só imagem (o "epub que é pdf")
+
+alguns livros chegam escaneados: cada página é uma foto, então a estante mostra só as imagens — sem modo escuro de verdade, sem selecionar texto e sem marcação. pra virar texto mesmo:
+
+```bash
+npm run books:ocr            # converte todos os livros que forem só imagem
+node scripts/ocr-to-text.js "assets/books/epub/livro.epub"   # ou só um
+```
+
+o script pega as páginas na ordem certa, passa pelo OCR e monta um epub novo em `assets/books/texto/`, com parágrafos, sumário e capa. o `prepare-books.js` prefere essa versão quando ela existe, então é só rodar `npm run books` depois.
+
+o motor padrão é o **tesseract.js** (melhor leitura de página escaneada); se ele não estiver disponível, o script cai pro OCR do **próprio Windows** (pt-BR, sem instalar nada). o resultado fica em `assets/books/texto/<livro>.txt` também, pra conferir antes de ler.
+
+depois de convertido, o livro abre no leitor normal: fonte do tamanho que você quiser, tema escuro, marcação colorida e o progresso salvo.
 
 <br />
 

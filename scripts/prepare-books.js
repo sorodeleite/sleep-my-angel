@@ -164,6 +164,13 @@ function main() {
       file = epubPath;
     }
 
+    // versão em texto (OCR de livro escaneado, gerada por scripts/ocr-to-text.js)
+    const textVersion = path.join(booksDir, 'texto', slug + '.epub');
+    if (fs.existsSync(textVersion)) {
+      file = textVersion;
+      format = 'epub';
+    }
+
     const coverName = slug + '.jpg';
     const coverPath = path.join(coversDir, coverName);
     const temporaryCover = path.join(coversDir, '.cover-' + process.pid + '.jpg');
